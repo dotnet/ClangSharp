@@ -8,18 +8,20 @@ namespace ClangSharp;
 
 public class ConstantArrayType : ArrayType
 {
-    private ValueLazy<Expr> _sizeExpr;
+    private ValueLazy<ConstantArrayType, Expr> _sizeExpr;
 
     internal ConstantArrayType(CXType handle) : this(handle, CXType_ConstantArray, CX_TypeClass_ConstantArray)
     {
     }
 
-    private protected ConstantArrayType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
+    private protected unsafe ConstantArrayType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        _sizeExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SizeExpr));
+        _sizeExpr = new ValueLazy<ConstantArrayType, Expr>(&SizeExprFactory);
     }
 
     public long Size => Handle.ArraySize;
 
-    public Expr SizeExpr => _sizeExpr.Value;
+    public Expr SizeExpr => _sizeExpr.GetValue(this);
+
+    private static unsafe Expr SizeExprFactory(ConstantArrayType self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.SizeExpr);
 }

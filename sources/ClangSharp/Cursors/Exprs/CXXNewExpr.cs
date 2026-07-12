@@ -9,14 +9,14 @@ namespace ClangSharp;
 
 public sealed class CXXNewExpr : Expr
 {
-    private ValueLazy<FunctionDecl> _operatorDelete;
-    private ValueLazy<FunctionDecl> _operatorNew;
+    private ValueLazy<CXXNewExpr, FunctionDecl> _operatorDelete;
+    private ValueLazy<CXXNewExpr, FunctionDecl> _operatorNew;
     private readonly LazyList<Expr, Stmt> _placementArgs;
 
-    internal CXXNewExpr(CXCursor handle) : base(handle, CXCursor_CXXNewExpr, CX_StmtClass_CXXNewExpr)
+    internal unsafe CXXNewExpr(CXCursor handle) : base(handle, CXCursor_CXXNewExpr, CX_StmtClass_CXXNewExpr)
     {
-        _operatorDelete = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(0)));
-        _operatorNew = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(1)));
+        _operatorDelete = new ValueLazy<CXXNewExpr, FunctionDecl>(&OperatorDeleteFactory);
+        _operatorNew = new ValueLazy<CXXNewExpr, FunctionDecl>(&OperatorNewFactory);
         _placementArgs = LazyList.Create<Expr, Stmt>(_children, skip: PlacementNewArgsOffset);
     }
 
@@ -38,9 +38,9 @@ public sealed class CXXNewExpr : Expr
 
     public uint NumPlacementArgs => unchecked((uint)(Handle.NumArguments - PlacementNewArgsOffset));
 
-    public FunctionDecl OperatorDelete => _operatorDelete.Value;
+    public FunctionDecl OperatorDelete => _operatorDelete.GetValue(this);
 
-    public FunctionDecl OperatorNew => _operatorNew.Value;
+    public FunctionDecl OperatorNew => _operatorNew.GetValue(this);
 
     public IReadOnlyList<Expr> PlacementArgs => _placementArgs;
 
@@ -49,4 +49,8 @@ public sealed class CXXNewExpr : Expr
     private int InitExprOffset => ArraySizeOffset + (IsArray ? 1 : 0);
 
     private int PlacementNewArgsOffset => InitExprOffset + (HasInitializer ? 1 : 0);
+
+    private static unsafe FunctionDecl OperatorNewFactory(CXXNewExpr self) => self.TranslationUnit.GetOrCreate<FunctionDecl>(self.Handle.GetDecl(1));
+
+    private static unsafe FunctionDecl OperatorDeleteFactory(CXXNewExpr self) => self.TranslationUnit.GetOrCreate<FunctionDecl>(self.Handle.GetDecl(0));
 }

@@ -8,16 +8,18 @@ namespace ClangSharp;
 
 public sealed class ConceptDecl : TemplateDecl, IMergeable<ConceptDecl>
 {
-    private ValueLazy<Expr> _constraintExpr;
+    private ValueLazy<ConceptDecl, Expr> _constraintExpr;
 
-    internal ConceptDecl(CXCursor handle) : base(handle, CXCursor_ConceptDecl, CX_DeclKind_Concept)
+    internal unsafe ConceptDecl(CXCursor handle) : base(handle, CXCursor_ConceptDecl, CX_DeclKind_Concept)
     {
-        _constraintExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.ConstraintExpr));
+        _constraintExpr = new ValueLazy<ConceptDecl, Expr>(&ConstraintExprFactory);
     }
 
     public new ConceptDecl CanonicalDecl => (ConceptDecl)base.CanonicalDecl;
 
-    public Expr ConstraintExpr => _constraintExpr.Value;
+    public Expr ConstraintExpr => _constraintExpr.GetValue(this);
 
     public bool IsTypeConcept => Handle.IsTypeConcept;
+
+    private static unsafe Expr ConstraintExprFactory(ConceptDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.ConstraintExpr);
 }

@@ -9,18 +9,18 @@ namespace ClangSharp;
 
 public sealed class ObjCProtocolDecl : ObjCContainerDecl, IRedeclarable<ObjCProtocolDecl>
 {
-    private ValueLazy<ObjCProtocolDecl> _definition;
+    private ValueLazy<ObjCProtocolDecl, ObjCProtocolDecl> _definition;
     private readonly LazyList<ObjCProtocolDecl> _protocols;
 
-    internal ObjCProtocolDecl(CXCursor handle) : base(handle, CXCursor_ObjCProtocolDecl, CX_DeclKind_ObjCProtocol)
+    internal unsafe ObjCProtocolDecl(CXCursor handle) : base(handle, CXCursor_ObjCProtocolDecl, CX_DeclKind_ObjCProtocol)
     {
-        _definition = new ValueLazy<ObjCProtocolDecl>(() => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.Definition));
+        _definition = new ValueLazy<ObjCProtocolDecl, ObjCProtocolDecl>(&DefinitionFactory);
         _protocols = LazyList.Create<ObjCProtocolDecl>(Handle.NumProtocols, (i) => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i))));
     }
 
     public new ObjCProtocolDecl CanonicalDecl => (ObjCProtocolDecl)base.CanonicalDecl;
 
-    public ObjCProtocolDecl Definition => _definition.Value;
+    public ObjCProtocolDecl Definition => _definition.GetValue(this);
 
     public bool IsThisDeclarationADefinition => Handle.IsThisDeclarationADefinition;
 
@@ -31,4 +31,6 @@ public sealed class ObjCProtocolDecl : ObjCContainerDecl, IRedeclarable<ObjCProt
     public uint ProtocolSize => unchecked((uint)Handle.NumProtocols);
 
     public IReadOnlyList<ObjCProtocolDecl> ReferencedProtocols => Protocols;
+
+    private static unsafe ObjCProtocolDecl DefinitionFactory(ObjCProtocolDecl self) => self.TranslationUnit.GetOrCreate<ObjCProtocolDecl>(self.Handle.Definition);
 }

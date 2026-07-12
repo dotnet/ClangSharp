@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class VariableArrayType : ArrayType
 {
-    private ValueLazy<Expr> _sizeExpr;
+    private ValueLazy<VariableArrayType, Expr> _sizeExpr;
 
-    internal VariableArrayType(CXType handle) : base(handle, CXType_VariableArray, CX_TypeClass_VariableArray)
+    internal unsafe VariableArrayType(CXType handle) : base(handle, CXType_VariableArray, CX_TypeClass_VariableArray)
     {
-        _sizeExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.SizeExpr));
+        _sizeExpr = new ValueLazy<VariableArrayType, Expr>(&SizeExprFactory);
     }
 
-    public Expr SizeExpr => _sizeExpr.Value;
+    public Expr SizeExpr => _sizeExpr.GetValue(this);
+
+    private static unsafe Expr SizeExprFactory(VariableArrayType self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.SizeExpr);
 }

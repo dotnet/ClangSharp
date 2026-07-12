@@ -8,18 +8,18 @@ namespace ClangSharp;
 
 public class Ref : Cursor
 {
-    private ValueLazy<NamedDecl> _referenced;
-    private ValueLazy<Type> _type;
+    private ValueLazy<Ref, NamedDecl> _referenced;
+    private ValueLazy<Ref, Type> _type;
 
-    private protected Ref(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
+    private protected unsafe Ref(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
     {
-        _referenced = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.Referenced));
-        _type = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
+        _referenced = new ValueLazy<Ref, NamedDecl>(&ReferencedFactory);
+        _type = new ValueLazy<Ref, Type>(&TypeFactory);
     }
 
-    public NamedDecl Referenced => _referenced.Value;
+    public NamedDecl Referenced => _referenced.GetValue(this);
 
-    public Type Type => _type.Value;
+    public Type Type => _type.GetValue(this);
 
     internal static new Ref Create(CXCursor handle)
     {
@@ -63,4 +63,8 @@ public class Ref : Cursor
 
         return result;
     }
+
+    private static unsafe Type TypeFactory(Ref self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.Type);
+
+    private static unsafe NamedDecl ReferencedFactory(Ref self) => self.TranslationUnit.GetOrCreate<NamedDecl>(self.Handle.Referenced);
 }

@@ -9,15 +9,17 @@ namespace ClangSharp;
 
 public sealed class ObjCBoxedExpr : Expr
 {
-    private ValueLazy<ObjCMethodDecl> _boxingMethod;
+    private ValueLazy<ObjCBoxedExpr, ObjCMethodDecl> _boxingMethod;
 
-    internal ObjCBoxedExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCBoxedExpr)
+    internal unsafe ObjCBoxedExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCBoxedExpr)
     {
         Debug.Assert(NumChildren is 1);
-        _boxingMethod = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
+        _boxingMethod = new ValueLazy<ObjCBoxedExpr, ObjCMethodDecl>(&BoxingMethodFactory);
     }
 
-    public ObjCMethodDecl BoxingMethod => _boxingMethod.Value;
+    public ObjCMethodDecl BoxingMethod => _boxingMethod.GetValue(this);
 
     public Expr SubExpr => (Expr)Children[0];
+
+    private static unsafe ObjCMethodDecl BoxingMethodFactory(ObjCBoxedExpr self) => self.TranslationUnit.GetOrCreate<ObjCMethodDecl>(self.Handle.Referenced);
 }

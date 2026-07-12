@@ -9,18 +9,18 @@ namespace ClangSharp;
 
 public sealed class ClassTemplateDecl : RedeclarableTemplateDecl
 {
-    private ValueLazy<Type> _injectedClassNameSpecialization;
+    private ValueLazy<ClassTemplateDecl, Type> _injectedClassNameSpecialization;
     private readonly LazyList<ClassTemplateSpecializationDecl> _specializations;
 
-    internal ClassTemplateDecl(CXCursor handle) : base(handle, CXCursor_ClassTemplate, CX_DeclKind_ClassTemplate)
+    internal unsafe ClassTemplateDecl(CXCursor handle) : base(handle, CXCursor_ClassTemplate, CX_DeclKind_ClassTemplate)
     {
-        _injectedClassNameSpecialization = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.InjectedSpecializationType));
+        _injectedClassNameSpecialization = new ValueLazy<ClassTemplateDecl, Type>(&InjectedClassNameSpecializationFactory);
         _specializations = LazyList.Create<ClassTemplateSpecializationDecl>(Handle.NumSpecializations, (i) => TranslationUnit.GetOrCreate<ClassTemplateSpecializationDecl>(Handle.GetSpecialization(unchecked((uint)i))));
     }
 
     public new ClassTemplateDecl CanonicalDecl => (ClassTemplateDecl)base.CanonicalDecl;
 
-    public Type InjectedClassNameSpecialization => _injectedClassNameSpecialization.Value;
+    public Type InjectedClassNameSpecialization => _injectedClassNameSpecialization.GetValue(this);
 
     public new ClassTemplateDecl InstantiatedFromMemberTemplate => (ClassTemplateDecl)base.InstantiatedFromMemberTemplate;
 
@@ -33,4 +33,6 @@ public sealed class ClassTemplateDecl : RedeclarableTemplateDecl
     public IReadOnlyList<ClassTemplateSpecializationDecl> Specializations => _specializations;
 
     public new CXXRecordDecl TemplatedDecl => (CXXRecordDecl)base.TemplatedDecl;
+
+    private static unsafe Type InjectedClassNameSpecializationFactory(ClassTemplateDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.InjectedSpecializationType);
 }

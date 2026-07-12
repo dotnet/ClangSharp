@@ -9,22 +9,22 @@ namespace ClangSharp;
 
 public sealed class InitListExpr : Expr
 {
-    private ValueLazy<Expr> _arrayFiller;
-    private ValueLazy<FieldDecl> _initializedFieldInUnion;
+    private ValueLazy<InitListExpr, Expr> _arrayFiller;
+    private ValueLazy<InitListExpr, FieldDecl> _initializedFieldInUnion;
     private readonly LazyList<Expr, Stmt> _inits;
 
-    internal InitListExpr(CXCursor handle) : base(handle, CXCursor_InitListExpr, CX_StmtClass_InitListExpr)
+    internal unsafe InitListExpr(CXCursor handle) : base(handle, CXCursor_InitListExpr, CX_StmtClass_InitListExpr)
     {
-        _arrayFiller = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
-        _initializedFieldInUnion = new ValueLazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.Referenced));
+        _arrayFiller = new ValueLazy<InitListExpr, Expr>(&ArrayFillerFactory);
+        _initializedFieldInUnion = new ValueLazy<InitListExpr, FieldDecl>(&InitializedFieldInUnionFactory);
         _inits = LazyList.Create<Expr, Stmt>(_children);
     }
 
-    public Expr ArrayFiller => _arrayFiller.Value;
+    public Expr ArrayFiller => _arrayFiller.GetValue(this);
 
     public bool HasArrayFiller => ArrayFiller is not null;
 
-    public FieldDecl InitializedFieldInUnion => _initializedFieldInUnion.Value;
+    public FieldDecl InitializedFieldInUnion => _initializedFieldInUnion.GetValue(this);
 
     public IReadOnlyList<Stmt> Inits => _inits;
 
@@ -33,4 +33,8 @@ public sealed class InitListExpr : Expr
     public bool IsTransparent => Handle.IsTransparent;
 
     public uint NumInits => NumChildren;
+
+    private static unsafe FieldDecl InitializedFieldInUnionFactory(InitListExpr self) => self.TranslationUnit.GetOrCreate<FieldDecl>(self.Handle.Referenced);
+
+    private static unsafe Expr ArrayFillerFactory(InitListExpr self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.SubExpr);
 }

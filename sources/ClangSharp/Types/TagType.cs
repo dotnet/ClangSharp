@@ -6,12 +6,14 @@ namespace ClangSharp;
 
 public class TagType : Type
 {
-    private ValueLazy<TagDecl> _decl;
+    private ValueLazy<TagType, TagDecl> _decl;
 
-    private protected TagType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
+    private protected unsafe TagType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        _decl = new ValueLazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.Declaration));
+        _decl = new ValueLazy<TagType, TagDecl>(&DeclFactory);
     }
 
-    public TagDecl Decl => _decl.Value;
+    public TagDecl Decl => _decl.GetValue(this);
+
+    private static unsafe TagDecl DeclFactory(TagType self) => self.TranslationUnit.GetOrCreate<TagDecl>(self.Handle.Declaration);
 }

@@ -8,19 +8,19 @@ public partial class BlockDecl
     {
         private readonly Decl _parentDecl;
         private readonly uint _index;
-        private ValueLazy<Expr> _copyExpr;
-        private ValueLazy<VarDecl> _variable;
+        private ValueLazy<Capture, Expr> _copyExpr;
+        private ValueLazy<Capture, VarDecl> _variable;
 
-        internal Capture(Decl parentDecl, uint index)
+        internal unsafe Capture(Decl parentDecl, uint index)
         {
             _parentDecl = parentDecl;
             _index = index;
 
-            _copyExpr = new ValueLazy<Expr>(() => _parentDecl.TranslationUnit.GetOrCreate<Expr>(_parentDecl.Handle.GetCaptureCopyExpr(_index)));
-            _variable = new ValueLazy<VarDecl>(() => _parentDecl.TranslationUnit.GetOrCreate<VarDecl>(_parentDecl.Handle.GetCaptureVariable(_index)));
+            _copyExpr = new ValueLazy<Capture, Expr>(&CopyExprFactory);
+            _variable = new ValueLazy<Capture, VarDecl>(&VariableFactory);
         }
 
-        public Expr CopyExpr => _copyExpr.Value;
+        public Expr CopyExpr => _copyExpr.GetValue(this);
 
         public bool HasCopyExpr => _parentDecl.Handle.GetCaptureHasCopyExpr(_index);
 
@@ -32,6 +32,10 @@ public partial class BlockDecl
 
         public bool IsNonEscapingByRef => _parentDecl.Handle.GetCaptureIsNonEscapingByRef(_index);
 
-        public VarDecl Variable => _variable.Value;
-    }
+        public VarDecl Variable => _variable.GetValue(this);
+    
+    private static unsafe VarDecl VariableFactory(Capture self) => self._parentDecl.TranslationUnit.GetOrCreate<VarDecl>(self._parentDecl.Handle.GetCaptureVariable(self._index));
+
+    private static unsafe Expr CopyExprFactory(Capture self) => self._parentDecl.TranslationUnit.GetOrCreate<Expr>(self._parentDecl.Handle.GetCaptureCopyExpr(self._index));
+}
 }

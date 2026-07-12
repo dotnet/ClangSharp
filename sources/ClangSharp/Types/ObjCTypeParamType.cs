@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class ObjCTypeParamType : Type
 {
-    private ValueLazy<ObjCTypeParamDecl> _decl;
+    private ValueLazy<ObjCTypeParamType, ObjCTypeParamDecl> _decl;
 
-    internal ObjCTypeParamType(CXType handle) : base(handle, CXType_ObjCTypeParam, CX_TypeClass_ObjCTypeParam)
+    internal unsafe ObjCTypeParamType(CXType handle) : base(handle, CXType_ObjCTypeParam, CX_TypeClass_ObjCTypeParam)
     {
-        _decl = new ValueLazy<ObjCTypeParamDecl>(() => TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.Declaration));
+        _decl = new ValueLazy<ObjCTypeParamType, ObjCTypeParamDecl>(&DeclFactory);
     }
 
-    public ObjCTypeParamDecl Decl => _decl.Value;
+    public ObjCTypeParamDecl Decl => _decl.GetValue(this);
+
+    private static unsafe ObjCTypeParamDecl DeclFactory(ObjCTypeParamType self) => self.TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(self.Handle.Declaration);
 }

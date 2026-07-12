@@ -57,16 +57,16 @@ public class Expr : ValueStmt
         return e;
     };
 
-    private ValueLazy<Type> _type;
+    private ValueLazy<Expr, Type> _type;
 
-    private protected Expr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
+    private protected unsafe Expr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
         if (handle.StmtClass is > CX_StmtClass_LastExpr or < CX_StmtClass_FirstExpr)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _type = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
+        _type = new ValueLazy<Expr, Type>(&TypeFactory);
     }
 
     public bool ContainsErrors => (Dependence & CX_ED_Error) != 0;
@@ -130,7 +130,7 @@ public class Expr : ValueStmt
 
     public bool IsValueDependent => (Dependence & CX_ED_Value) != 0;
 
-    public Type Type => _type.Value;
+    public Type Type => _type.GetValue(this);
 
     private static Expr IgnoreExprNodes(Expr e, Func<Expr, Expr> fn)
     {
@@ -161,4 +161,6 @@ public class Expr : ValueStmt
 
         return e;
     }
+
+    private static unsafe Type TypeFactory(Expr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.Type);
 }

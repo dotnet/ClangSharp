@@ -9,17 +9,19 @@ namespace ClangSharp;
 
 public sealed class ObjCIvarRefExpr : Expr
 {
-    private ValueLazy<ObjCIvarDecl> _decl;
+    private ValueLazy<ObjCIvarRefExpr, ObjCIvarDecl> _decl;
 
-    internal ObjCIvarRefExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_ObjCIvarRefExpr)
+    internal unsafe ObjCIvarRefExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_ObjCIvarRefExpr)
     {
         Debug.Assert(NumChildren is 1);
-        _decl = new ValueLazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.Referenced));
+        _decl = new ValueLazy<ObjCIvarRefExpr, ObjCIvarDecl>(&DeclFactory);
     }
 
     public Expr Base => (Expr)Children[0];
 
-    public ObjCIvarDecl Decl => _decl.Value;
+    public ObjCIvarDecl Decl => _decl.GetValue(this);
 
     public bool IsArrow => Handle.IsArrow;
+
+    private static unsafe ObjCIvarDecl DeclFactory(ObjCIvarRefExpr self) => self.TranslationUnit.GetOrCreate<ObjCIvarDecl>(self.Handle.Referenced);
 }

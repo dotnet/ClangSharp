@@ -9,13 +9,15 @@ namespace ClangSharp;
 
 public sealed class GotoStmt : Stmt
 {
-    private ValueLazy<LabelDecl> _label;
+    private ValueLazy<GotoStmt, LabelDecl> _label;
 
-    internal GotoStmt(CXCursor handle) : base(handle, CXCursor_GotoStmt, CX_StmtClass_GotoStmt)
+    internal unsafe GotoStmt(CXCursor handle) : base(handle, CXCursor_GotoStmt, CX_StmtClass_GotoStmt)
     {
         Debug.Assert(NumChildren is 0);
-        _label = new ValueLazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
+        _label = new ValueLazy<GotoStmt, LabelDecl>(&LabelFactory);
     }
 
-    public LabelDecl Label => _label.Value;
+    public LabelDecl Label => _label.GetValue(this);
+
+    private static unsafe LabelDecl LabelFactory(GotoStmt self) => self.TranslationUnit.GetOrCreate<LabelDecl>(self.Handle.Referenced);
 }

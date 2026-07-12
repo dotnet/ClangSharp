@@ -10,12 +10,12 @@ namespace ClangSharp;
 public sealed class CXXUnresolvedConstructExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _args;
-    private ValueLazy<Type> _typeAsWritten;
+    private ValueLazy<CXXUnresolvedConstructExpr, Type> _typeAsWritten;
 
-    internal CXXUnresolvedConstructExpr(CXCursor handle) : base(handle, CXCursor_CallExpr, CX_StmtClass_CXXUnresolvedConstructExpr)
+    internal unsafe CXXUnresolvedConstructExpr(CXCursor handle) : base(handle, CXCursor_CallExpr, CX_StmtClass_CXXUnresolvedConstructExpr)
     {
         _args = LazyList.Create<Expr, Stmt>(_children);
-        _typeAsWritten = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _typeAsWritten = new ValueLazy<CXXUnresolvedConstructExpr, Type>(&TypeAsWrittenFactory);
     }
 
     public IReadOnlyList<Expr> Args => _args;
@@ -24,5 +24,7 @@ public sealed class CXXUnresolvedConstructExpr : Expr
 
     public uint NumArgs => unchecked((uint)Handle.NumArguments);
 
-    public Type TypeAsWritten => _typeAsWritten.Value;
+    public Type TypeAsWritten => _typeAsWritten.GetValue(this);
+
+    private static unsafe Type TypeAsWrittenFactory(CXXUnresolvedConstructExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

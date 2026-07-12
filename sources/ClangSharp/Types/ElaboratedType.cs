@@ -8,16 +8,20 @@ namespace ClangSharp;
 
 public sealed class ElaboratedType : TypeWithKeyword
 {
-    private ValueLazy<Type> _namedType;
-    private ValueLazy<TagDecl?> _ownedTagDecl;
+    private ValueLazy<ElaboratedType, Type> _namedType;
+    private ValueLazy<ElaboratedType, TagDecl?> _ownedTagDecl;
 
-    internal ElaboratedType(CXType handle) : base(handle, CXType_Elaborated, CX_TypeClass_Elaborated, CXType_ObjCClass, CXType_ObjCId, CXType_ObjCSel)
+    internal unsafe ElaboratedType(CXType handle) : base(handle, CXType_Elaborated, CX_TypeClass_Elaborated, CXType_ObjCClass, CXType_ObjCId, CXType_ObjCSel)
     {
-        _namedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NamedType));
-        _ownedTagDecl = new ValueLazy<TagDecl?>(() => !Handle.OwnedTagDecl.IsNull ?TranslationUnit.GetOrCreate<TagDecl>(Handle.OwnedTagDecl) : null);
+        _namedType = new ValueLazy<ElaboratedType, Type>(&NamedTypeFactory);
+        _ownedTagDecl = new ValueLazy<ElaboratedType, TagDecl?>(&OwnedTagDeclFactory);
     }
 
-    public Type NamedType => _namedType.Value;
+    public Type NamedType => _namedType.GetValue(this);
 
-    public TagDecl? OwnedTagDecl => _ownedTagDecl.Value;
+    public TagDecl? OwnedTagDecl => _ownedTagDecl.GetValue(this);
+
+    private static unsafe TagDecl? OwnedTagDeclFactory(ElaboratedType self) => !self.Handle.OwnedTagDecl.IsNull ?self.TranslationUnit.GetOrCreate<TagDecl>(self.Handle.OwnedTagDecl) : null;
+
+    private static unsafe Type NamedTypeFactory(ElaboratedType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.NamedType);
 }

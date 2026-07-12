@@ -9,22 +9,24 @@ namespace ClangSharp;
 
 public sealed class CXXParenListInitExpr : Expr
 {
-    private ValueLazy<Cursor> _arrayFillerOrUnionFieldInit;
+    private ValueLazy<CXXParenListInitExpr, Cursor> _arrayFillerOrUnionFieldInit;
     private readonly LazyList<Expr> _initExprs;
     private readonly LazyList<Expr> _userSpecifiedInitExprs;
 
-    internal CXXParenListInitExpr(CXCursor handle) : base(handle, CXCursor_CXXParenListInitExpr, CX_StmtClass_CXXParenListInitExpr)
+    internal unsafe CXXParenListInitExpr(CXCursor handle) : base(handle, CXCursor_CXXParenListInitExpr, CX_StmtClass_CXXParenListInitExpr)
     {
-        _arrayFillerOrUnionFieldInit = new ValueLazy<Cursor>(() => TranslationUnit.GetOrCreate<Cursor>(Handle.SubExpr));
+        _arrayFillerOrUnionFieldInit = new ValueLazy<CXXParenListInitExpr, Cursor>(&ArrayFillerOrUnionFieldInitFactory);
         _initExprs = LazyList.Create<Expr>(Handle.NumExprs, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)i))));
         _userSpecifiedInitExprs = LazyList.Create<Expr>(Handle.NumExprsOther, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)i))));
     }
 
-    public Expr? ArrayFiller => _arrayFillerOrUnionFieldInit.Value as Expr;
+    public Expr? ArrayFiller => _arrayFillerOrUnionFieldInit.GetValue(this) as Expr;
 
     public IReadOnlyList<Expr> InitExprs => _initExprs;
 
-    public FieldDecl? InitializedFieldInUnion => _arrayFillerOrUnionFieldInit.Value as FieldDecl;
+    public FieldDecl? InitializedFieldInUnion => _arrayFillerOrUnionFieldInit.GetValue(this) as FieldDecl;
 
     public IReadOnlyList<Expr> UserSpecifiedInitExprs => _userSpecifiedInitExprs;
+
+    private static unsafe Cursor ArrayFillerOrUnionFieldInitFactory(CXXParenListInitExpr self) => self.TranslationUnit.GetOrCreate<Cursor>(self.Handle.SubExpr);
 }

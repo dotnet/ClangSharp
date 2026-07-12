@@ -8,16 +8,18 @@ namespace ClangSharp;
 
 public sealed class MaterializeTemporaryExpr : Expr
 {
-    private ValueLazy<LifetimeExtendedTemporaryDecl> _lifetimeExtendedTemporaryDecl;
+    private ValueLazy<MaterializeTemporaryExpr, LifetimeExtendedTemporaryDecl> _lifetimeExtendedTemporaryDecl;
 
-    internal MaterializeTemporaryExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_MaterializeTemporaryExpr)
+    internal unsafe MaterializeTemporaryExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_MaterializeTemporaryExpr)
     {
-        _lifetimeExtendedTemporaryDecl = new ValueLazy<LifetimeExtendedTemporaryDecl>(() => TranslationUnit.GetOrCreate<LifetimeExtendedTemporaryDecl>(Handle.Referenced));
+        _lifetimeExtendedTemporaryDecl = new ValueLazy<MaterializeTemporaryExpr, LifetimeExtendedTemporaryDecl>(&LifetimeExtendedTemporaryDeclFactory);
     }
 
     public ValueDecl ExtendingDecl => LifetimeExtendedTemporaryDecl.ExtendingDecl;
 
-    public LifetimeExtendedTemporaryDecl LifetimeExtendedTemporaryDecl => _lifetimeExtendedTemporaryDecl.Value;
+    public LifetimeExtendedTemporaryDecl LifetimeExtendedTemporaryDecl => _lifetimeExtendedTemporaryDecl.GetValue(this);
 
     public Expr SubExpr => (Expr)Children[0];
+
+    private static unsafe LifetimeExtendedTemporaryDecl LifetimeExtendedTemporaryDeclFactory(MaterializeTemporaryExpr self) => self.TranslationUnit.GetOrCreate<LifetimeExtendedTemporaryDecl>(self.Handle.Referenced);
 }

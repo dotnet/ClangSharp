@@ -8,16 +8,18 @@ namespace ClangSharp;
 
 public sealed class TemplateTypeParmType : Type
 {
-    private ValueLazy<TemplateTypeParmDecl> _decl;
+    private ValueLazy<TemplateTypeParmType, TemplateTypeParmDecl> _decl;
 
-    internal TemplateTypeParmType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TemplateTypeParm)
+    internal unsafe TemplateTypeParmType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TemplateTypeParm)
     {
-        _decl = new ValueLazy<TemplateTypeParmDecl>(() => TranslationUnit.GetOrCreate<TemplateTypeParmDecl>(Handle.Declaration));
+        _decl = new ValueLazy<TemplateTypeParmType, TemplateTypeParmDecl>(&DeclFactory);
     }
 
-    public TemplateTypeParmDecl Decl => _decl.Value;
+    public TemplateTypeParmDecl Decl => _decl.GetValue(this);
 
     public uint Depth => unchecked((uint)Handle.Depth);
 
     public uint Index => unchecked((uint)Handle.Index);
+
+    private static unsafe TemplateTypeParmDecl DeclFactory(TemplateTypeParmType self) => self.TranslationUnit.GetOrCreate<TemplateTypeParmDecl>(self.Handle.Declaration);
 }

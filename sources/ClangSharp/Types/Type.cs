@@ -11,12 +11,12 @@ namespace ClangSharp;
 [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
 public unsafe class Type : IEquatable<Type>
 {
-    private ValueLazy<string> _asString;
-    private ValueLazy<Type> _canonicalType;
-    private ValueLazy<Type> _desugar;
-    private ValueLazy<string> _kindSpelling;
-    private ValueLazy<Type> _pointeeType;
-    private ValueLazy<TranslationUnit> _translationUnit;
+    private ValueLazy<Type, string> _asString;
+    private ValueLazy<Type, Type> _canonicalType;
+    private ValueLazy<Type, Type> _desugar;
+    private ValueLazy<Type, string> _kindSpelling;
+    private ValueLazy<Type, Type> _pointeeType;
+    private ValueLazy<Type, TranslationUnit> _translationUnit;
 
     protected Type(CXType handle, CXTypeKind expectedKind, CX_TypeClass expectedTypeClass, params ReadOnlySpan<CXTypeKind> additionalExpectedKinds)
     {
@@ -45,12 +45,12 @@ public unsafe class Type : IEquatable<Type>
 
         Handle = handle;
 
-        _asString = new ValueLazy<string>(Handle.Spelling.ToString);
-        _canonicalType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CanonicalType));
-        _desugar = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar));
-        _kindSpelling = new ValueLazy<string>(Handle.KindSpelling.ToString);
-        _pointeeType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.PointeeType));
-        _translationUnit = new ValueLazy<TranslationUnit>(() => TranslationUnit.GetOrCreate((CXTranslationUnit)Handle.data[1]));
+        _asString = new ValueLazy<Type, string>(&AsStringFactory);
+        _canonicalType = new ValueLazy<Type, Type>(&CanonicalTypeFactory);
+        _desugar = new ValueLazy<Type, Type>(&DesugarFactory);
+        _kindSpelling = new ValueLazy<Type, string>(&KindSpellingFactory);
+        _pointeeType = new ValueLazy<Type, Type>(&PointeeTypeFactory);
+        _translationUnit = new ValueLazy<Type, TranslationUnit>(&TranslationUnitFactory);
     }
 
 #if !NET10_0_OR_GREATER
@@ -69,7 +69,7 @@ public unsafe class Type : IEquatable<Type>
 
     public CXXRecordDecl? AsCXXRecordDecl => AsTagDecl as CXXRecordDecl;
 
-    public string AsString => _asString.Value;
+    public string AsString => _asString.GetValue(this);
 
     public TagDecl? AsTagDecl
     {
@@ -81,9 +81,9 @@ public unsafe class Type : IEquatable<Type>
         }
     }
 
-    public Type CanonicalType => _canonicalType.Value;
+    public Type CanonicalType => _canonicalType.GetValue(this);
 
-    public Type Desugar => _desugar.Value;
+    public Type Desugar => _desugar.GetValue(this);
 
     public CXType Handle { get; }
 
@@ -115,11 +115,11 @@ public unsafe class Type : IEquatable<Type>
 
     public CXTypeKind Kind => Handle.kind;
 
-    public string KindSpelling => _kindSpelling.Value;
+    public string KindSpelling => _kindSpelling.GetValue(this);
 
-    public Type PointeeType => _pointeeType.Value;
+    public Type PointeeType => _pointeeType.GetValue(this);
 
-    public TranslationUnit TranslationUnit => _translationUnit.Value;
+    public TranslationUnit TranslationUnit => _translationUnit.GetValue(this);
 
     public CX_TypeClass TypeClass => Handle.TypeClass;
 
@@ -239,4 +239,16 @@ public unsafe class Type : IEquatable<Type>
     public override int GetHashCode() => Handle.GetHashCode();
 
     public override string ToString() => AsString;
+
+    private static unsafe TranslationUnit TranslationUnitFactory(Type self) => TranslationUnit.GetOrCreate((CXTranslationUnit)self.Handle.data[1]);
+
+    private static unsafe Type PointeeTypeFactory(Type self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.PointeeType);
+
+    private static unsafe string KindSpellingFactory(Type self) => self.Handle.KindSpelling.ToString();
+
+    private static unsafe Type DesugarFactory(Type self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.Desugar);
+
+    private static unsafe Type CanonicalTypeFactory(Type self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.CanonicalType);
+
+    private static unsafe string AsStringFactory(Type self) => self.Handle.Spelling.ToString();
 }

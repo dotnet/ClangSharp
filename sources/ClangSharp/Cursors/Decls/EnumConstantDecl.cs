@@ -8,16 +8,16 @@ namespace ClangSharp;
 
 public sealed class EnumConstantDecl : ValueDecl, IMergeable<EnumConstantDecl>
 {
-    private ValueLazy<Expr?> _initExpr;
+    private ValueLazy<EnumConstantDecl, Expr?> _initExpr;
 
-    internal EnumConstantDecl(CXCursor handle) : base(handle, CXCursor_EnumConstantDecl, CX_DeclKind_EnumConstant)
+    internal unsafe EnumConstantDecl(CXCursor handle) : base(handle, CXCursor_EnumConstantDecl, CX_DeclKind_EnumConstant)
     {
-        _initExpr = new ValueLazy<Expr?>(() => !Handle.InitExpr.IsNull ? TranslationUnit.GetOrCreate<Expr>(Handle.InitExpr) : null);
+        _initExpr = new ValueLazy<EnumConstantDecl, Expr?>(&InitExprFactory);
     }
 
     public new EnumConstantDecl CanonicalDecl => (EnumConstantDecl)base.CanonicalDecl;
 
-    public Expr? InitExpr => _initExpr.Value;
+    public Expr? InitExpr => _initExpr.GetValue(this);
 
     public long InitVal => Handle.EnumConstantDeclValue;
 
@@ -32,4 +32,6 @@ public sealed class EnumConstantDecl : ValueDecl, IMergeable<EnumConstantDecl>
     public bool IsStrictlyPositive => Handle.IsStrictlyPositive;
 
     public bool IsUnsigned => Handle.IsUnsigned;
+
+    private static unsafe Expr? InitExprFactory(EnumConstantDecl self) => !self.Handle.InitExpr.IsNull ? self.TranslationUnit.GetOrCreate<Expr>(self.Handle.InitExpr) : null;
 }

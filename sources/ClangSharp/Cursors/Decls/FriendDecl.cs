@@ -9,23 +9,25 @@ namespace ClangSharp;
 
 public sealed class FriendDecl : Decl
 {
-    private ValueLazy<NamedDecl> _friendNamedDecl;
+    private ValueLazy<FriendDecl, NamedDecl> _friendNamedDecl;
     private readonly LazyList<LazyList<NamedDecl>> _friendTypeTemplateParameterLists;
 
-    internal FriendDecl(CXCursor handle) : base(handle, CXCursor_FriendDecl, CX_DeclKind_Friend)
+    internal unsafe FriendDecl(CXCursor handle) : base(handle, CXCursor_FriendDecl, CX_DeclKind_Friend)
     {
-        _friendNamedDecl = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.FriendDecl));
+        _friendNamedDecl = new ValueLazy<FriendDecl, NamedDecl>(&FriendNamedDeclFactory);
         _friendTypeTemplateParameterLists = LazyList.Create<LazyList<NamedDecl>>(Handle.NumTemplateParameterLists, (listIndex) => {
             var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
             return LazyList.Create<NamedDecl>(numTemplateParameters, (parameterIndex) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex))));
         });
     }
 
-    public NamedDecl FriendNamedDecl => _friendNamedDecl.Value;
+    public NamedDecl FriendNamedDecl => _friendNamedDecl.GetValue(this);
 
     public bool IsUnsupportedFriend => Handle.IsUnsupportedFriend;
 
     public uint FriendTypeNumTemplateParameterLists => unchecked((uint)Handle.NumTemplateParameterLists);
 
     public IReadOnlyList<IReadOnlyList<NamedDecl>> FriendTypeTemplateParameterLists => _friendTypeTemplateParameterLists;
+
+    private static unsafe NamedDecl FriendNamedDeclFactory(FriendDecl self) => self.TranslationUnit.GetOrCreate<NamedDecl>(self.Handle.FriendDecl);
 }

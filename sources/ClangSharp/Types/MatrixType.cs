@@ -6,12 +6,14 @@ namespace ClangSharp;
 
 public class MatrixType : Type
 {
-    private ValueLazy<Type> _elementType;
+    private ValueLazy<MatrixType, Type> _elementType;
 
-    private protected MatrixType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
+    private protected unsafe MatrixType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        _elementType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(handle.ElementType));
+        _elementType = new ValueLazy<MatrixType, Type>(&ElementTypeFactory);
     }
 
-    public Type ElementType => _elementType.Value;
+    public Type ElementType => _elementType.GetValue(this);
+
+    private static unsafe Type ElementTypeFactory(MatrixType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ElementType);
 }

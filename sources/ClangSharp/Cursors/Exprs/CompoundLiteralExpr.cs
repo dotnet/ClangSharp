@@ -9,17 +9,19 @@ namespace ClangSharp;
 
 public sealed class CompoundLiteralExpr : Expr
 {
-    private ValueLazy<Type> _typeSourceInfoType;
+    private ValueLazy<CompoundLiteralExpr, Type> _typeSourceInfoType;
 
-    internal CompoundLiteralExpr(CXCursor handle) : base(handle, CXCursor_CompoundLiteralExpr, CX_StmtClass_CompoundLiteralExpr)
+    internal unsafe CompoundLiteralExpr(CXCursor handle) : base(handle, CXCursor_CompoundLiteralExpr, CX_StmtClass_CompoundLiteralExpr)
     {
         Debug.Assert(NumChildren is 1);
-        _typeSourceInfoType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _typeSourceInfoType = new ValueLazy<CompoundLiteralExpr, Type>(&TypeSourceInfoTypeFactory);
     }
 
     public bool IsFileScope => Handle.IsFileScope;
 
     public Expr Initializer => (Expr)Children[0];
 
-    public Type TypeSourceInfoType => _typeSourceInfoType.Value;
+    public Type TypeSourceInfoType => _typeSourceInfoType.GetValue(this);
+
+    private static unsafe Type TypeSourceInfoTypeFactory(CompoundLiteralExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

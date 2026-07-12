@@ -6,12 +6,14 @@ namespace ClangSharp;
 
 public class ArrayType : Type
 {
-    private ValueLazy<Type> _elementType;
+    private ValueLazy<ArrayType, Type> _elementType;
 
-    private protected ArrayType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
+    private protected unsafe ArrayType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        _elementType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ArrayElementType));
+        _elementType = new ValueLazy<ArrayType, Type>(&ElementTypeFactory);
     }
 
-    public Type ElementType => _elementType.Value;
+    public Type ElementType => _elementType.GetValue(this);
+
+    private static unsafe Type ElementTypeFactory(ArrayType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ArrayElementType);
 }

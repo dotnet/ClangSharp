@@ -9,13 +9,15 @@ namespace ClangSharp;
 
 public sealed class ObjCProtocolExpr : Expr
 {
-    private ValueLazy<ObjCProtocolDecl> _protocol;
+    private ValueLazy<ObjCProtocolExpr, ObjCProtocolDecl> _protocol;
 
-    internal ObjCProtocolExpr(CXCursor handle) : base(handle, CXCursor_ObjCProtocolExpr, CX_StmtClass_ObjCProtocolExpr)
+    internal unsafe ObjCProtocolExpr(CXCursor handle) : base(handle, CXCursor_ObjCProtocolExpr, CX_StmtClass_ObjCProtocolExpr)
     {
         Debug.Assert(NumChildren is 0);
-        _protocol = new ValueLazy<ObjCProtocolDecl>(() => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.Referenced));
+        _protocol = new ValueLazy<ObjCProtocolExpr, ObjCProtocolDecl>(&ProtocolFactory);
     }
 
-    public ObjCProtocolDecl Protocol => _protocol.Value;
+    public ObjCProtocolDecl Protocol => _protocol.GetValue(this);
+
+    private static unsafe ObjCProtocolDecl ProtocolFactory(ObjCProtocolExpr self) => self.TranslationUnit.GetOrCreate<ObjCProtocolDecl>(self.Handle.Referenced);
 }

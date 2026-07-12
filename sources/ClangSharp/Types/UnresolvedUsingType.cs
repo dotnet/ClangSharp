@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class UnresolvedUsingType : Type
 {
-    private ValueLazy<UnresolvedUsingTypenameDecl> _decl;
+    private ValueLazy<UnresolvedUsingType, UnresolvedUsingTypenameDecl> _decl;
 
-    internal UnresolvedUsingType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_UnresolvedUsing)
+    internal unsafe UnresolvedUsingType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_UnresolvedUsing)
     {
-        _decl = new ValueLazy<UnresolvedUsingTypenameDecl>(() => TranslationUnit.GetOrCreate<UnresolvedUsingTypenameDecl>(Handle.Declaration));
+        _decl = new ValueLazy<UnresolvedUsingType, UnresolvedUsingTypenameDecl>(&DeclFactory);
     }
 
-    public UnresolvedUsingTypenameDecl Decl => _decl.Value;
+    public UnresolvedUsingTypenameDecl Decl => _decl.GetValue(this);
+
+    private static unsafe UnresolvedUsingTypenameDecl DeclFactory(UnresolvedUsingType self) => self.TranslationUnit.GetOrCreate<UnresolvedUsingTypenameDecl>(self.Handle.Declaration);
 }

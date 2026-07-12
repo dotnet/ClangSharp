@@ -8,16 +8,20 @@ namespace ClangSharp;
 
 public sealed class StaticAssertDecl : Decl
 {
-    private ValueLazy<Expr> _assertExpr;
-    private ValueLazy<StringLiteral> _message;
+    private ValueLazy<StaticAssertDecl, Expr> _assertExpr;
+    private ValueLazy<StaticAssertDecl, StringLiteral> _message;
 
-    internal StaticAssertDecl(CXCursor handle) : base(handle, CXCursor_StaticAssert, CX_DeclKind_StaticAssert)
+    internal unsafe StaticAssertDecl(CXCursor handle) : base(handle, CXCursor_StaticAssert, CX_DeclKind_StaticAssert)
     {
-        _assertExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
-        _message = new ValueLazy<StringLiteral>(() => TranslationUnit.GetOrCreate<StringLiteral>(Handle.GetExpr(1)));
+        _assertExpr = new ValueLazy<StaticAssertDecl, Expr>(&AssertExprFactory);
+        _message = new ValueLazy<StaticAssertDecl, StringLiteral>(&MessageFactory);
     }
 
-    public Expr AssertExpr => _assertExpr.Value;
+    public Expr AssertExpr => _assertExpr.GetValue(this);
 
-    public StringLiteral Message => _message.Value;
+    public StringLiteral Message => _message.GetValue(this);
+
+    private static unsafe StringLiteral MessageFactory(StaticAssertDecl self) => self.TranslationUnit.GetOrCreate<StringLiteral>(self.Handle.GetExpr(1));
+
+    private static unsafe Expr AssertExprFactory(StaticAssertDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.GetExpr(0));
 }

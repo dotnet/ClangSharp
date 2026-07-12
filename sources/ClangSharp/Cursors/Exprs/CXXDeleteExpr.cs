@@ -9,20 +9,20 @@ namespace ClangSharp;
 
 public sealed class CXXDeleteExpr : Expr
 {
-    private ValueLazy<Type> _destroyedType;
-    private ValueLazy<FunctionDecl> _operatorDelete;
+    private ValueLazy<CXXDeleteExpr, Type> _destroyedType;
+    private ValueLazy<CXXDeleteExpr, FunctionDecl> _operatorDelete;
 
-    internal CXXDeleteExpr(CXCursor handle) : base(handle, CXCursor_CXXDeleteExpr, CX_StmtClass_CXXDeleteExpr)
+    internal unsafe CXXDeleteExpr(CXCursor handle) : base(handle, CXCursor_CXXDeleteExpr, CX_StmtClass_CXXDeleteExpr)
     {
         Debug.Assert(NumChildren is 1);
 
-        _destroyedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
-        _operatorDelete = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.Referenced));
+        _destroyedType = new ValueLazy<CXXDeleteExpr, Type>(&DestroyedTypeFactory);
+        _operatorDelete = new ValueLazy<CXXDeleteExpr, FunctionDecl>(&OperatorDeleteFactory);
     }
 
     public Expr Argument => (Expr)Children[0];
 
-    public Type DestroyedType => _destroyedType.Value;
+    public Type DestroyedType => _destroyedType.GetValue(this);
 
     public bool DoesUsualArrayDeleteWantSize => Handle.DoesUsualArrayDeleteWantSize;
 
@@ -32,5 +32,9 @@ public sealed class CXXDeleteExpr : Expr
 
     public bool IsGlobalDelete => Handle.IsGlobal;
 
-    public FunctionDecl OperatorDelete => _operatorDelete.Value;
+    public FunctionDecl OperatorDelete => _operatorDelete.GetValue(this);
+
+    private static unsafe FunctionDecl OperatorDeleteFactory(CXXDeleteExpr self) => self.TranslationUnit.GetOrCreate<FunctionDecl>(self.Handle.Referenced);
+
+    private static unsafe Type DestroyedTypeFactory(CXXDeleteExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

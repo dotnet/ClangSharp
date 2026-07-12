@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class DependentSizedArrayType : ArrayType
 {
-    private ValueLazy<Expr> _sizeExpr;
+    private ValueLazy<DependentSizedArrayType, Expr> _sizeExpr;
 
-    internal DependentSizedArrayType(CXType handle) : base(handle, CXType_DependentSizedArray, CX_TypeClass_DependentSizedArray)
+    internal unsafe DependentSizedArrayType(CXType handle) : base(handle, CXType_DependentSizedArray, CX_TypeClass_DependentSizedArray)
     {
-        _sizeExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SizeExpr));
+        _sizeExpr = new ValueLazy<DependentSizedArrayType, Expr>(&SizeExprFactory);
     }
 
-    public Expr SizeExpr => _sizeExpr.Value;
+    public Expr SizeExpr => _sizeExpr.GetValue(this);
+
+    private static unsafe Expr SizeExprFactory(DependentSizedArrayType self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.SizeExpr);
 }

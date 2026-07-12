@@ -12,23 +12,23 @@ public class CXXRecordDecl : RecordDecl
 {
     private readonly LazyList<CXXBaseSpecifier> _bases;
     private readonly LazyList<CXXConstructorDecl> _ctors;
-    private ValueLazy<FunctionTemplateDecl> _dependentLambdaCallOperator;
-    private ValueLazy<ClassTemplateDecl> _describedClassTemplate;
-    private ValueLazy<CXXDestructorDecl?> _destructor;
+    private ValueLazy<CXXRecordDecl, FunctionTemplateDecl> _dependentLambdaCallOperator;
+    private ValueLazy<CXXRecordDecl, ClassTemplateDecl> _describedClassTemplate;
+    private ValueLazy<CXXRecordDecl, CXXDestructorDecl?> _destructor;
     private readonly LazyList<FriendDecl> _friends;
-    private ValueLazy<CXXRecordDecl> _instantiatedFromMemberClass;
-    private ValueLazy<CXXMethodDecl> _lambdaCallOperator;
-    private ValueLazy<Decl> _lambdaContextDecl;
-    private ValueLazy<CXXMethodDecl> _lambdaStaticInvoker;
+    private ValueLazy<CXXRecordDecl, CXXRecordDecl> _instantiatedFromMemberClass;
+    private ValueLazy<CXXRecordDecl, CXXMethodDecl> _lambdaCallOperator;
+    private ValueLazy<CXXRecordDecl, Decl> _lambdaContextDecl;
+    private ValueLazy<CXXRecordDecl, CXXMethodDecl> _lambdaStaticInvoker;
     private readonly LazyList<CXXMethodDecl> _methods;
-    private ValueLazy<CXXRecordDecl> _templateInstantiationPattern;
+    private ValueLazy<CXXRecordDecl, CXXRecordDecl> _templateInstantiationPattern;
     private readonly LazyList<CXXBaseSpecifier> _vbases;
 
     internal CXXRecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_CXXRecord)
     {
     }
 
-    private protected CXXRecordDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+    private protected unsafe CXXRecordDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
         if (handle.DeclKind is > CX_DeclKind_LastCXXRecord or < CX_DeclKind_FirstCXXRecord)
         {
@@ -37,19 +37,16 @@ public class CXXRecordDecl : RecordDecl
 
         _bases = LazyList.Create<CXXBaseSpecifier>(Handle.NumBases, (i) => TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetBase(unchecked((uint)i))));
         _ctors = LazyList.Create<CXXConstructorDecl>(Handle.NumCtors, (i) => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.GetCtor(unchecked((uint)i))));
-        _dependentLambdaCallOperator = new ValueLazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.DependentLambdaCallOperator));
-        _describedClassTemplate = new ValueLazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.DescribedCursorTemplate));
-        _destructor = new ValueLazy<CXXDestructorDecl?>(() => {
-            var destructor = Handle.Destructor;
-            return destructor.IsNull ? null : TranslationUnit.GetOrCreate<CXXDestructorDecl>(Handle.Destructor);
-        });
+        _dependentLambdaCallOperator = new ValueLazy<CXXRecordDecl, FunctionTemplateDecl>(&DependentLambdaCallOperatorFactory);
+        _describedClassTemplate = new ValueLazy<CXXRecordDecl, ClassTemplateDecl>(&DescribedClassTemplateFactory);
+        _destructor = new ValueLazy<CXXRecordDecl, CXXDestructorDecl?>(&DestructorFactory);
         _friends = LazyList.Create<FriendDecl>(Handle.NumFriends, (i) => TranslationUnit.GetOrCreate<FriendDecl>(Handle.GetFriend(unchecked((uint)i))));
-        _instantiatedFromMemberClass = new ValueLazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.InstantiatedFromMember));
-        _lambdaCallOperator = new ValueLazy<CXXMethodDecl>(() => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.LambdaCallOperator));
-        _lambdaContextDecl = new ValueLazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.LambdaContextDecl));
-        _lambdaStaticInvoker = new ValueLazy<CXXMethodDecl>(() => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.LambdaStaticInvoker));
+        _instantiatedFromMemberClass = new ValueLazy<CXXRecordDecl, CXXRecordDecl>(&InstantiatedFromMemberClassFactory);
+        _lambdaCallOperator = new ValueLazy<CXXRecordDecl, CXXMethodDecl>(&LambdaCallOperatorFactory);
+        _lambdaContextDecl = new ValueLazy<CXXRecordDecl, Decl>(&LambdaContextDeclFactory);
+        _lambdaStaticInvoker = new ValueLazy<CXXRecordDecl, CXXMethodDecl>(&LambdaStaticInvokerFactory);
         _methods = LazyList.Create<CXXMethodDecl>(Handle.NumMethods, (i) => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.GetMethod(unchecked((uint)i))));
-        _templateInstantiationPattern = new ValueLazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.TemplateInstantiationPattern));
+        _templateInstantiationPattern = new ValueLazy<CXXRecordDecl, CXXRecordDecl>(&TemplateInstantiationPatternFactory);
         _vbases = LazyList.Create<CXXBaseSpecifier>(Handle.NumVBases, (i) => TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetVBase(unchecked((uint)i))));
     }
 
@@ -65,11 +62,11 @@ public class CXXRecordDecl : RecordDecl
 
     public new CXXRecordDecl? Definition => (CXXRecordDecl?)base.Definition;
 
-    public FunctionTemplateDecl DependentLambdaCallOperator => _dependentLambdaCallOperator.Value;
+    public FunctionTemplateDecl DependentLambdaCallOperator => _dependentLambdaCallOperator.GetValue(this);
 
-    public ClassTemplateDecl DescribedClassTemplate => _describedClassTemplate.Value;
+    public ClassTemplateDecl DescribedClassTemplate => _describedClassTemplate.GetValue(this);
 
-    public CXXDestructorDecl? Destructor => _destructor.Value;
+    public CXXDestructorDecl? Destructor => _destructor.GetValue(this);
 
     public IReadOnlyList<FriendDecl> Friends => _friends;
 
@@ -91,13 +88,13 @@ public class CXXRecordDecl : RecordDecl
 
     public bool HasUserDeclaredMoveOperation => Handle.HasUserDeclaredMoveOperation;
 
-    public CXXRecordDecl InstantiatedFromMemberClass => _instantiatedFromMemberClass.Value;
+    public CXXRecordDecl InstantiatedFromMemberClass => _instantiatedFromMemberClass.GetValue(this);
 
-    public CXXMethodDecl LambdaCallOperator => _lambdaCallOperator.Value;
+    public CXXMethodDecl LambdaCallOperator => _lambdaCallOperator.GetValue(this);
 
-    public Decl LambdaContextDecl => _lambdaContextDecl.Value;
+    public Decl LambdaContextDecl => _lambdaContextDecl.GetValue(this);
 
-    public CXXMethodDecl LambdaStaticInvoker => _lambdaStaticInvoker.Value;
+    public CXXMethodDecl LambdaStaticInvoker => _lambdaStaticInvoker.GetValue(this);
 
     public IReadOnlyList<CXXMethodDecl> Methods => _methods;
 
@@ -127,7 +124,26 @@ public class CXXRecordDecl : RecordDecl
 
     public CX_TemplateSpecializationKind TemplateSpecializationKind => Handle.TemplateSpecializationKind;
 
-    public CXXRecordDecl TemplateInstantiationPattern => _templateInstantiationPattern.Value;
+    public CXXRecordDecl TemplateInstantiationPattern => _templateInstantiationPattern.GetValue(this);
 
     public IReadOnlyList<CXXBaseSpecifier> VBases => _vbases;
+
+    private static unsafe CXXRecordDecl TemplateInstantiationPatternFactory(CXXRecordDecl self) => self.TranslationUnit.GetOrCreate<CXXRecordDecl>(self.Handle.TemplateInstantiationPattern);
+
+    private static unsafe CXXMethodDecl LambdaStaticInvokerFactory(CXXRecordDecl self) => self.TranslationUnit.GetOrCreate<CXXMethodDecl>(self.Handle.LambdaStaticInvoker);
+
+    private static unsafe Decl LambdaContextDeclFactory(CXXRecordDecl self) => self.TranslationUnit.GetOrCreate<Decl>(self.Handle.LambdaContextDecl);
+
+    private static unsafe CXXMethodDecl LambdaCallOperatorFactory(CXXRecordDecl self) => self.TranslationUnit.GetOrCreate<CXXMethodDecl>(self.Handle.LambdaCallOperator);
+
+    private static unsafe CXXRecordDecl InstantiatedFromMemberClassFactory(CXXRecordDecl self) => self.TranslationUnit.GetOrCreate<CXXRecordDecl>(self.Handle.InstantiatedFromMember);
+
+    private static unsafe CXXDestructorDecl? DestructorFactory(CXXRecordDecl self) {
+            var destructor = self.Handle.Destructor;
+            return destructor.IsNull ? null : self.TranslationUnit.GetOrCreate<CXXDestructorDecl>(self.Handle.Destructor);
+        }
+
+    private static unsafe ClassTemplateDecl DescribedClassTemplateFactory(CXXRecordDecl self) => self.TranslationUnit.GetOrCreate<ClassTemplateDecl>(self.Handle.DescribedCursorTemplate);
+
+    private static unsafe FunctionTemplateDecl DependentLambdaCallOperatorFactory(CXXRecordDecl self) => self.TranslationUnit.GetOrCreate<FunctionTemplateDecl>(self.Handle.DependentLambdaCallOperator);
 }

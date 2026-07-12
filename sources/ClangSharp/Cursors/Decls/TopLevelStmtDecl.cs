@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class TopLevelStmtDecl : Decl
 {
-    private ValueLazy<LabelStmt> _stmt;
+    private ValueLazy<TopLevelStmtDecl, LabelStmt> _stmt;
 
-    internal TopLevelStmtDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_TopLevelStmt)
+    internal unsafe TopLevelStmtDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_TopLevelStmt)
     {
-        _stmt = new ValueLazy<LabelStmt>(() => TranslationUnit.GetOrCreate<LabelStmt>(Handle.GetExpr(0)));
+        _stmt = new ValueLazy<TopLevelStmtDecl, LabelStmt>(&StmtFactory);
     }
 
-    public LabelStmt Stmt => _stmt.Value;
+    public LabelStmt Stmt => _stmt.GetValue(this);
+
+    private static unsafe LabelStmt StmtFactory(TopLevelStmtDecl self) => self.TranslationUnit.GetOrCreate<LabelStmt>(self.Handle.GetExpr(0));
 }

@@ -8,20 +8,24 @@ namespace ClangSharp;
 
 public class AdjustedType : Type
 {
-    private ValueLazy<Type> _adjustedType;
-    private ValueLazy<Type> _originalType;
+    private ValueLazy<AdjustedType, Type> _adjustedType;
+    private ValueLazy<AdjustedType, Type> _originalType;
 
     internal AdjustedType(CXType handle) : this(handle, CXType_Unexposed, CX_TypeClass_Adjusted)
     {
     }
 
-    private protected AdjustedType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
+    private protected unsafe AdjustedType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        _adjustedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.AdjustedType));
-        _originalType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.OriginalType));
+        _adjustedType = new ValueLazy<AdjustedType, Type>(&AdjustedTypeFactory);
+        _originalType = new ValueLazy<AdjustedType, Type>(&OriginalTypeFactory);
     }
 
-    public Type GetAdjustedType => _adjustedType.Value;
+    public Type GetAdjustedType => _adjustedType.GetValue(this);
 
-    public Type OriginalType => _originalType.Value;
+    public Type OriginalType => _originalType.GetValue(this);
+
+    private static unsafe Type OriginalTypeFactory(AdjustedType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.OriginalType);
+
+    private static unsafe Type AdjustedTypeFactory(AdjustedType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.AdjustedType);
 }

@@ -8,18 +8,18 @@ namespace ClangSharp;
 
 public sealed class ParmVarDecl : VarDecl
 {
-    private ValueLazy<Expr> _defaultArg;
-    private ValueLazy<Type> _originalType;
-    private ValueLazy<Expr> _uninstantiatedDefaultArg;
+    private ValueLazy<ParmVarDecl, Expr> _defaultArg;
+    private ValueLazy<ParmVarDecl, Type> _originalType;
+    private ValueLazy<ParmVarDecl, Expr> _uninstantiatedDefaultArg;
 
-    internal ParmVarDecl(CXCursor handle) : base(handle, CXCursor_ParmDecl, CX_DeclKind_ParmVar)
+    internal unsafe ParmVarDecl(CXCursor handle) : base(handle, CXCursor_ParmDecl, CX_DeclKind_ParmVar)
     {
-        _defaultArg = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.DefaultArg));
-        _originalType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.OriginalType));
-        _uninstantiatedDefaultArg = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.UninstantiatedDefaultArg));
+        _defaultArg = new ValueLazy<ParmVarDecl, Expr>(&DefaultArgFactory);
+        _originalType = new ValueLazy<ParmVarDecl, Type>(&OriginalTypeFactory);
+        _uninstantiatedDefaultArg = new ValueLazy<ParmVarDecl, Expr>(&UninstantiatedDefaultArgFactory);
     }
 
-    public Expr DefaultArg => _defaultArg.Value;
+    public Expr DefaultArg => _defaultArg.GetValue(this);
 
     public int FunctionScopeDepth => Handle.FunctionScopeDepth;
 
@@ -33,7 +33,13 @@ public sealed class ParmVarDecl : VarDecl
 
     public bool HasInheritedDefaultArg => Handle.HasInheritedDefaultArg;
 
-    public Type OriginalType => _originalType.Value;
+    public Type OriginalType => _originalType.GetValue(this);
 
-    public Expr UninstantiatedDefaultArg => _uninstantiatedDefaultArg.Value;
+    public Expr UninstantiatedDefaultArg => _uninstantiatedDefaultArg.GetValue(this);
+
+    private static unsafe Expr UninstantiatedDefaultArgFactory(ParmVarDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.UninstantiatedDefaultArg);
+
+    private static unsafe Type OriginalTypeFactory(ParmVarDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.OriginalType);
+
+    private static unsafe Expr DefaultArgFactory(ParmVarDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.DefaultArg);
 }

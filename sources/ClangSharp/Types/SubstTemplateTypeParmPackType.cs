@@ -8,16 +8,20 @@ namespace ClangSharp;
 
 public sealed class SubstTemplateTypeParmPackType : Type
 {
-    private ValueLazy<TemplateArgument> _argumentPack;
-    private ValueLazy<TemplateTypeParmType> _replacedParameter;
+    private ValueLazy<SubstTemplateTypeParmPackType, TemplateArgument> _argumentPack;
+    private ValueLazy<SubstTemplateTypeParmPackType, TemplateTypeParmType> _replacedParameter;
 
-    internal SubstTemplateTypeParmPackType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_SubstTemplateTypeParmPack)
+    internal unsafe SubstTemplateTypeParmPackType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_SubstTemplateTypeParmPack)
     {
-        _argumentPack = new ValueLazy<TemplateArgument>(() => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(0)));
-        _replacedParameter = new ValueLazy<TemplateTypeParmType>(() => TranslationUnit.GetOrCreate<TemplateTypeParmType>(Handle.OriginalType));
+        _argumentPack = new ValueLazy<SubstTemplateTypeParmPackType, TemplateArgument>(&ArgumentPackFactory);
+        _replacedParameter = new ValueLazy<SubstTemplateTypeParmPackType, TemplateTypeParmType>(&ReplacedParameterFactory);
     }
 
-    public TemplateArgument ArgumentPack => _argumentPack.Value;
+    public TemplateArgument ArgumentPack => _argumentPack.GetValue(this);
 
-    public TemplateTypeParmType ReplacedParameter => _replacedParameter.Value;
+    public TemplateTypeParmType ReplacedParameter => _replacedParameter.GetValue(this);
+
+    private static unsafe TemplateTypeParmType ReplacedParameterFactory(SubstTemplateTypeParmPackType self) => self.TranslationUnit.GetOrCreate<TemplateTypeParmType>(self.Handle.OriginalType);
+
+    private static unsafe TemplateArgument ArgumentPackFactory(SubstTemplateTypeParmPackType self) => self.TranslationUnit.GetOrCreate(self.Handle.GetTemplateArgument(0));
 }

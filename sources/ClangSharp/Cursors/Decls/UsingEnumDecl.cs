@@ -8,14 +8,16 @@ namespace ClangSharp;
 
 public sealed class UsingEnumDecl : BaseUsingDecl, IMergeable<UsingEnumDecl>
 {
-    private ValueLazy<EnumDecl> _enumDecl;
+    private ValueLazy<UsingEnumDecl, EnumDecl> _enumDecl;
 
-    internal UsingEnumDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_UsingEnum)
+    internal unsafe UsingEnumDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_UsingEnum)
     {
-        _enumDecl = new ValueLazy<EnumDecl>(() => TranslationUnit.GetOrCreate<EnumDecl>(Handle.Definition));
+        _enumDecl = new ValueLazy<UsingEnumDecl, EnumDecl>(&EnumDeclFactory);
     }
 
     public new UsingEnumDecl CanonicalDecl => (UsingEnumDecl)base.CanonicalDecl;
 
-    public EnumDecl EnumDecl => _enumDecl.Value;
+    public EnumDecl EnumDecl => _enumDecl.GetValue(this);
+
+    private static unsafe EnumDecl EnumDeclFactory(UsingEnumDecl self) => self.TranslationUnit.GetOrCreate<EnumDecl>(self.Handle.Definition);
 }

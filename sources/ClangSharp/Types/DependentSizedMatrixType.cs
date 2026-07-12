@@ -8,16 +8,20 @@ namespace ClangSharp;
 
 public sealed class DependentSizedMatrixType : MatrixType
 {
-    private ValueLazy<Expr> _rowExpr;
-    private ValueLazy<Expr> _columnExpr;
+    private ValueLazy<DependentSizedMatrixType, Expr> _rowExpr;
+    private ValueLazy<DependentSizedMatrixType, Expr> _columnExpr;
 
-    internal DependentSizedMatrixType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentSizedMatrix)
+    internal unsafe DependentSizedMatrixType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentSizedMatrix)
     {
-        _rowExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.RowExpr));
-        _columnExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.ColumnExpr));
+        _rowExpr = new ValueLazy<DependentSizedMatrixType, Expr>(&RowExprFactory);
+        _columnExpr = new ValueLazy<DependentSizedMatrixType, Expr>(&ColumnExprFactory);
     }
 
-    public Expr ColumnExpr => _columnExpr.Value;
+    public Expr ColumnExpr => _columnExpr.GetValue(this);
 
-    public Expr RowExpr => _rowExpr.Value;
+    public Expr RowExpr => _rowExpr.GetValue(this);
+
+    private static unsafe Expr ColumnExprFactory(DependentSizedMatrixType self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.ColumnExpr);
+
+    private static unsafe Expr RowExprFactory(DependentSizedMatrixType self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.RowExpr);
 }

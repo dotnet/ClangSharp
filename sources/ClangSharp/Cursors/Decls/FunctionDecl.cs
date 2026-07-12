@@ -10,49 +10,49 @@ namespace ClangSharp;
 
 public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<FunctionDecl>
 {
-    private ValueLazy<Type> _callResultType;
-    private ValueLazy<Type> _declaredReturnType;
-    private ValueLazy<FunctionDecl> _definition;
-    private ValueLazy<FunctionTemplateDecl> _describedFunctionDecl;
-    private ValueLazy<FunctionDecl> _instantiatedFromMemberFunction;
+    private ValueLazy<FunctionDecl, Type> _callResultType;
+    private ValueLazy<FunctionDecl, Type> _declaredReturnType;
+    private ValueLazy<FunctionDecl, FunctionDecl> _definition;
+    private ValueLazy<FunctionDecl, FunctionTemplateDecl> _describedFunctionDecl;
+    private ValueLazy<FunctionDecl, FunctionDecl> _instantiatedFromMemberFunction;
     private readonly LazyList<ParmVarDecl> _parameters;
-    private ValueLazy<FunctionTemplateDecl> _primaryTemplate;
-    private ValueLazy<Type> _returnType;
-    private ValueLazy<FunctionDecl> _templateInstantiationPattern;
+    private ValueLazy<FunctionDecl, FunctionTemplateDecl> _primaryTemplate;
+    private ValueLazy<FunctionDecl, Type> _returnType;
+    private ValueLazy<FunctionDecl, FunctionDecl> _templateInstantiationPattern;
     private readonly LazyList<TemplateArgument> _templateSpecializationArgs;
 
     internal FunctionDecl(CXCursor handle) : this(handle, CXCursor_FunctionDecl, CX_DeclKind_Function)
     {
     }
 
-    private protected FunctionDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+    private protected unsafe FunctionDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
         if (handle.DeclKind is > CX_DeclKind_LastFunction or < CX_DeclKind_FirstFunction)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _callResultType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CallResultType));
-        _declaredReturnType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.DeclaredReturnType));
-        _definition = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.Definition));
-        _describedFunctionDecl = new ValueLazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.DescribedCursorTemplate));
-        _instantiatedFromMemberFunction = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.InstantiatedFromMember));
+        _callResultType = new ValueLazy<FunctionDecl, Type>(&CallResultTypeFactory);
+        _declaredReturnType = new ValueLazy<FunctionDecl, Type>(&DeclaredReturnTypeFactory);
+        _definition = new ValueLazy<FunctionDecl, FunctionDecl>(&DefinitionFactory);
+        _describedFunctionDecl = new ValueLazy<FunctionDecl, FunctionTemplateDecl>(&DescribedFunctionDeclFactory);
+        _instantiatedFromMemberFunction = new ValueLazy<FunctionDecl, FunctionDecl>(&InstantiatedFromMemberFunctionFactory);
         _parameters = LazyList.Create<ParmVarDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i))));
-        _primaryTemplate = new ValueLazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.PrimaryTemplate));
-        _returnType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
-        _templateInstantiationPattern = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.TemplateInstantiationPattern));
+        _primaryTemplate = new ValueLazy<FunctionDecl, FunctionTemplateDecl>(&PrimaryTemplateFactory);
+        _returnType = new ValueLazy<FunctionDecl, Type>(&ReturnTypeFactory);
+        _templateInstantiationPattern = new ValueLazy<FunctionDecl, FunctionDecl>(&TemplateInstantiationPatternFactory);
         _templateSpecializationArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 
-    public Type CallResultType => _callResultType.Value;
+    public Type CallResultType => _callResultType.GetValue(this);
 
     public new FunctionDecl CanonicalDecl => (FunctionDecl)base.CanonicalDecl;
 
-    public Type DeclaredReturnType => _declaredReturnType.Value;
+    public Type DeclaredReturnType => _declaredReturnType.GetValue(this);
 
-    public FunctionDecl Definition => _definition.Value;
+    public FunctionDecl Definition => _definition.GetValue(this);
 
-    public FunctionTemplateDecl DescribedFunctionDecl => _describedFunctionDecl.Value;
+    public FunctionTemplateDecl DescribedFunctionDecl => _describedFunctionDecl.GetValue(this);
 
     public CXCursor_ExceptionSpecificationKind ExceptionSpecType => (CXCursor_ExceptionSpecificationKind)Handle.ExceptionSpecificationType;
 
@@ -60,7 +60,7 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
 
     public bool HasImplicitReturnZero => Handle.HasImplicitReturnZero;
 
-    public FunctionDecl InstantiatedFromMemberFunction => _instantiatedFromMemberFunction.Value;
+    public FunctionDecl InstantiatedFromMemberFunction => _instantiatedFromMemberFunction.GetValue(this);
 
     public bool IsDefaulted => Handle.CXXMethod_IsDefaulted;
 
@@ -100,15 +100,31 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
 
     public IReadOnlyList<ParmVarDecl> Parameters => _parameters;
 
-    public FunctionTemplateDecl PrimaryTemplate => _primaryTemplate.Value;
+    public FunctionTemplateDecl PrimaryTemplate => _primaryTemplate.GetValue(this);
 
-    public Type ReturnType => _returnType.Value;
+    public Type ReturnType => _returnType.GetValue(this);
 
     public CX_StorageClass StorageClass => Handle.StorageClass;
 
-    public FunctionDecl TemplateInstantiationPattern => _templateInstantiationPattern.Value;
+    public FunctionDecl TemplateInstantiationPattern => _templateInstantiationPattern.GetValue(this);
 
     public IReadOnlyList<TemplateArgument> TemplateSpecializationArgs => _templateSpecializationArgs;
 
     public CX_TemplateSpecializationKind TemplateSpecializationKind => Handle.TemplateSpecializationKind;
+
+    private static unsafe FunctionDecl TemplateInstantiationPatternFactory(FunctionDecl self) => self.TranslationUnit.GetOrCreate<FunctionDecl>(self.Handle.TemplateInstantiationPattern);
+
+    private static unsafe Type ReturnTypeFactory(FunctionDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ReturnType);
+
+    private static unsafe FunctionTemplateDecl PrimaryTemplateFactory(FunctionDecl self) => self.TranslationUnit.GetOrCreate<FunctionTemplateDecl>(self.Handle.PrimaryTemplate);
+
+    private static unsafe FunctionDecl InstantiatedFromMemberFunctionFactory(FunctionDecl self) => self.TranslationUnit.GetOrCreate<FunctionDecl>(self.Handle.InstantiatedFromMember);
+
+    private static unsafe FunctionTemplateDecl DescribedFunctionDeclFactory(FunctionDecl self) => self.TranslationUnit.GetOrCreate<FunctionTemplateDecl>(self.Handle.DescribedCursorTemplate);
+
+    private static unsafe FunctionDecl DefinitionFactory(FunctionDecl self) => self.TranslationUnit.GetOrCreate<FunctionDecl>(self.Handle.Definition);
+
+    private static unsafe Type DeclaredReturnTypeFactory(FunctionDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.DeclaredReturnType);
+
+    private static unsafe Type CallResultTypeFactory(FunctionDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.CallResultType);
 }

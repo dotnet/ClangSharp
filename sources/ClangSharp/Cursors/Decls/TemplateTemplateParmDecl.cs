@@ -8,14 +8,14 @@ namespace ClangSharp;
 
 public sealed class TemplateTemplateParmDecl : TemplateDecl, ITemplateParmPosition
 {
-    private ValueLazy<TemplateArgumentLoc> _defaultArgument;
+    private ValueLazy<TemplateTemplateParmDecl, TemplateArgumentLoc> _defaultArgument;
 
-    internal TemplateTemplateParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTemplateParameter, CX_DeclKind_TemplateTemplateParm)
+    internal unsafe TemplateTemplateParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTemplateParameter, CX_DeclKind_TemplateTemplateParm)
     {
-        _defaultArgument = new ValueLazy<TemplateArgumentLoc>(() => TranslationUnit.GetOrCreate(handle.GetTemplateArgumentLoc(0)));
+        _defaultArgument = new ValueLazy<TemplateTemplateParmDecl, TemplateArgumentLoc>(&DefaultArgumentFactory);
     }
 
-    public TemplateArgumentLoc DefaultArgument => _defaultArgument.Value;
+    public TemplateArgumentLoc DefaultArgument => _defaultArgument.GetValue(this);
 
     public bool DefaultArgumentWasInherited => Handle.HasInheritedDefaultArg;
 
@@ -30,4 +30,6 @@ public sealed class TemplateTemplateParmDecl : TemplateDecl, ITemplateParmPositi
     public bool IsParameterPack => Handle.IsParameterPack;
 
     public uint Position => unchecked((uint)Handle.TemplateTypeParmPosition);
+
+    private static unsafe TemplateArgumentLoc DefaultArgumentFactory(TemplateTemplateParmDecl self) => self.TranslationUnit.GetOrCreate(self.Handle.GetTemplateArgumentLoc(0));
 }

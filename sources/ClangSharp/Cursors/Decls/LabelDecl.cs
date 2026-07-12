@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class LabelDecl : NamedDecl
 {
-    private ValueLazy<LabelStmt> _stmt;
+    private ValueLazy<LabelDecl, LabelStmt> _stmt;
 
-    internal LabelDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Label)
+    internal unsafe LabelDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Label)
     {
-        _stmt = new ValueLazy<LabelStmt>(() => TranslationUnit.GetOrCreate<LabelStmt>(Handle.GetExpr(0)));
+        _stmt = new ValueLazy<LabelDecl, LabelStmt>(&StmtFactory);
     }
 
-    public LabelStmt Stmt => _stmt.Value;
+    public LabelStmt Stmt => _stmt.GetValue(this);
+
+    private static unsafe LabelStmt StmtFactory(LabelDecl self) => self.TranslationUnit.GetOrCreate<LabelStmt>(self.Handle.GetExpr(0));
 }

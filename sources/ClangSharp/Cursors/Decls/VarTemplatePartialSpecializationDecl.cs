@@ -10,21 +10,23 @@ namespace ClangSharp;
 public class VarTemplatePartialSpecializationDecl : VarDecl
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private ValueLazy<VarTemplatePartialSpecializationDecl> _instantiatedFromMember;
+    private ValueLazy<VarTemplatePartialSpecializationDecl, VarTemplatePartialSpecializationDecl> _instantiatedFromMember;
     private readonly LazyList<NamedDecl> _templateParameters;
 
-    internal VarTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_VarTemplatePartialSpecialization)
+    internal unsafe VarTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_VarTemplatePartialSpecialization)
     {
         _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
-        _instantiatedFromMember = new ValueLazy<VarTemplatePartialSpecializationDecl>(() => TranslationUnit.GetOrCreate<VarTemplatePartialSpecializationDecl>(Handle.InstantiatedFromMember));
+        _instantiatedFromMember = new ValueLazy<VarTemplatePartialSpecializationDecl, VarTemplatePartialSpecializationDecl>(&InstantiatedFromMemberFactory);
         _templateParameters = LazyList.Create<NamedDecl>(Handle.GetNumTemplateParameters(0), (i) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i))));
     }
 
     public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints;
 
-    public VarTemplatePartialSpecializationDecl InstantiatedFromMember => _instantiatedFromMember.Value;
+    public VarTemplatePartialSpecializationDecl InstantiatedFromMember => _instantiatedFromMember.GetValue(this);
 
     public new VarTemplatePartialSpecializationDecl MostRecentDecl => (VarTemplatePartialSpecializationDecl)base.MostRecentDecl;
 
     public IReadOnlyList<NamedDecl> TemplateParameters => _templateParameters;
+
+    private static unsafe VarTemplatePartialSpecializationDecl InstantiatedFromMemberFactory(VarTemplatePartialSpecializationDecl self) => self.TranslationUnit.GetOrCreate<VarTemplatePartialSpecializationDecl>(self.Handle.InstantiatedFromMember);
 }

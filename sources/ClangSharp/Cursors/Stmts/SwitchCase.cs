@@ -9,19 +9,19 @@ namespace ClangSharp;
 
 public class SwitchCase : Stmt
 {
-    private ValueLazy<SwitchCase> _nextSwitchCase;
+    private ValueLazy<SwitchCase, SwitchCase> _nextSwitchCase;
 
-    private protected SwitchCase(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
+    private protected unsafe SwitchCase(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
         if (handle.StmtClass is > CX_StmtClass_LastSwitchCase or < CX_StmtClass_FirstSwitchCase)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _nextSwitchCase = new ValueLazy<SwitchCase>(() => TranslationUnit.GetOrCreate<SwitchCase>(Handle.NextSwitchCase));
+        _nextSwitchCase = new ValueLazy<SwitchCase, SwitchCase>(&NextSwitchCaseFactory);
     }
 
-    public SwitchCase NextSwitchCase => _nextSwitchCase.Value;
+    public SwitchCase NextSwitchCase => _nextSwitchCase.GetValue(this);
 
     public Stmt? SubStmt
     {
@@ -40,4 +40,6 @@ public class SwitchCase : Stmt
             return null;
         }
     }
+
+    private static unsafe SwitchCase NextSwitchCaseFactory(SwitchCase self) => self.TranslationUnit.GetOrCreate<SwitchCase>(self.Handle.NextSwitchCase);
 }

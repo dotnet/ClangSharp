@@ -10,14 +10,14 @@ namespace ClangSharp;
 
 public sealed class MemberExpr : Expr
 {
-    private ValueLazy<ValueDecl> _memberDecl;
+    private ValueLazy<MemberExpr, ValueDecl> _memberDecl;
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
-    internal MemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_MemberExpr)
+    internal unsafe MemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_MemberExpr)
     {
         Debug.Assert(NumChildren is 1);
 
-        _memberDecl = new ValueLazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.Referenced));
+        _memberDecl = new ValueLazy<MemberExpr, ValueDecl>(&MemberDeclFactory);
         _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
     }
 
@@ -33,11 +33,13 @@ public sealed class MemberExpr : Expr
 
     public bool IsImplicitAccess => Handle.IsImplicit;
 
-    public ValueDecl MemberDecl => _memberDecl.Value;
+    public ValueDecl MemberDecl => _memberDecl.GetValue(this);
 
     public string MemberName => Handle.Name.CString;
 
     public uint NumTemplateArgs => unchecked((uint)Handle.NumTemplateArguments);
 
     public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs;
+
+    private static unsafe ValueDecl MemberDeclFactory(MemberExpr self) => self.TranslationUnit.GetOrCreate<ValueDecl>(self.Handle.Referenced);
 }

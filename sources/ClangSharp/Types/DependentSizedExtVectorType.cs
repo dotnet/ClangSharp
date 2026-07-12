@@ -8,18 +8,22 @@ namespace ClangSharp;
 
 public sealed class DependentSizedExtVectorType : Type
 {
-    private ValueLazy<Type> _elementType;
-    private ValueLazy<Expr> _sizeExpr;
+    private ValueLazy<DependentSizedExtVectorType, Type> _elementType;
+    private ValueLazy<DependentSizedExtVectorType, Expr> _sizeExpr;
 
-    internal DependentSizedExtVectorType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentSizedExtVector)
+    internal unsafe DependentSizedExtVectorType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentSizedExtVector)
     {
-        _elementType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
-        _sizeExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SizeExpr));
+        _elementType = new ValueLazy<DependentSizedExtVectorType, Type>(&ElementTypeFactory);
+        _sizeExpr = new ValueLazy<DependentSizedExtVectorType, Expr>(&SizeExprFactory);
     }
 
-    public Type ElementType => _elementType.Value;
+    public Type ElementType => _elementType.GetValue(this);
 
     public long Size => Handle.ArraySize;
 
-    public Expr SizeExpr => _sizeExpr.Value;
+    public Expr SizeExpr => _sizeExpr.GetValue(this);
+
+    private static unsafe Expr SizeExprFactory(DependentSizedExtVectorType self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.SizeExpr);
+
+    private static unsafe Type ElementTypeFactory(DependentSizedExtVectorType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ElementType);
 }

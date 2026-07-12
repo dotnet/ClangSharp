@@ -9,28 +9,28 @@ namespace ClangSharp;
 
 public sealed partial class CapturedStmt : Stmt
 {
-    private ValueLazy<CapturedDecl> _capturedDecl;
-    private ValueLazy<RecordDecl> _capturedRecordDecl;
-    private ValueLazy<Stmt> _captureStmt;
+    private ValueLazy<CapturedStmt, CapturedDecl> _capturedDecl;
+    private ValueLazy<CapturedStmt, RecordDecl> _capturedRecordDecl;
+    private ValueLazy<CapturedStmt, Stmt> _captureStmt;
     private readonly LazyList<Capture> _captures;
     private readonly LazyList<Expr, Stmt> _captureInits;
 
-    internal CapturedStmt(CXCursor handle) : base(handle, CXCursor_UnexposedStmt, CX_StmtClass_CapturedStmt)
+    internal unsafe CapturedStmt(CXCursor handle) : base(handle, CXCursor_UnexposedStmt, CX_StmtClass_CapturedStmt)
     {
-        _capturedDecl = new ValueLazy<CapturedDecl>(() => TranslationUnit.GetOrCreate<CapturedDecl>(Handle.CapturedDecl));
-        _capturedRecordDecl = new ValueLazy<RecordDecl>(() => TranslationUnit.GetOrCreate<RecordDecl>(Handle.CapturedRecordDecl));
-        _captureStmt = new ValueLazy<Stmt>(() => TranslationUnit.GetOrCreate<Stmt>(Handle.CapturedStmt));
+        _capturedDecl = new ValueLazy<CapturedStmt, CapturedDecl>(&CapturedDeclFactory);
+        _capturedRecordDecl = new ValueLazy<CapturedStmt, RecordDecl>(&CapturedRecordDeclFactory);
+        _captureStmt = new ValueLazy<CapturedStmt, Stmt>(&CaptureStmtFactory);
         _captures = LazyList.Create<Capture>(Handle.NumCaptures, (i) => new Capture(this, unchecked((uint)i)));
         _captureInits = LazyList.Create<Expr, Stmt>(_children);
     }
 
-    public CapturedDecl CapturedDecl => _capturedDecl.Value;
+    public CapturedDecl CapturedDecl => _capturedDecl.GetValue(this);
 
-    public RecordDecl CapturedRecordDecl => _capturedRecordDecl.Value;
+    public RecordDecl CapturedRecordDecl => _capturedRecordDecl.GetValue(this);
 
     public CX_CapturedRegionKind CapturedRegionKind => Handle.CapturedRegionKind;
 
-    public Stmt CaptureStmt => _captureStmt.Value;
+    public Stmt CaptureStmt => _captureStmt.GetValue(this);
 
     public IReadOnlyList<Capture> Captures => _captures;
 
@@ -56,4 +56,10 @@ public sealed partial class CapturedStmt : Stmt
         }
         return false;
     }
+
+    private static unsafe Stmt CaptureStmtFactory(CapturedStmt self) => self.TranslationUnit.GetOrCreate<Stmt>(self.Handle.CapturedStmt);
+
+    private static unsafe RecordDecl CapturedRecordDeclFactory(CapturedStmt self) => self.TranslationUnit.GetOrCreate<RecordDecl>(self.Handle.CapturedRecordDecl);
+
+    private static unsafe CapturedDecl CapturedDeclFactory(CapturedStmt self) => self.TranslationUnit.GetOrCreate<CapturedDecl>(self.Handle.CapturedDecl);
 }

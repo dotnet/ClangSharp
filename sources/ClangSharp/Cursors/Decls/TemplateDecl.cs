@@ -10,10 +10,10 @@ namespace ClangSharp;
 public class TemplateDecl : NamedDecl
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private ValueLazy<NamedDecl> _templatedDecl;
+    private ValueLazy<TemplateDecl, NamedDecl> _templatedDecl;
     private readonly LazyList<NamedDecl> _templateParameters;
 
-    private protected TemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+    private protected unsafe TemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
         if (handle.DeclKind is > CX_DeclKind_LastTemplate or < CX_DeclKind_FirstTemplate)
         {
@@ -21,7 +21,7 @@ public class TemplateDecl : NamedDecl
         }
 
         _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
-        _templatedDecl = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.TemplatedDecl));
+        _templatedDecl = new ValueLazy<TemplateDecl, NamedDecl>(&TemplatedDeclFactory);
         _templateParameters = LazyList.Create<NamedDecl>(Handle.GetNumTemplateParameters(0), (i) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i))));
     }
 
@@ -29,7 +29,9 @@ public class TemplateDecl : NamedDecl
 
     public bool HasAssociatedConstraints => AssociatedConstraints.Count != 0;
 
-    public NamedDecl TemplatedDecl => _templatedDecl.Value;
+    public NamedDecl TemplatedDecl => _templatedDecl.GetValue(this);
 
     public IReadOnlyList<NamedDecl> TemplateParameters => _templateParameters;
+
+    private static unsafe NamedDecl TemplatedDeclFactory(TemplateDecl self) => self.TranslationUnit.GetOrCreate<NamedDecl>(self.Handle.TemplatedDecl);
 }

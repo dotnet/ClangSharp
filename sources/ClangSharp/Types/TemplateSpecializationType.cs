@@ -11,12 +11,12 @@ namespace ClangSharp;
 public sealed class TemplateSpecializationType : Type
 {
     private readonly LazyList<TemplateArgument> _templateArgs;
-    private ValueLazy<TemplateName> _templateName;
+    private ValueLazy<TemplateSpecializationType, TemplateName> _templateName;
 
-    internal TemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TemplateSpecialization)
+    internal unsafe TemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TemplateSpecialization)
     {
         _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
-        _templateName = new ValueLazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.TemplateName));
+        _templateName = new ValueLazy<TemplateSpecializationType, TemplateName>(&TemplateNameFactory);
     }
 
     public Type? AliasedType => IsTypeAlias ? Desugar : null;
@@ -26,5 +26,7 @@ public sealed class TemplateSpecializationType : Type
     [MemberNotNullWhen(true, nameof(AliasedType))]
     public bool IsTypeAlias => Handle.IsTypeAlias;
 
-    public TemplateName TemplateName => _templateName.Value;
+    public TemplateName TemplateName => _templateName.GetValue(this);
+
+    private static unsafe TemplateName TemplateNameFactory(TemplateSpecializationType self) => self.TranslationUnit.GetOrCreate(self.Handle.TemplateName);
 }

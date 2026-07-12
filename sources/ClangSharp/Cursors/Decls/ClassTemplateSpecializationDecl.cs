@@ -11,23 +11,23 @@ namespace ClangSharp;
 
 public class ClassTemplateSpecializationDecl : CXXRecordDecl
 {
-    private ValueLazy<ClassTemplateDecl> _specializedTemplate;
+    private ValueLazy<ClassTemplateSpecializationDecl, ClassTemplateDecl> _specializedTemplate;
     private readonly LazyList<TemplateArgument> _templateArgs;
 
-    internal ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_ClassTemplateSpecialization)
+    internal unsafe ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_ClassTemplateSpecialization)
     {
-        _specializedTemplate = new ValueLazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
+        _specializedTemplate = new ValueLazy<ClassTemplateSpecializationDecl, ClassTemplateDecl>(&SpecializedTemplateFactory);
         _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 
-    private protected ClassTemplateSpecializationDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+    private protected unsafe ClassTemplateSpecializationDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
         if (handle.DeclKind is > CX_DeclKind_LastClassTemplateSpecialization or < CX_DeclKind_FirstClassTemplateSpecialization)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _specializedTemplate = new ValueLazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
+        _specializedTemplate = new ValueLazy<ClassTemplateSpecializationDecl, ClassTemplateDecl>(&SpecializedTemplateFactory);
         _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 
@@ -64,7 +64,9 @@ public class ClassTemplateSpecializationDecl : CXXRecordDecl
 
     public CX_TemplateSpecializationKind SpecializationKind => Handle.TemplateSpecializationKind;
 
-    public ClassTemplateDecl SpecializedTemplate => _specializedTemplate.Value;
+    public ClassTemplateDecl SpecializedTemplate => _specializedTemplate.GetValue(this);
 
     public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs;
+
+    private static unsafe ClassTemplateDecl SpecializedTemplateFactory(ClassTemplateSpecializationDecl self) => self.TranslationUnit.GetOrCreate<ClassTemplateDecl>(self.Handle.SpecializedCursorTemplate);
 }

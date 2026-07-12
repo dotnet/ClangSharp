@@ -9,18 +9,22 @@ namespace ClangSharp;
 
 public sealed class SubstNonTypeTemplateParmPackExpr : Expr
 {
-    private ValueLazy<TemplateArgument> _argumentPack;
-    private ValueLazy<NonTypeTemplateParmDecl> _parameterPack;
+    private ValueLazy<SubstNonTypeTemplateParmPackExpr, TemplateArgument> _argumentPack;
+    private ValueLazy<SubstNonTypeTemplateParmPackExpr, NonTypeTemplateParmDecl> _parameterPack;
 
-    internal SubstNonTypeTemplateParmPackExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_SubstNonTypeTemplateParmPackExpr)
+    internal unsafe SubstNonTypeTemplateParmPackExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_SubstNonTypeTemplateParmPackExpr)
     {
         Debug.Assert(NumChildren is 0);
 
-        _argumentPack = new ValueLazy<TemplateArgument>(() => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(0)));
-        _parameterPack = new ValueLazy<NonTypeTemplateParmDecl>(() => TranslationUnit.GetOrCreate<NonTypeTemplateParmDecl>(Handle.Referenced));
+        _argumentPack = new ValueLazy<SubstNonTypeTemplateParmPackExpr, TemplateArgument>(&ArgumentPackFactory);
+        _parameterPack = new ValueLazy<SubstNonTypeTemplateParmPackExpr, NonTypeTemplateParmDecl>(&ParameterPackFactory);
     }
 
-    public TemplateArgument ArgumentPack => _argumentPack.Value;
+    public TemplateArgument ArgumentPack => _argumentPack.GetValue(this);
 
-    public NonTypeTemplateParmDecl Parameter => _parameterPack.Value;
+    public NonTypeTemplateParmDecl Parameter => _parameterPack.GetValue(this);
+
+    private static unsafe NonTypeTemplateParmDecl ParameterPackFactory(SubstNonTypeTemplateParmPackExpr self) => self.TranslationUnit.GetOrCreate<NonTypeTemplateParmDecl>(self.Handle.Referenced);
+
+    private static unsafe TemplateArgument ArgumentPackFactory(SubstNonTypeTemplateParmPackExpr self) => self.TranslationUnit.GetOrCreate(self.Handle.GetTemplateArgument(0));
 }

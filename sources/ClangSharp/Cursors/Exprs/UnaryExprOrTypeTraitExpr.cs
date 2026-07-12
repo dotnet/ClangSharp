@@ -8,22 +8,26 @@ namespace ClangSharp;
 
 public sealed class UnaryExprOrTypeTraitExpr : Expr
 {
-    private ValueLazy<Expr> _argumentExpr;
-    private ValueLazy<Type> _argumentType;
+    private ValueLazy<UnaryExprOrTypeTraitExpr, Expr> _argumentExpr;
+    private ValueLazy<UnaryExprOrTypeTraitExpr, Type> _argumentType;
 
-    internal UnaryExprOrTypeTraitExpr(CXCursor handle) : base(handle, CXCursor_UnaryExpr, CX_StmtClass_UnaryExprOrTypeTraitExpr)
+    internal unsafe UnaryExprOrTypeTraitExpr(CXCursor handle) : base(handle, CXCursor_UnaryExpr, CX_StmtClass_UnaryExprOrTypeTraitExpr)
     {
-        _argumentExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
-        _argumentType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ArgumentType));
+        _argumentExpr = new ValueLazy<UnaryExprOrTypeTraitExpr, Expr>(&ArgumentExprFactory);
+        _argumentType = new ValueLazy<UnaryExprOrTypeTraitExpr, Type>(&ArgumentTypeFactory);
     }
 
-    public Expr ArgumentExpr => _argumentExpr.Value;
+    public Expr ArgumentExpr => _argumentExpr.GetValue(this);
 
-    public Type ArgumentType => _argumentType.Value;
+    public Type ArgumentType => _argumentType.GetValue(this);
 
     public bool IsArgumentType => Handle.IsArgumentType;
 
     public CX_UnaryExprOrTypeTrait Kind => Handle.UnaryExprOrTypeTraitKind;
 
     public Type TypeOfArgument => IsArgumentType ? ArgumentType : ArgumentExpr.Type;
+
+    private static unsafe Type ArgumentTypeFactory(UnaryExprOrTypeTraitExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ArgumentType);
+
+    private static unsafe Expr ArgumentExprFactory(UnaryExprOrTypeTraitExpr self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.SubExpr);
 }

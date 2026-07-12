@@ -9,17 +9,19 @@ namespace ClangSharp;
 
 public sealed class LabelStmt : ValueStmt
 {
-    private ValueLazy<LabelDecl> _decl;
+    private ValueLazy<LabelStmt, LabelDecl> _decl;
 
-    internal LabelStmt(CXCursor handle) : base(handle, CXCursor_LabelStmt, CX_StmtClass_LabelStmt)
+    internal unsafe LabelStmt(CXCursor handle) : base(handle, CXCursor_LabelStmt, CX_StmtClass_LabelStmt)
     {
         Debug.Assert(NumChildren is 1);
-        _decl = new ValueLazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
+        _decl = new ValueLazy<LabelStmt, LabelDecl>(&DeclFactory);
     }
 
-    public LabelDecl Decl => _decl.Value;
+    public LabelDecl Decl => _decl.GetValue(this);
 
     public string Name => Handle.Name.CString;
 
     public Stmt SubStmt => Children[0];
+
+    private static unsafe LabelDecl DeclFactory(LabelStmt self) => self.TranslationUnit.GetOrCreate<LabelDecl>(self.Handle.Referenced);
 }

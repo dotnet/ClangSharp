@@ -12,9 +12,9 @@ namespace ClangSharp;
 public class CastExpr : Expr
 {
     private readonly LazyList<CXXBaseSpecifier> _path;
-    private ValueLazy<FieldDecl> _targetUnionField;
+    private ValueLazy<CastExpr, FieldDecl> _targetUnionField;
 
-    private protected CastExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
+    private protected unsafe CastExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
         if (handle.StmtClass is > CX_StmtClass_LastCastExpr or < CX_StmtClass_FirstCastExpr)
         {
@@ -24,7 +24,7 @@ public class CastExpr : Expr
         Debug.Assert(NumChildren is 1);
 
         _path = LazyList.Create<CXXBaseSpecifier>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetArgument(unchecked((uint)i))));
-        _targetUnionField = new ValueLazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.TargetUnionField));
+        _targetUnionField = new ValueLazy<CastExpr, FieldDecl>(&TargetUnionFieldFactory);
     }
 
     public CX_CastKind CastKind => Handle.CastKind;
@@ -103,5 +103,7 @@ public class CastExpr : Expr
         }
     }
 
-    public FieldDecl TargetUnionField => _targetUnionField.Value;
+    public FieldDecl TargetUnionField => _targetUnionField.GetValue(this);
+
+    private static unsafe FieldDecl TargetUnionFieldFactory(CastExpr self) => self.TranslationUnit.GetOrCreate<FieldDecl>(self.Handle.TargetUnionField);
 }

@@ -9,12 +9,12 @@ namespace ClangSharp;
 
 public sealed class SwitchStmt : Stmt
 {
-    private ValueLazy<SwitchCase> _switchCaseList;
+    private ValueLazy<SwitchStmt, SwitchCase> _switchCaseList;
 
-    internal SwitchStmt(CXCursor handle) : base(handle, CXCursor_SwitchStmt, CX_StmtClass_SwitchStmt)
+    internal unsafe SwitchStmt(CXCursor handle) : base(handle, CXCursor_SwitchStmt, CX_StmtClass_SwitchStmt)
     {
         Debug.Assert(NumChildren is >= 2 and <= 4);
-        _switchCaseList = new ValueLazy<SwitchCase>(() => TranslationUnit.GetOrCreate<SwitchCase>(Handle.SubStmt));
+        _switchCaseList = new ValueLazy<SwitchStmt, SwitchCase>(&SwitchCaseListFactory);
     }
 
     public Stmt Body => Children[BodyOffset];
@@ -33,7 +33,7 @@ public sealed class SwitchStmt : Stmt
 
     public bool IsAllEnumCasesCovered => Handle.IsAllEnumCasesCovered;
 
-    public SwitchCase SwitchCaseList => _switchCaseList.Value;
+    public SwitchCase SwitchCaseList => _switchCaseList.GetValue(this);
 
     private int BodyOffset => CondOffset + 1;
 
@@ -43,4 +43,6 @@ public sealed class SwitchStmt : Stmt
 
     private int VarOffset => InitOffset + (HasInitStorage ? 1 : 0);
 
+
+    private static unsafe SwitchCase SwitchCaseListFactory(SwitchStmt self) => self.TranslationUnit.GetOrCreate<SwitchCase>(self.Handle.SubStmt);
 }

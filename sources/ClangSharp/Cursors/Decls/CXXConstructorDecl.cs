@@ -9,18 +9,18 @@ namespace ClangSharp;
 
 public sealed class CXXConstructorDecl : CXXMethodDecl
 {
-    private ValueLazy<CXXConstructorDecl> _inheritedConstructor;
+    private ValueLazy<CXXConstructorDecl, CXXConstructorDecl> _inheritedConstructor;
     private readonly LazyList<Expr> _initExprs;
 
-    internal CXXConstructorDecl(CXCursor handle) : base(handle, CXCursor_Constructor, CX_DeclKind_CXXConstructor)
+    internal unsafe CXXConstructorDecl(CXCursor handle) : base(handle, CXCursor_Constructor, CX_DeclKind_CXXConstructor)
     {
-        _inheritedConstructor = new ValueLazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.InheritedConstructor));
+        _inheritedConstructor = new ValueLazy<CXXConstructorDecl, CXXConstructorDecl>(&InheritedConstructorFactory);
         _initExprs = LazyList.Create<Expr>(Handle.NumExprs , (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)i))));
     }
 
     public new CXXConstructorDecl CanonicalDecl => (CXXConstructorDecl)base.CanonicalDecl;
 
-    public CXXConstructorDecl InheritedConstructor => _inheritedConstructor.Value;
+    public CXXConstructorDecl InheritedConstructor => _inheritedConstructor.GetValue(this);
 
     public IReadOnlyList<Expr> InitExprs => _initExprs;
 
@@ -56,4 +56,6 @@ public sealed class CXXConstructorDecl : CXXMethodDecl
             return (e is CXXConstructExpr construct) ? construct.Constructor : null;
         }
     }
+
+    private static unsafe CXXConstructorDecl InheritedConstructorFactory(CXXConstructorDecl self) => self.TranslationUnit.GetOrCreate<CXXConstructorDecl>(self.Handle.InheritedConstructor);
 }

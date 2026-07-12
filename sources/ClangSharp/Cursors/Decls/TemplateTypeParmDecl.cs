@@ -11,20 +11,17 @@ namespace ClangSharp;
 public sealed class TemplateTypeParmDecl : TypeDecl
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private ValueLazy<Type?> _defaultArgument;
+    private ValueLazy<TemplateTypeParmDecl, Type?> _defaultArgument;
 
-    internal TemplateTypeParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTypeParameter, CX_DeclKind_TemplateTypeParm)
+    internal unsafe TemplateTypeParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTypeParameter, CX_DeclKind_TemplateTypeParm)
     {
         _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
-        _defaultArgument = new ValueLazy<Type?>(() => {
-            var defaultArgType = Handle.DefaultArgType;
-            return defaultArgType.kind == CXType_Invalid ? null : TranslationUnit.GetOrCreate<Type>(defaultArgType);
-        });
+        _defaultArgument = new ValueLazy<TemplateTypeParmDecl, Type?>(&DefaultArgumentFactory);
     }
 
     public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints;
 
-    public Type? DefaultArgument => _defaultArgument.Value;
+    public Type? DefaultArgument => _defaultArgument.GetValue(this);
 
     public bool DefaultArgumentWasInherited => Handle.HasInheritedDefaultArg;
 
@@ -39,4 +36,9 @@ public sealed class TemplateTypeParmDecl : TypeDecl
     public bool IsPackExpansion => Handle.IsPackExpansion;
 
     public bool IsParameterPack => Handle.IsParameterPack;
+
+    private static unsafe Type? DefaultArgumentFactory(TemplateTypeParmDecl self) {
+            var defaultArgType = self.Handle.DefaultArgType;
+            return defaultArgType.kind == CXType_Invalid ? null : self.TranslationUnit.GetOrCreate<Type>(defaultArgType);
+        }
 }

@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class PipeType : Type
 {
-    private ValueLazy<Type> _elementType;
+    private ValueLazy<PipeType, Type> _elementType;
 
-    internal PipeType(CXType handle) : base(handle, CXType_Pipe, CX_TypeClass_Pipe)
+    internal unsafe PipeType(CXType handle) : base(handle, CXType_Pipe, CX_TypeClass_Pipe)
     {
-        _elementType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
+        _elementType = new ValueLazy<PipeType, Type>(&ElementTypeFactory);
     }
 
-    public Type ElementType => _elementType.Value;
+    public Type ElementType => _elementType.GetValue(this);
+
+    private static unsafe Type ElementTypeFactory(PipeType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ElementType);
 }

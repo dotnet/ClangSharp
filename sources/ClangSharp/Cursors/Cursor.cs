@@ -13,11 +13,11 @@ namespace ClangSharp;
 [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
 public unsafe class Cursor : IEquatable<Cursor>
 {
-    private ValueLazy<string> _kindSpelling;
-    private ValueLazy<Cursor?> _lexicalParentCursor;
-    private ValueLazy<Cursor?> _semanticParentCursor;
-    private ValueLazy<string> _spelling;
-    private ValueLazy<TranslationUnit> _translationUnit;
+    private ValueLazy<Cursor, string> _kindSpelling;
+    private ValueLazy<Cursor, Cursor?> _lexicalParentCursor;
+    private ValueLazy<Cursor, Cursor?> _semanticParentCursor;
+    private ValueLazy<Cursor, string> _spelling;
+    private ValueLazy<Cursor, TranslationUnit> _translationUnit;
     private List<Cursor>? _cursorChildren;
 
     private protected Cursor(CXCursor handle, CXCursorKind expectedCursorKind)
@@ -28,11 +28,11 @@ public unsafe class Cursor : IEquatable<Cursor>
         }
         Handle = handle;
 
-        _kindSpelling = new ValueLazy<string>(Handle.KindSpelling.ToString);
-        _lexicalParentCursor = new ValueLazy<Cursor?>(() => !Handle.LexicalParent.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.LexicalParent) : null);
-        _semanticParentCursor = new ValueLazy<Cursor?>(() => !Handle.SemanticParent.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent) : null);
-        _spelling = new ValueLazy<string>(Handle.Spelling.ToString);
-        _translationUnit = new ValueLazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.TranslationUnit));
+        _kindSpelling = new ValueLazy<Cursor, string>(&KindSpellingFactory);
+        _lexicalParentCursor = new ValueLazy<Cursor, Cursor?>(&LexicalParentCursorFactory);
+        _semanticParentCursor = new ValueLazy<Cursor, Cursor?>(&SemanticParentCursorFactory);
+        _spelling = new ValueLazy<Cursor, string>(&SpellingFactory);
+        _translationUnit = new ValueLazy<Cursor, TranslationUnit>(&TranslationUnitFactory);
     }
 
     public IReadOnlyList<Cursor> CursorChildren
@@ -76,21 +76,21 @@ public unsafe class Cursor : IEquatable<Cursor>
 
     public CXCursorKind CursorKind => Handle.kind;
 
-    public string CursorKindSpelling => _kindSpelling.Value;
+    public string CursorKindSpelling => _kindSpelling.GetValue(this);
 
     public CXSourceRange Extent => Handle.Extent;
 
     public CXCursor Handle { get; }
 
-    public Cursor? LexicalParentCursor => _lexicalParentCursor.Value;
+    public Cursor? LexicalParentCursor => _lexicalParentCursor.GetValue(this);
 
     public CXSourceLocation Location => Handle.Location;
 
-    public Cursor? SemanticParentCursor => _semanticParentCursor.Value;
+    public Cursor? SemanticParentCursor => _semanticParentCursor.GetValue(this);
 
-    public string Spelling => _spelling.Value;
+    public string Spelling => _spelling.GetValue(this);
 
-    public TranslationUnit TranslationUnit => _translationUnit.Value;
+    public TranslationUnit TranslationUnit => _translationUnit.GetValue(this);
 
     public static bool operator ==(Cursor? left, Cursor? right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
 
@@ -136,4 +136,14 @@ public unsafe class Cursor : IEquatable<Cursor>
     public override int GetHashCode() => Handle.GetHashCode();
 
     public override string ToString() => Spelling;
+
+    private static unsafe TranslationUnit TranslationUnitFactory(Cursor self) => TranslationUnit.GetOrCreate(self.Handle.TranslationUnit);
+
+    private static unsafe string SpellingFactory(Cursor self) => self.Handle.Spelling.ToString();
+
+    private static unsafe Cursor? SemanticParentCursorFactory(Cursor self) => !self.Handle.SemanticParent.IsNull ? self.TranslationUnit.GetOrCreate<Cursor>(self.Handle.SemanticParent) : null;
+
+    private static unsafe Cursor? LexicalParentCursorFactory(Cursor self) => !self.Handle.LexicalParent.IsNull ? self.TranslationUnit.GetOrCreate<Cursor>(self.Handle.LexicalParent) : null;
+
+    private static unsafe string KindSpellingFactory(Cursor self) => self.Handle.KindSpelling.ToString();
 }

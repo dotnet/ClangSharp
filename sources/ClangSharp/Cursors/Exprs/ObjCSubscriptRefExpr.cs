@@ -9,19 +9,21 @@ namespace ClangSharp;
 
 public sealed class ObjCSubscriptRefExpr : Expr
 {
-    private ValueLazy<ObjCMethodDecl> _atIndexMethodDecl;
+    private ValueLazy<ObjCSubscriptRefExpr, ObjCMethodDecl> _atIndexMethodDecl;
 
-    internal ObjCSubscriptRefExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCSubscriptRefExpr)
+    internal unsafe ObjCSubscriptRefExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCSubscriptRefExpr)
     {
         Debug.Assert(NumChildren is 2);
-        _atIndexMethodDecl = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
+        _atIndexMethodDecl = new ValueLazy<ObjCSubscriptRefExpr, ObjCMethodDecl>(&AtIndexMethodDeclFactory);
     }
 
-    public ObjCMethodDecl AtIndexMethodDecl => _atIndexMethodDecl.Value;
+    public ObjCMethodDecl AtIndexMethodDecl => _atIndexMethodDecl.GetValue(this);
 
     public Expr BaseExpr => (Expr)Children[0];
 
     public Expr KeyExpr => (Expr)Children[1];
 
     public bool IsArraySubscriptRefExpr => KeyExpr.Type.IsIntegralOrEnumerationType;
+
+    private static unsafe ObjCMethodDecl AtIndexMethodDeclFactory(ObjCSubscriptRefExpr self) => self.TranslationUnit.GetOrCreate<ObjCMethodDecl>(self.Handle.Referenced);
 }

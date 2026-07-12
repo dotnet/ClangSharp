@@ -9,17 +9,19 @@ namespace ClangSharp;
 
 public sealed class BlockExpr : Expr
 {
-    private ValueLazy<BlockDecl> _blockDecl;
+    private ValueLazy<BlockExpr, BlockDecl> _blockDecl;
 
-    internal BlockExpr(CXCursor handle) : base(handle, CXCursor_BlockExpr, CX_StmtClass_BlockExpr)
+    internal unsafe BlockExpr(CXCursor handle) : base(handle, CXCursor_BlockExpr, CX_StmtClass_BlockExpr)
     {
         Debug.Assert(NumChildren is 0);
-        _blockDecl = new ValueLazy<BlockDecl>(() => TranslationUnit.GetOrCreate<BlockDecl>(Handle.Referenced));
+        _blockDecl = new ValueLazy<BlockExpr, BlockDecl>(&BlockDeclFactory);
     }
 
-    public BlockDecl BlockDecl => _blockDecl.Value;
+    public BlockDecl BlockDecl => _blockDecl.GetValue(this);
 
     public Stmt? Body => BlockDecl.Body;
 
     public FunctionProtoType FunctionType => (FunctionProtoType)((BlockPointerType)Type).PointeeType;
+
+    private static unsafe BlockDecl BlockDeclFactory(BlockExpr self) => self.TranslationUnit.GetOrCreate<BlockDecl>(self.Handle.Referenced);
 }

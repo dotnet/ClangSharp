@@ -8,16 +8,18 @@ namespace ClangSharp;
 
 public sealed class CXXConversionDecl : CXXMethodDecl
 {
-    private ValueLazy<Type> _conversionType;
+    private ValueLazy<CXXConversionDecl, Type> _conversionType;
 
-    internal CXXConversionDecl(CXCursor handle) : base(handle, CXCursor_ConversionFunction, CX_DeclKind_CXXConversion)
+    internal unsafe CXXConversionDecl(CXCursor handle) : base(handle, CXCursor_ConversionFunction, CX_DeclKind_CXXConversion)
     {
-        _conversionType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _conversionType = new ValueLazy<CXXConversionDecl, Type>(&ConversionTypeFactory);
     }
 
     public new CXXConversionDecl CanonicalDecl => (CXXConversionDecl)base.CanonicalDecl;
 
     public bool IsExplicit => !Handle.IsImplicit;
 
-    public Type ConversionType => _conversionType.Value;
+    public Type ConversionType => _conversionType.GetValue(this);
+
+    private static unsafe Type ConversionTypeFactory(CXXConversionDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

@@ -11,9 +11,9 @@ namespace ClangSharp;
 public class Stmt : Cursor
 {
     private protected readonly LazyList<Stmt> _children;
-    private ValueLazy<IDeclContext> _declContext;
+    private ValueLazy<Stmt, IDeclContext> _declContext;
 
-    private protected Stmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind)
+    private protected unsafe Stmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind)
     {
         if ((handle.StmtClass == CX_StmtClass_Invalid) || (handle.StmtClass != expectedStmtClass))
         {
@@ -24,22 +24,12 @@ public class Stmt : Cursor
             var childHandle = Handle.GetChild(unchecked((uint)i));
             return !childHandle.IsNull ? TranslationUnit.GetOrCreate<Stmt>(childHandle) : null!;
         });
-        _declContext = new ValueLazy<IDeclContext>(() => {
-            var semanticParent = TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent);
-
-            while (semanticParent is not IDeclContext and not null)
-            {
-                semanticParent = TranslationUnit.GetOrCreate<Cursor>(semanticParent.Handle.SemanticParent);
-            }
-
-            Debug.Assert(semanticParent is not null);
-            return (IDeclContext)semanticParent!;
-        });
+        _declContext = new ValueLazy<Stmt, IDeclContext>(&DeclContextFactory);
     }
 
     public IReadOnlyList<Stmt> Children => _children;
 
-    public IDeclContext DeclContext => _declContext.Value;
+    public IDeclContext DeclContext => _declContext.GetValue(this);
 
     public uint NumChildren => unchecked((uint)Handle.NumChildren);
 
@@ -372,4 +362,16 @@ public class Stmt : Cursor
         CX_StmtClass_GCCAsmStmt => new GCCAsmStmt(handle),
         _ => new Stmt(handle, handle.Kind, handle.StmtClass),
     };
+
+    private static unsafe IDeclContext DeclContextFactory(Stmt self) {
+            var semanticParent = self.TranslationUnit.GetOrCreate<Cursor>(self.Handle.SemanticParent);
+
+            while (semanticParent is not IDeclContext and not null)
+            {
+                semanticParent = self.TranslationUnit.GetOrCreate<Cursor>(semanticParent.Handle.SemanticParent);
+            }
+
+            Debug.Assert(semanticParent is not null);
+            return (IDeclContext)semanticParent!;
+        }
 }

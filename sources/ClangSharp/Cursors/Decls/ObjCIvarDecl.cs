@@ -8,16 +8,20 @@ namespace ClangSharp;
 
 public sealed class ObjCIvarDecl : FieldDecl
 {
-    private ValueLazy<ObjCInterfaceDecl> _containingInterface;
-    private ValueLazy<ObjCIvarDecl> _nextIvar;
+    private ValueLazy<ObjCIvarDecl, ObjCInterfaceDecl> _containingInterface;
+    private ValueLazy<ObjCIvarDecl, ObjCIvarDecl> _nextIvar;
 
-    internal ObjCIvarDecl(CXCursor handle) : base(handle, CXCursor_ObjCIvarDecl, CX_DeclKind_ObjCIvar)
+    internal unsafe ObjCIvarDecl(CXCursor handle) : base(handle, CXCursor_ObjCIvarDecl, CX_DeclKind_ObjCIvar)
     {
-        _containingInterface = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
-        _nextIvar = new ValueLazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.GetSubDecl(1)));
+        _containingInterface = new ValueLazy<ObjCIvarDecl, ObjCInterfaceDecl>(&ContainingInterfaceFactory);
+        _nextIvar = new ValueLazy<ObjCIvarDecl, ObjCIvarDecl>(&NextIvarFactory);
     }
 
-    public ObjCInterfaceDecl ContainingInterface => _containingInterface.Value;
+    public ObjCInterfaceDecl ContainingInterface => _containingInterface.GetValue(this);
 
-    public ObjCIvarDecl NextIvar => _nextIvar.Value;
+    public ObjCIvarDecl NextIvar => _nextIvar.GetValue(this);
+
+    private static unsafe ObjCIvarDecl NextIvarFactory(ObjCIvarDecl self) => self.TranslationUnit.GetOrCreate<ObjCIvarDecl>(self.Handle.GetSubDecl(1));
+
+    private static unsafe ObjCInterfaceDecl ContainingInterfaceFactory(ObjCIvarDecl self) => self.TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(self.Handle.GetSubDecl(0));
 }

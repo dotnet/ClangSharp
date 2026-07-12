@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class DeducedTemplateSpecializationType : DeducedType
 {
-    private ValueLazy<TemplateName> _templateName;
+    private ValueLazy<DeducedTemplateSpecializationType, TemplateName> _templateName;
 
-    internal DeducedTemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DeducedTemplateSpecialization)
+    internal unsafe DeducedTemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DeducedTemplateSpecialization)
     {
-        _templateName = new ValueLazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.TemplateName));
+        _templateName = new ValueLazy<DeducedTemplateSpecializationType, TemplateName>(&TemplateNameFactory);
     }
 
-    public TemplateName TemplateName => _templateName.Value;
+    public TemplateName TemplateName => _templateName.GetValue(this);
+
+    private static unsafe TemplateName TemplateNameFactory(DeducedTemplateSpecializationType self) => self.TranslationUnit.GetOrCreate(self.Handle.TemplateName);
 }

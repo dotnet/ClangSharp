@@ -8,16 +8,16 @@ namespace ClangSharp;
 
 public class NamedDecl : Decl
 {
-    private ValueLazy<NamedDecl> _underlyingDecl;
+    private ValueLazy<NamedDecl, NamedDecl> _underlyingDecl;
 
-    private protected NamedDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+    private protected unsafe NamedDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
         if (handle.DeclKind is > CX_DeclKind_LastNamed or < CX_DeclKind_FirstNamed)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _underlyingDecl = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.UnderlyingDecl));
+        _underlyingDecl = new ValueLazy<NamedDecl, NamedDecl>(&UnderlyingDeclFactory);
     }
 
     public CXLinkageKind LinkageInternal => Handle.Linkage;
@@ -28,7 +28,9 @@ public class NamedDecl : Decl
 
     public string QualifiedName => Handle.QualifiedName.ToString();
 
-    public NamedDecl UnderlyingDecl => _underlyingDecl.Value;
+    public NamedDecl UnderlyingDecl => _underlyingDecl.GetValue(this);
 
     public CXVisibilityKind Visibility => Handle.Visibility;
+
+    private static unsafe NamedDecl UnderlyingDeclFactory(NamedDecl self) => self.TranslationUnit.GetOrCreate<NamedDecl>(self.Handle.UnderlyingDecl);
 }

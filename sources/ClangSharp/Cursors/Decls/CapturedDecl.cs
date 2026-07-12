@@ -9,16 +9,16 @@ namespace ClangSharp;
 
 public sealed class CapturedDecl : Decl, IDeclContext
 {
-    private ValueLazy<ImplicitParamDecl> _contextParam;
+    private ValueLazy<CapturedDecl, ImplicitParamDecl> _contextParam;
     private readonly LazyList<ImplicitParamDecl> _parameters;
 
-    internal CapturedDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Captured)
+    internal unsafe CapturedDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Captured)
     {
-        _contextParam = new ValueLazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.ContextParam));
+        _contextParam = new ValueLazy<CapturedDecl, ImplicitParamDecl>(&ContextParamFactory);
         _parameters = LazyList.Create<ImplicitParamDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetArgument(unchecked((uint)i))));
     }
 
-    public ImplicitParamDecl ContextParam => _contextParam.Value;
+    public ImplicitParamDecl ContextParam => _contextParam.GetValue(this);
 
     public uint ContextParamPosition => unchecked((uint)Handle.ContextParamPosition);
 
@@ -27,4 +27,6 @@ public sealed class CapturedDecl : Decl, IDeclContext
     public uint NumParams => unchecked((uint)Handle.NumArguments);
 
     public IReadOnlyList<ImplicitParamDecl> Parameters => _parameters;
+
+    private static unsafe ImplicitParamDecl ContextParamFactory(CapturedDecl self) => self.TranslationUnit.GetOrCreate<ImplicitParamDecl>(self.Handle.ContextParam);
 }

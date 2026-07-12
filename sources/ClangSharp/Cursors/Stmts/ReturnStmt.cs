@@ -9,16 +9,18 @@ namespace ClangSharp;
 
 public sealed class ReturnStmt : Stmt
 {
-    private ValueLazy<VarDecl> _nrvoCandidate;
+    private ValueLazy<ReturnStmt, VarDecl> _nrvoCandidate;
 
-    internal ReturnStmt(CXCursor handle) : base(handle, CXCursor_ReturnStmt, CX_StmtClass_ReturnStmt)
+    internal unsafe ReturnStmt(CXCursor handle) : base(handle, CXCursor_ReturnStmt, CX_StmtClass_ReturnStmt)
     {
         Debug.Assert(NumChildren is 0 or 1);
 
-        _nrvoCandidate = new ValueLazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
+        _nrvoCandidate = new ValueLazy<ReturnStmt, VarDecl>(&NrvoCandidateFactory);
     }
 
-    public VarDecl NRVOCandidate => _nrvoCandidate.Value;
+    public VarDecl NRVOCandidate => _nrvoCandidate.GetValue(this);
 
     public Expr? RetValue => NumChildren != 0 ? (Expr)Children[0] : null;
+
+    private static unsafe VarDecl NrvoCandidateFactory(ReturnStmt self) => self.TranslationUnit.GetOrCreate<VarDecl>(self.Handle.Referenced);
 }

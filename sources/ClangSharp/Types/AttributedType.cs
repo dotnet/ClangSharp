@@ -8,18 +8,22 @@ namespace ClangSharp;
 
 public sealed class AttributedType : Type
 {
-    private ValueLazy<Type> _equivalentType;
-    private ValueLazy<Type> _modifiedType;
+    private ValueLazy<AttributedType, Type> _equivalentType;
+    private ValueLazy<AttributedType, Type> _modifiedType;
 
-    internal AttributedType(CXType handle) : base(handle, CXType_Attributed, CX_TypeClass_Attributed)
+    internal unsafe AttributedType(CXType handle) : base(handle, CXType_Attributed, CX_TypeClass_Attributed)
     {
-        _equivalentType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EquivalentType));
-        _modifiedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ModifiedType));
+        _equivalentType = new ValueLazy<AttributedType, Type>(&EquivalentTypeFactory);
+        _modifiedType = new ValueLazy<AttributedType, Type>(&ModifiedTypeFactory);
     }
 
     public CX_AttrKind AttrKind => Handle.AttrKind;
 
-    public Type EquivalentType => _equivalentType.Value;
+    public Type EquivalentType => _equivalentType.GetValue(this);
 
-    public Type ModifiedType => _modifiedType.Value;
+    public Type ModifiedType => _modifiedType.GetValue(this);
+
+    private static unsafe Type ModifiedTypeFactory(AttributedType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ModifiedType);
+
+    private static unsafe Type EquivalentTypeFactory(AttributedType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.EquivalentType);
 }

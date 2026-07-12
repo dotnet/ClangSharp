@@ -11,28 +11,11 @@ namespace ClangSharp;
 
 public sealed class IntegerLiteral : Expr
 {
-    private ValueLazy<string> _valueString;
+    private ValueLazy<IntegerLiteral, string> _valueString;
 
-    internal IntegerLiteral(CXCursor handle) : base(handle, CXCursor_IntegerLiteral, CX_StmtClass_IntegerLiteral)
+    internal unsafe IntegerLiteral(CXCursor handle) : base(handle, CXCursor_IntegerLiteral, CX_StmtClass_IntegerLiteral)
     {
-        _valueString = new ValueLazy<string>(() => {
-            var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
-
-            if ((tokens.Length == 0) || (tokens[0].Kind is not CXToken_Literal and not CXToken_Identifier))
-            {
-                tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRangeRaw);
-
-                if ((tokens.Length == 0) || (tokens[0].Kind is not CXToken_Literal and not CXToken_Identifier))
-                {
-                    Debug.Assert(false, "Failed to stringify tokens for integer literal.");
-                    return Value.ToString(CultureInfo.InvariantCulture);
-                }
-            }
-
-            var spelling = tokens[0].GetSpelling(Handle.TranslationUnit).ToString();
-            spelling = spelling.Trim('\\', '\r', '\n');
-            return spelling;
-        });
+        _valueString = new ValueLazy<IntegerLiteral, string>(&ValueStringFactory);
     }
 
     public bool IsNegative => Handle.IsNegative;
@@ -45,5 +28,24 @@ public sealed class IntegerLiteral : Expr
 
     public ulong UnsignedValue => Handle.UnsignedIntegerLiteralValue;
 
-    public string ValueString => _valueString.Value;
+    public string ValueString => _valueString.GetValue(this);
+
+    private static unsafe string ValueStringFactory(IntegerLiteral self) {
+            var tokens = self.Handle.TranslationUnit.Tokenize(self.Handle.SourceRange);
+
+            if ((tokens.Length == 0) || (tokens[0].Kind is not CXToken_Literal and not CXToken_Identifier))
+            {
+                tokens = self.Handle.TranslationUnit.Tokenize(self.Handle.SourceRangeRaw);
+
+                if ((tokens.Length == 0) || (tokens[0].Kind is not CXToken_Literal and not CXToken_Identifier))
+                {
+                    Debug.Assert(false, "Failed to stringify tokens for integer literal.");
+                    return self.Value.ToString(CultureInfo.InvariantCulture);
+                }
+            }
+
+            var spelling = tokens[0].GetSpelling(self.Handle.TranslationUnit).ToString();
+            spelling = spelling.Trim('\\', '\r', '\n');
+            return spelling;
+        }
 }

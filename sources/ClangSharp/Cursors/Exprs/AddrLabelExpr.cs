@@ -9,13 +9,15 @@ namespace ClangSharp;
 
 public sealed class AddrLabelExpr : Expr
 {
-    private ValueLazy<LabelDecl> _label;
+    private ValueLazy<AddrLabelExpr, LabelDecl> _label;
 
-    internal AddrLabelExpr(CXCursor handle) : base(handle, CXCursor_AddrLabelExpr, CX_StmtClass_AddrLabelExpr)
+    internal unsafe AddrLabelExpr(CXCursor handle) : base(handle, CXCursor_AddrLabelExpr, CX_StmtClass_AddrLabelExpr)
     {
         Debug.Assert(NumChildren is 0);
-        _label = new ValueLazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
+        _label = new ValueLazy<AddrLabelExpr, LabelDecl>(&LabelFactory);
     }
 
-    public LabelDecl Label => _label.Value;
+    public LabelDecl Label => _label.GetValue(this);
+
+    private static unsafe LabelDecl LabelFactory(AddrLabelExpr self) => self.TranslationUnit.GetOrCreate<LabelDecl>(self.Handle.Referenced);
 }
