@@ -63,6 +63,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly Dictionary<string, HashSet<string>> _topLevelClassUsings;
     private readonly Dictionary<string, List<string>> _topLevelClassAttributes;
     private readonly Dictionary<CXFile, (nuint Address, nuint Length)> _fileContents;
+    private readonly Dictionary<CXFile, (string Name, string FullName)> _fileNames;
     private readonly HashSet<string> _topLevelClassNames;
     private readonly HashSet<string> _usedRemappings;
     private readonly string _placeholderMacroType;
@@ -161,6 +162,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             _topLevelClassNames = new HashSet<string>(StringComparer.Ordinal);
             _topLevelClassAttributes = new Dictionary<string, List<string>>(StringComparer.Ordinal);
             _fileContents = [];
+            _fileNames = [];
             _topLevelClassUsings = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
             _usedRemappings = new HashSet<string>(StringComparer.Ordinal);
             _filePath = "";
@@ -1680,6 +1682,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         _overloadIndices.Clear();
         _isExcluded.Clear();
         _fileContents.Clear();
+        _fileNames.Clear();
 
         if (translationUnit.Handle.NumDiagnostics != 0)
         {

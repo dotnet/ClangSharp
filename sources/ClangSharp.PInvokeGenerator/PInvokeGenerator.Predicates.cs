@@ -310,8 +310,17 @@ public sealed partial class PInvokeGenerator
             // Use case insensitive comparison on Windows
             var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
 
-            // Normalize paths to be '/' for comparison
-            var fileName = file.Name.ToString().NormalizePath();
+            // Normalize paths to be '/' for comparison. The same file recurs for
+            // every cursor it contains, so cache the normalized names per file to
+            // avoid re-allocating them (and re-running Path.GetFullPath) each call.
+            if (!_fileNames.TryGetValue(file, out var names))
+            {
+                var name = file.Name.ToString().NormalizePath();
+                names = (name, name.NormalizeFullPath());
+                _fileNames.Add(file, names);
+            }
+
+            var fileName = names.Name;
 
             if (_visitedFiles.Add(fileName) && _config.LogVisitedFiles)
             {
@@ -322,7 +331,7 @@ public sealed partial class PInvokeGenerator
             {
                 return true;
             }
-            else if (_config.TraversalNames.Contains(fileName.NormalizeFullPath(), equalityComparer))
+            else if (_config.TraversalNames.Contains(names.FullName, equalityComparer))
             {
                 return true;
             }
