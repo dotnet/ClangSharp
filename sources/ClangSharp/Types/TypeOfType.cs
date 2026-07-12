@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class TypeOfType : Type
 {
-    private readonly ValueLazy<Type> _underlyingType;
+    private ValueLazy<Type> _underlyingType;
 
     internal TypeOfType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TypeOf)
     {

@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class UsingType : Type
 {
-    private readonly ValueLazy<UsingShadowDecl> _foundDecl;
+    private ValueLazy<UsingShadowDecl> _foundDecl;
 
     internal UsingType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_Using)
     {

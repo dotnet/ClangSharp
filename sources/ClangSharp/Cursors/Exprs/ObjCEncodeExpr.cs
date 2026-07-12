@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class ObjCEncodeExpr : Expr
 {
-    private readonly ValueLazy<Type> _encodedType;
+    private ValueLazy<Type> _encodedType;
 
     internal ObjCEncodeExpr(CXCursor handle) : base(handle, CXCursor_ObjCEncodeExpr, CX_StmtClass_ObjCEncodeExpr)
     {

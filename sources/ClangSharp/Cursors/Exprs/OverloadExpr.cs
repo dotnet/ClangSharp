@@ -10,7 +10,7 @@ namespace ClangSharp;
 public class OverloadExpr : Expr
 {
     private readonly LazyList<Decl> _decls;
-    private readonly ValueLazy<CXXRecordDecl> _namingClass;
+    private ValueLazy<CXXRecordDecl> _namingClass;
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
     private protected OverloadExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)

@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class LabelStmt : ValueStmt
 {
-    private readonly ValueLazy<LabelDecl> _decl;
+    private ValueLazy<LabelDecl> _decl;
 
     internal LabelStmt(CXCursor handle) : base(handle, CXCursor_LabelStmt, CX_StmtClass_LabelStmt)
     {

@@ -10,11 +10,11 @@ namespace ClangSharp;
 
 public sealed class ObjCCategoryDecl : ObjCContainerDecl
 {
-    private readonly ValueLazy<ObjCInterfaceDecl> _classInterface;
-    private readonly ValueLazy<ObjCCategoryImplDecl> _implementation;
-    private readonly ValueLazy<List<ObjCIvarDecl>> _ivars;
-    private readonly ValueLazy<ObjCCategoryDecl> _nextClassCategory;
-    private readonly ValueLazy<ObjCCategoryDecl> _nextClassCategoryRaw;
+    private ValueLazy<ObjCInterfaceDecl> _classInterface;
+    private ValueLazy<ObjCCategoryImplDecl> _implementation;
+    private ValueLazy<List<ObjCIvarDecl>> _ivars;
+    private ValueLazy<ObjCCategoryDecl> _nextClassCategory;
+    private ValueLazy<ObjCCategoryDecl> _nextClassCategoryRaw;
     private readonly LazyList<ObjCProtocolDecl> _protocols;
     private readonly LazyList<ObjCTypeParamDecl> _typeParamList;
 

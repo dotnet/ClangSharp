@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class SizeOfPackExpr : Expr
 {
-    private readonly ValueLazy<NamedDecl> _pack;
+    private ValueLazy<NamedDecl> _pack;
     private readonly LazyList<TemplateArgument> _partialArguments;
 
     internal SizeOfPackExpr(CXCursor handle) : base(handle, CXCursor_SizeOfPackExpr, CX_StmtClass_SizeOfPackExpr)

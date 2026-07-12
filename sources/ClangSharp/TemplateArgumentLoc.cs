@@ -6,12 +6,12 @@ namespace ClangSharp;
 
 public sealed unsafe class TemplateArgumentLoc
 {
-    private readonly ValueLazy<TemplateArgument> _argument;
-    private readonly ValueLazy<Expr> _sourceDeclExpression;
-    private readonly ValueLazy<Expr> _sourceExpression;
-    private readonly ValueLazy<Expr> _sourceIntegralExpression;
-    private readonly ValueLazy<Expr> _sourceNullPtrExpression;
-    private readonly ValueLazy<TranslationUnit> _translationUnit;
+    private ValueLazy<TemplateArgument> _argument;
+    private ValueLazy<Expr> _sourceDeclExpression;
+    private ValueLazy<Expr> _sourceExpression;
+    private ValueLazy<Expr> _sourceIntegralExpression;
+    private ValueLazy<Expr> _sourceNullPtrExpression;
+    private ValueLazy<TranslationUnit> _translationUnit;
 
     internal TemplateArgumentLoc(CX_TemplateArgumentLoc handle)
     {

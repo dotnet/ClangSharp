@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public class TypeDecl : NamedDecl
 {
-    private readonly ValueLazy<Type> _typeForDecl;
+    private ValueLazy<Type> _typeForDecl;
 
     private protected TypeDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {

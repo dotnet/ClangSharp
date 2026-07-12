@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class ObjCCategoryImplDecl : ObjCImplDecl
 {
-    private readonly ValueLazy<ObjCCategoryDecl> _categoryDecl;
+    private ValueLazy<ObjCCategoryDecl> _categoryDecl;
 
     internal ObjCCategoryImplDecl(CXCursor handle) : base(handle, CXCursor_ObjCCategoryImplDecl, CX_DeclKind_ObjCCategoryImpl)
     {

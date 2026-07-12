@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class OpaqueValueExpr : Expr
 {
-    private readonly ValueLazy<Expr> _sourceExpr;
+    private ValueLazy<Expr> _sourceExpr;
 
     internal OpaqueValueExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_OpaqueValueExpr)
     {

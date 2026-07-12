@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class CXXTemporaryObjectExpr : CXXConstructExpr
 {
-    private readonly ValueLazy<Type> _typeSourceInfoType;
+    private ValueLazy<Type> _typeSourceInfoType;
 
     internal CXXTemporaryObjectExpr(CXCursor handle) : base(handle, CXCursor_CallExpr, CX_StmtClass_CXXTemporaryObjectExpr)
     {

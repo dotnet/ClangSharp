@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class UnresolvedUsingType : Type
 {
-    private readonly ValueLazy<UnresolvedUsingTypenameDecl> _decl;
+    private ValueLazy<UnresolvedUsingTypenameDecl> _decl;
 
     internal UnresolvedUsingType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_UnresolvedUsing)
     {

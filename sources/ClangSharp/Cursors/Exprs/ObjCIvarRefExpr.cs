@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class ObjCIvarRefExpr : Expr
 {
-    private readonly ValueLazy<ObjCIvarDecl> _decl;
+    private ValueLazy<ObjCIvarDecl> _decl;
 
     internal ObjCIvarRefExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_ObjCIvarRefExpr)
     {

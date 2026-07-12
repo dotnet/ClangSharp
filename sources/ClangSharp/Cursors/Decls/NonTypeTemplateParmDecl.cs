@@ -10,9 +10,9 @@ namespace ClangSharp;
 public sealed class NonTypeTemplateParmDecl : DeclaratorDecl, ITemplateParmPosition
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private readonly ValueLazy<Expr> _defaultArgument;
+    private ValueLazy<Expr> _defaultArgument;
     private readonly LazyList<Type> _expansionTypes;
-    private readonly ValueLazy<Expr> _placeholderTypeConstraint;
+    private ValueLazy<Expr> _placeholderTypeConstraint;
 
     internal NonTypeTemplateParmDecl(CXCursor handle) : base(handle, CXCursor_NonTypeTemplateParameter, CX_DeclKind_NonTypeTemplateParm)
     {

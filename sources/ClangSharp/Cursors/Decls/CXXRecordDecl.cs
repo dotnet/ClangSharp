@@ -12,16 +12,16 @@ public class CXXRecordDecl : RecordDecl
 {
     private readonly LazyList<CXXBaseSpecifier> _bases;
     private readonly LazyList<CXXConstructorDecl> _ctors;
-    private readonly ValueLazy<FunctionTemplateDecl> _dependentLambdaCallOperator;
-    private readonly ValueLazy<ClassTemplateDecl> _describedClassTemplate;
-    private readonly ValueLazy<CXXDestructorDecl?> _destructor;
+    private ValueLazy<FunctionTemplateDecl> _dependentLambdaCallOperator;
+    private ValueLazy<ClassTemplateDecl> _describedClassTemplate;
+    private ValueLazy<CXXDestructorDecl?> _destructor;
     private readonly LazyList<FriendDecl> _friends;
-    private readonly ValueLazy<CXXRecordDecl> _instantiatedFromMemberClass;
-    private readonly ValueLazy<CXXMethodDecl> _lambdaCallOperator;
-    private readonly ValueLazy<Decl> _lambdaContextDecl;
-    private readonly ValueLazy<CXXMethodDecl> _lambdaStaticInvoker;
+    private ValueLazy<CXXRecordDecl> _instantiatedFromMemberClass;
+    private ValueLazy<CXXMethodDecl> _lambdaCallOperator;
+    private ValueLazy<Decl> _lambdaContextDecl;
+    private ValueLazy<CXXMethodDecl> _lambdaStaticInvoker;
     private readonly LazyList<CXXMethodDecl> _methods;
-    private readonly ValueLazy<CXXRecordDecl> _templateInstantiationPattern;
+    private ValueLazy<CXXRecordDecl> _templateInstantiationPattern;
     private readonly LazyList<CXXBaseSpecifier> _vbases;
 
     internal CXXRecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_CXXRecord)

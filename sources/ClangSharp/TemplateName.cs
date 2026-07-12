@@ -6,8 +6,8 @@ namespace ClangSharp;
 
 public sealed unsafe class TemplateName
 {
-    private readonly ValueLazy<TemplateDecl> _asTemplateDecl;
-    private readonly ValueLazy<TranslationUnit> _translationUnit;
+    private ValueLazy<TemplateDecl> _asTemplateDecl;
+    private ValueLazy<TranslationUnit> _translationUnit;
 
     internal TemplateName(CX_TemplateName handle)
     {

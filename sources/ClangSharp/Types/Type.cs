@@ -11,12 +11,12 @@ namespace ClangSharp;
 [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
 public unsafe class Type : IEquatable<Type>
 {
-    private readonly ValueLazy<string> _asString;
-    private readonly ValueLazy<Type> _canonicalType;
-    private readonly ValueLazy<Type> _desugar;
-    private readonly ValueLazy<string> _kindSpelling;
-    private readonly ValueLazy<Type> _pointeeType;
-    private readonly ValueLazy<TranslationUnit> _translationUnit;
+    private ValueLazy<string> _asString;
+    private ValueLazy<Type> _canonicalType;
+    private ValueLazy<Type> _desugar;
+    private ValueLazy<string> _kindSpelling;
+    private ValueLazy<Type> _pointeeType;
+    private ValueLazy<TranslationUnit> _translationUnit;
 
     protected Type(CXType handle, CXTypeKind expectedKind, CX_TypeClass expectedTypeClass, params ReadOnlySpan<CXTypeKind> additionalExpectedKinds)
     {

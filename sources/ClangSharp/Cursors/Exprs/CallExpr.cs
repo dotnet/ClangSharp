@@ -12,7 +12,7 @@ namespace ClangSharp;
 public class CallExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _args;
-    private readonly ValueLazy<Decl> _calleeDecl;
+    private ValueLazy<Decl> _calleeDecl;
 
     internal CallExpr(CXCursor handle) : this(handle, CXCursor_CallExpr, CX_StmtClass_CallExpr)
     {

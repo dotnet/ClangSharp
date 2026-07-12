@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class SubstNonTypeTemplateParmExpr : Expr
 {
-    private readonly ValueLazy<NonTypeTemplateParmDecl> _parameter;
+    private ValueLazy<NonTypeTemplateParmDecl> _parameter;
 
     internal SubstNonTypeTemplateParmExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_SubstNonTypeTemplateParmExpr)
     {

@@ -11,8 +11,8 @@ namespace ClangSharp;
 public class CXXMethodDecl : FunctionDecl
 {
     private readonly LazyList<CXXMethodDecl> _overriddenMethods;
-    private readonly ValueLazy<Type> _thisType;
-    private readonly ValueLazy<Type> _thisObjectType;
+    private ValueLazy<Type> _thisType;
+    private ValueLazy<Type> _thisObjectType;
 
     internal CXXMethodDecl(CXCursor handle) : this(handle, CXCursor_CXXMethod, CX_DeclKind_CXXMethod)
     {

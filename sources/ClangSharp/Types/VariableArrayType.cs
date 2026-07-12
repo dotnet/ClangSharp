@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class VariableArrayType : ArrayType
 {
-    private readonly ValueLazy<Expr> _sizeExpr;
+    private ValueLazy<Expr> _sizeExpr;
 
     internal VariableArrayType(CXType handle) : base(handle, CXType_VariableArray, CX_TypeClass_VariableArray)
     {

@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public class RedeclarableTemplateDecl : TemplateDecl, IRedeclarable<RedeclarableTemplateDecl>
 {
-    private readonly ValueLazy<RedeclarableTemplateDecl> _instantiatedFromMemberTemplate;
+    private ValueLazy<RedeclarableTemplateDecl> _instantiatedFromMemberTemplate;
 
     private protected RedeclarableTemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {

@@ -11,11 +11,11 @@ namespace ClangSharp;
 
 public class RecordDecl : TagDecl
 {
-    private readonly ValueLazy<List<FieldDecl>> _anonymousFields;
-    private readonly ValueLazy<List<RecordDecl>> _anonymousRecords;
+    private ValueLazy<List<FieldDecl>> _anonymousFields;
+    private ValueLazy<List<RecordDecl>> _anonymousRecords;
     private readonly LazyList<FieldDecl> _fields;
-    private readonly ValueLazy<List<IndirectFieldDecl>> _indirectFields;
-    private readonly ValueLazy<RecordDecl?> _injectedClassName;
+    private ValueLazy<List<IndirectFieldDecl>> _indirectFields;
+    private ValueLazy<RecordDecl?> _injectedClassName;
     
 
     internal RecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_Record)

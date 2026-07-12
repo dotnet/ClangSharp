@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class OverloadedDeclRef : Ref
 {
-    private readonly ValueLazy<IEnumerable<Decl>> _overloadedDecls;
+    private ValueLazy<IEnumerable<Decl>> _overloadedDecls;
 
     internal OverloadedDeclRef(CXCursor handle) : base(handle, CXCursor_OverloadedDeclRef)
     {

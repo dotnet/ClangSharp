@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class ObjCAtCatchStmt : Stmt
 {
-    private readonly ValueLazy<VarDecl?> _catchParamDecl;
+    private ValueLazy<VarDecl?> _catchParamDecl;
 
     internal ObjCAtCatchStmt(CXCursor handle) : base(handle, CXCursor_ObjCAtCatchStmt, CX_StmtClass_ObjCAtCatchStmt)
     {

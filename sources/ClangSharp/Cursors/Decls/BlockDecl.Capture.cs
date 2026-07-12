@@ -8,8 +8,8 @@ public partial class BlockDecl
     {
         private readonly Decl _parentDecl;
         private readonly uint _index;
-        private readonly ValueLazy<Expr> _copyExpr;
-        private readonly ValueLazy<VarDecl> _variable;
+        private ValueLazy<Expr> _copyExpr;
+        private ValueLazy<VarDecl> _variable;
 
         internal Capture(Decl parentDecl, uint index)
         {

@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class ObjCCompatibleAliasDecl : NamedDecl
 {
-    private readonly ValueLazy<ObjCInterfaceDecl> _classInterface;
+    private ValueLazy<ObjCInterfaceDecl> _classInterface;
 
     internal ObjCCompatibleAliasDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_ObjCCompatibleAlias)
     {

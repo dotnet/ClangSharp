@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class DependentSizedArrayType : ArrayType
 {
-    private readonly ValueLazy<Expr> _sizeExpr;
+    private ValueLazy<Expr> _sizeExpr;
 
     internal DependentSizedArrayType(CXType handle) : base(handle, CXType_DependentSizedArray, CX_TypeClass_DependentSizedArray)
     {

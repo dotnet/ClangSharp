@@ -9,8 +9,8 @@ namespace ClangSharp;
 
 public sealed class FriendTemplateDecl : Decl
 {
-    private readonly ValueLazy<NamedDecl> _friendDecl;
-    private readonly ValueLazy<Type> _friendType;
+    private ValueLazy<NamedDecl> _friendDecl;
+    private ValueLazy<Type> _friendType;
     private readonly LazyList<LazyList<NamedDecl>> _templateParameterLists;
 
     internal FriendTemplateDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_FriendTemplate)

@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class ObjCArrayLiteral : Expr
 {
-    private readonly ValueLazy<ObjCMethodDecl> _arrayWithObjectsMethod;
+    private ValueLazy<ObjCMethodDecl> _arrayWithObjectsMethod;
     private readonly LazyList<Expr, Stmt> _elements;
 
     internal ObjCArrayLiteral(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCArrayLiteral)

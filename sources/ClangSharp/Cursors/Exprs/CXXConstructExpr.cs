@@ -12,7 +12,7 @@ namespace ClangSharp;
 public class CXXConstructExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _args;
-    private readonly ValueLazy<CXXConstructorDecl> _constructor;
+    private ValueLazy<CXXConstructorDecl> _constructor;
 
     internal CXXConstructExpr(CXCursor handle) : this(handle, CXCursor_CallExpr, CX_StmtClass_CXXConstructExpr)
     {

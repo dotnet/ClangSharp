@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class CXXConstructorDecl : CXXMethodDecl
 {
-    private readonly ValueLazy<CXXConstructorDecl> _inheritedConstructor;
+    private ValueLazy<CXXConstructorDecl> _inheritedConstructor;
     private readonly LazyList<Expr> _initExprs;
 
     internal CXXConstructorDecl(CXCursor handle) : base(handle, CXCursor_Constructor, CX_DeclKind_CXXConstructor)

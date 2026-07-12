@@ -9,8 +9,8 @@ namespace ClangSharp;
 
 public sealed class SubstNonTypeTemplateParmPackExpr : Expr
 {
-    private readonly ValueLazy<TemplateArgument> _argumentPack;
-    private readonly ValueLazy<NonTypeTemplateParmDecl> _parameterPack;
+    private ValueLazy<TemplateArgument> _argumentPack;
+    private ValueLazy<NonTypeTemplateParmDecl> _parameterPack;
 
     internal SubstNonTypeTemplateParmPackExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_SubstNonTypeTemplateParmPackExpr)
     {

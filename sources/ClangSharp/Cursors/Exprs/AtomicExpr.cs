@@ -11,7 +11,7 @@ namespace ClangSharp;
 public sealed class AtomicExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _subExprs;
-    private readonly ValueLazy<Type> _valueType;
+    private ValueLazy<Type> _valueType;
 
     internal AtomicExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_AtomicExpr)
     {

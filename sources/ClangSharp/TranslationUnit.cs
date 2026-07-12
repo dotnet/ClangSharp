@@ -27,7 +27,7 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
     private readonly Dictionary<CX_TemplateArgumentLoc, WeakReference<TemplateArgumentLoc>> _createdTemplateArgumentLocs;
     private readonly Dictionary<CX_TemplateName, WeakReference<TemplateName>> _createdTemplateNames;
     private readonly Dictionary<CXType, WeakReference<Type>> _createdTypes;
-    private readonly ValueLazy<TranslationUnitDecl> _translationUnitDecl;
+    private ValueLazy<TranslationUnitDecl> _translationUnitDecl;
 
     private bool _isDisposed;
 

@@ -11,8 +11,8 @@ namespace ClangSharp;
 
 public sealed class DeclRefExpr : Expr
 {
-    private readonly ValueLazy<ValueDecl> _decl;
-    private readonly ValueLazy<NamedDecl> _foundDecl;
+    private ValueLazy<ValueDecl> _decl;
+    private ValueLazy<NamedDecl> _foundDecl;
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
     internal DeclRefExpr(CXCursor handle) : base(handle, handle.Kind, CX_StmtClass_DeclRefExpr)

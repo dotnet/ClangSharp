@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class EnumConstantDecl : ValueDecl, IMergeable<EnumConstantDecl>
 {
-    private readonly ValueLazy<Expr?> _initExpr;
+    private ValueLazy<Expr?> _initExpr;
 
     internal EnumConstantDecl(CXCursor handle) : base(handle, CXCursor_EnumConstantDecl, CX_DeclKind_EnumConstant)
     {

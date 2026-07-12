@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class DependentSizedMatrixType : MatrixType
 {
-    private readonly ValueLazy<Expr> _rowExpr;
-    private readonly ValueLazy<Expr> _columnExpr;
+    private ValueLazy<Expr> _rowExpr;
+    private ValueLazy<Expr> _columnExpr;
 
     internal DependentSizedMatrixType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentSizedMatrix)
     {

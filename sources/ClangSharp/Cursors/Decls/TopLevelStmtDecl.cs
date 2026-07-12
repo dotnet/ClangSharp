@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class TopLevelStmtDecl : Decl
 {
-    private readonly ValueLazy<LabelStmt> _stmt;
+    private ValueLazy<LabelStmt> _stmt;
 
     internal TopLevelStmtDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_TopLevelStmt)
     {

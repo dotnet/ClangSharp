@@ -13,11 +13,11 @@ namespace ClangSharp;
 [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
 public unsafe class Cursor : IEquatable<Cursor>
 {
-    private readonly ValueLazy<string> _kindSpelling;
-    private readonly ValueLazy<Cursor?> _lexicalParentCursor;
-    private readonly ValueLazy<Cursor?> _semanticParentCursor;
-    private readonly ValueLazy<string> _spelling;
-    private readonly ValueLazy<TranslationUnit> _translationUnit;
+    private ValueLazy<string> _kindSpelling;
+    private ValueLazy<Cursor?> _lexicalParentCursor;
+    private ValueLazy<Cursor?> _semanticParentCursor;
+    private ValueLazy<string> _spelling;
+    private ValueLazy<TranslationUnit> _translationUnit;
     private List<Cursor>? _cursorChildren;
 
     private protected Cursor(CXCursor handle, CXCursorKind expectedCursorKind)

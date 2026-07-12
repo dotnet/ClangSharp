@@ -10,7 +10,7 @@ namespace ClangSharp;
 
 public sealed class UnresolvedMemberExpr : OverloadExpr
 {
-    private readonly ValueLazy<Type> _baseType;
+    private ValueLazy<Type> _baseType;
 
     internal UnresolvedMemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_UnresolvedMemberExpr)
     {

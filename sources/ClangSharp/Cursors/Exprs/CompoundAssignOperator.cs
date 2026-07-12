@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class CompoundAssignOperator : BinaryOperator
 {
-    private readonly ValueLazy<Type> _computationLHSType;
-    private readonly ValueLazy<Type> _computationResultType;
+    private ValueLazy<Type> _computationLHSType;
+    private ValueLazy<Type> _computationResultType;
 
     internal CompoundAssignOperator(CXCursor handle) : base(handle, CXCursor_CompoundAssignOperator, CX_StmtClass_CompoundAssignOperator)
     {

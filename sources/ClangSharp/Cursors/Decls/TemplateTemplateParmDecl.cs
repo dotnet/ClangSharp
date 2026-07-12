@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class TemplateTemplateParmDecl : TemplateDecl, ITemplateParmPosition
 {
-    private readonly ValueLazy<TemplateArgumentLoc> _defaultArgument;
+    private ValueLazy<TemplateArgumentLoc> _defaultArgument;
 
     internal TemplateTemplateParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTemplateParameter, CX_DeclKind_TemplateTemplateParm)
     {

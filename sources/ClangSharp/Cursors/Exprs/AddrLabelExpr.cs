@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class AddrLabelExpr : Expr
 {
-    private readonly ValueLazy<LabelDecl> _label;
+    private ValueLazy<LabelDecl> _label;
 
     internal AddrLabelExpr(CXCursor handle) : base(handle, CXCursor_AddrLabelExpr, CX_StmtClass_AddrLabelExpr)
     {

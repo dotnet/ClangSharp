@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class CXXDeductionGuideDecl : FunctionDecl
 {
-    private readonly ValueLazy<TemplateDecl> _deducedTemplate;
+    private ValueLazy<TemplateDecl> _deducedTemplate;
 
     internal CXXDeductionGuideDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_CXXDeductionGuide)
     {

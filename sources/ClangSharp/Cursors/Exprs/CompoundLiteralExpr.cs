@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class CompoundLiteralExpr : Expr
 {
-    private readonly ValueLazy<Type> _typeSourceInfoType;
+    private ValueLazy<Type> _typeSourceInfoType;
 
     internal CompoundLiteralExpr(CXCursor handle) : base(handle, CXCursor_CompoundLiteralExpr, CX_StmtClass_CompoundLiteralExpr)
     {

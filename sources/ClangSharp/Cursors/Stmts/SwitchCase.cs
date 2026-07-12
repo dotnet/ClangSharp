@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public class SwitchCase : Stmt
 {
-    private readonly ValueLazy<SwitchCase> _nextSwitchCase;
+    private ValueLazy<SwitchCase> _nextSwitchCase;
 
     private protected SwitchCase(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {

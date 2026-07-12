@@ -8,10 +8,10 @@ namespace ClangSharp;
 
 public sealed class ConstructorUsingShadowDecl : UsingShadowDecl
 {
-    private readonly ValueLazy<CXXRecordDecl> _constructedBaseClass;
-    private readonly ValueLazy<ConstructorUsingShadowDecl> _constructedBaseClassShadowDecl;
-    private readonly ValueLazy<CXXRecordDecl> _nominatedBaseClass;
-    private readonly ValueLazy<ConstructorUsingShadowDecl> _nominatedBaseClassShadowDecl;
+    private ValueLazy<CXXRecordDecl> _constructedBaseClass;
+    private ValueLazy<ConstructorUsingShadowDecl> _constructedBaseClassShadowDecl;
+    private ValueLazy<CXXRecordDecl> _nominatedBaseClass;
+    private ValueLazy<ConstructorUsingShadowDecl> _nominatedBaseClassShadowDecl;
 
     internal ConstructorUsingShadowDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_ConstructorUsingShadow)
     {

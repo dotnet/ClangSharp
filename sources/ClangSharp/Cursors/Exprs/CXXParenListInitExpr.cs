@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class CXXParenListInitExpr : Expr
 {
-    private readonly ValueLazy<Cursor> _arrayFillerOrUnionFieldInit;
+    private ValueLazy<Cursor> _arrayFillerOrUnionFieldInit;
     private readonly LazyList<Expr> _initExprs;
     private readonly LazyList<Expr> _userSpecifiedInitExprs;
 

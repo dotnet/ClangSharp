@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class ObjCBoxedExpr : Expr
 {
-    private readonly ValueLazy<ObjCMethodDecl> _boxingMethod;
+    private ValueLazy<ObjCMethodDecl> _boxingMethod;
 
     internal ObjCBoxedExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCBoxedExpr)
     {

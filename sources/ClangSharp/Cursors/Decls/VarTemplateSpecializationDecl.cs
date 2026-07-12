@@ -10,7 +10,7 @@ namespace ClangSharp;
 
 public class VarTemplateSpecializationDecl : VarDecl
 {
-    private readonly ValueLazy<VarTemplateDecl> _specializedTemplate;
+    private ValueLazy<VarTemplateDecl> _specializedTemplate;
     private readonly LazyList<TemplateArgument> _templateArgs;
 
     internal VarTemplateSpecializationDecl(CXCursor handle) : this(handle, CXCursor_UnexposedDecl, CX_DeclKind_VarTemplateSpecialization)

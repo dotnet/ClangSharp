@@ -10,8 +10,8 @@ namespace ClangSharp;
 
 public class ObjCImplDecl : ObjCContainerDecl
 {
-    private readonly ValueLazy<ObjCInterfaceDecl> _classInterface;
-    private readonly ValueLazy<List<ObjCPropertyImplDecl>> _propertyImpls;
+    private ValueLazy<ObjCInterfaceDecl> _classInterface;
+    private ValueLazy<List<ObjCPropertyImplDecl>> _propertyImpls;
 
     private protected ObjCImplDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {

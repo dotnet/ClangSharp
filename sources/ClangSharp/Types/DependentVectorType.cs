@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class DependentVectorType : Type
 {
-    private readonly ValueLazy<Type> _elementType;
-    private readonly ValueLazy<Expr> _sizeExpr;
+    private ValueLazy<Type> _elementType;
+    private ValueLazy<Expr> _sizeExpr;
 
     internal DependentVectorType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentVector)
     {

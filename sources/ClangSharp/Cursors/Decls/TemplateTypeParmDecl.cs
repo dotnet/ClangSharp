@@ -11,7 +11,7 @@ namespace ClangSharp;
 public sealed class TemplateTypeParmDecl : TypeDecl
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private readonly ValueLazy<Type?> _defaultArgument;
+    private ValueLazy<Type?> _defaultArgument;
 
     internal TemplateTypeParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTypeParameter, CX_DeclKind_TemplateTypeParm)
     {

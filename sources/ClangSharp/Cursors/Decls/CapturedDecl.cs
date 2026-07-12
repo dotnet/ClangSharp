@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class CapturedDecl : Decl, IDeclContext
 {
-    private readonly ValueLazy<ImplicitParamDecl> _contextParam;
+    private ValueLazy<ImplicitParamDecl> _contextParam;
     private readonly LazyList<ImplicitParamDecl> _parameters;
 
     internal CapturedDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Captured)

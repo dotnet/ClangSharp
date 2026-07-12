@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class TemplateTypeParmType : Type
 {
-    private readonly ValueLazy<TemplateTypeParmDecl> _decl;
+    private ValueLazy<TemplateTypeParmDecl> _decl;
 
     internal TemplateTypeParmType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TemplateTypeParm)
     {

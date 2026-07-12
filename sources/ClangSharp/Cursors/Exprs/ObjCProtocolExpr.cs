@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class ObjCProtocolExpr : Expr
 {
-    private readonly ValueLazy<ObjCProtocolDecl> _protocol;
+    private ValueLazy<ObjCProtocolDecl> _protocol;
 
     internal ObjCProtocolExpr(CXCursor handle) : base(handle, CXCursor_ObjCProtocolExpr, CX_StmtClass_ObjCProtocolExpr)
     {

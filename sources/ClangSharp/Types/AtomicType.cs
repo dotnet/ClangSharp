@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class AtomicType : Type
 {
-    private readonly ValueLazy<Type> _valueType;
+    private ValueLazy<Type> _valueType;
 
     internal AtomicType(CXType handle) : base(handle, CXType_Atomic, CX_TypeClass_Atomic)
     {

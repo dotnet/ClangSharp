@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class ObjCIvarDecl : FieldDecl
 {
-    private readonly ValueLazy<ObjCInterfaceDecl> _containingInterface;
-    private readonly ValueLazy<ObjCIvarDecl> _nextIvar;
+    private ValueLazy<ObjCInterfaceDecl> _containingInterface;
+    private ValueLazy<ObjCIvarDecl> _nextIvar;
 
     internal ObjCIvarDecl(CXCursor handle) : base(handle, CXCursor_ObjCIvarDecl, CX_DeclKind_ObjCIvar)
     {

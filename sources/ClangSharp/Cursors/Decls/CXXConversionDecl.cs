@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class CXXConversionDecl : CXXMethodDecl
 {
-    private readonly ValueLazy<Type> _conversionType;
+    private ValueLazy<Type> _conversionType;
 
     internal CXXConversionDecl(CXCursor handle) : base(handle, CXCursor_ConversionFunction, CX_DeclKind_CXXConversion)
     {

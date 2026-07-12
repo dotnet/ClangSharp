@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class IndirectFieldDecl : ValueDecl, IMergeable<IndirectFieldDecl>
 {
-    private readonly ValueLazy<FieldDecl> _anonField;
-    private readonly ValueLazy<VarDecl> _varDecl;
+    private ValueLazy<FieldDecl> _anonField;
+    private ValueLazy<VarDecl> _varDecl;
 
     internal IndirectFieldDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_IndirectField)
     {

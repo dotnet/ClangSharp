@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class CXXDestructorDecl : CXXMethodDecl
 {
-    private readonly ValueLazy<FunctionDecl> _operatorDelete;
-    private readonly ValueLazy<Expr> _operatorDeleteThisArg;
+    private ValueLazy<FunctionDecl> _operatorDelete;
+    private ValueLazy<Expr> _operatorDeleteThisArg;
 
     internal CXXDestructorDecl(CXCursor handle) : base(handle, CXCursor_Destructor, CX_DeclKind_CXXDestructor)
     {

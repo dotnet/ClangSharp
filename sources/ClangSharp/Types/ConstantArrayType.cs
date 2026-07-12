@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public class ConstantArrayType : ArrayType
 {
-    private readonly ValueLazy<Expr> _sizeExpr;
+    private ValueLazy<Expr> _sizeExpr;
 
     internal ConstantArrayType(CXType handle) : this(handle, CXType_ConstantArray, CX_TypeClass_ConstantArray)
     {

@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class SwitchStmt : Stmt
 {
-    private readonly ValueLazy<SwitchCase> _switchCaseList;
+    private ValueLazy<SwitchCase> _switchCaseList;
 
     internal SwitchStmt(CXCursor handle) : base(handle, CXCursor_SwitchStmt, CX_StmtClass_SwitchStmt)
     {

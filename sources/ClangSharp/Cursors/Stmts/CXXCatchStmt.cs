@@ -9,8 +9,8 @@ namespace ClangSharp;
 
 public sealed class CXXCatchStmt : Stmt
 {
-    private readonly ValueLazy<Type> _caughtType;
-    private readonly ValueLazy<VarDecl> _exceptionDecl;
+    private ValueLazy<Type> _caughtType;
+    private ValueLazy<VarDecl> _exceptionDecl;
 
     internal CXXCatchStmt(CXCursor handle) : base(handle, CXCursor_CXXCatchStmt, CX_StmtClass_CXXCatchStmt)
     {

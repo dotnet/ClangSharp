@@ -11,8 +11,8 @@ namespace ClangSharp;
 public sealed class ObjCImplementationDecl : ObjCImplDecl
 {
     private readonly LazyList<Expr> _initExprs;
-    private readonly ValueLazy<List<ObjCIvarDecl>> _ivars;
-    private readonly ValueLazy<ObjCInterfaceDecl> _superClass;
+    private ValueLazy<List<ObjCIvarDecl>> _ivars;
+    private ValueLazy<ObjCInterfaceDecl> _superClass;
 
     internal ObjCImplementationDecl(CXCursor handle) : base(handle, CXCursor_ObjCImplementationDecl, CX_DeclKind_ObjCImplementation)
     {

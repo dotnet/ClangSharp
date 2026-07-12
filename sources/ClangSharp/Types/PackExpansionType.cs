@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class PackExpansionType : Type
 {
-    private readonly ValueLazy<Type> _pattern;
+    private ValueLazy<Type> _pattern;
 
     internal PackExpansionType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_PackExpansion)
     {

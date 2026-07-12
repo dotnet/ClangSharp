@@ -10,9 +10,9 @@ namespace ClangSharp;
 
 public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
 {
-    private readonly ValueLazy<Expr> _bitWidth;
-    private readonly ValueLazy<Expr> _inClassInitializer;
-    private readonly ValueLazy<bool> _isAnonymousField;
+    private ValueLazy<Expr> _bitWidth;
+    private ValueLazy<Expr> _inClassInitializer;
+    private ValueLazy<bool> _isAnonymousField;
 
     internal FieldDecl(CXCursor handle) : this(handle, CXCursor_FieldDecl, CX_DeclKind_Field)
     {

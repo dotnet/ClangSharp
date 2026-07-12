@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class DecayedType : AdjustedType
 {
-    private readonly ValueLazy<Type> _decayedType;
+    private ValueLazy<Type> _decayedType;
 
     internal DecayedType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_Decayed)
     {

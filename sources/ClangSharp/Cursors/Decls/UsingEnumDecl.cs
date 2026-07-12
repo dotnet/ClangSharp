@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class UsingEnumDecl : BaseUsingDecl, IMergeable<UsingEnumDecl>
 {
-    private readonly ValueLazy<EnumDecl> _enumDecl;
+    private ValueLazy<EnumDecl> _enumDecl;
 
     internal UsingEnumDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_UsingEnum)
     {
