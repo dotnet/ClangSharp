@@ -75,6 +75,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly Dictionary<CXFile, (string Name, string FullName)> _fileNames;
     private readonly HashSet<string> _topLevelClassNames;
     private readonly HashSet<string> _usedRemappings;
+    private readonly HashSet<RecordDecl> _declashedRecordNames;
     private readonly string _placeholderMacroType;
 
     private string _filePath;
@@ -174,6 +175,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             _fileNames = [];
             _topLevelClassUsings = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
             _usedRemappings = new HashSet<string>(StringComparer.Ordinal);
+            _declashedRecordNames = [];
             _filePath = "";
             _clangCommandLineArgs = [];
             _placeholderMacroType = GetPlaceholderMacroType();

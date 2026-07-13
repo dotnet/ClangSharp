@@ -388,6 +388,7 @@ public sealed partial class PInvokeGenerator
                 {
                     result.typeName = result.typeName.Split(s_doubleColonSeparator, StringSplitOptions.RemoveEmptyEntries).Last();
                     result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _, skipUsing: true);
+                    result.typeName = ApplyTagTypeNameOverrides(tagType, result.typeName);
 
                     // A nested type needs to be qualified by its containing type(s) so it resolves
                     // when referenced from another scope (e.g. `A::Inner` -> `A.Inner`). Namespaces
@@ -402,6 +403,10 @@ public sealed partial class PInvokeGenerator
                     }
 
                     result.typeName = qualificationBuilder.Append(result.typeName).ToString();
+                }
+                else
+                {
+                    result.typeName = ApplyTagTypeNameOverrides(tagType, result.typeName);
                 }
             }
             else if (type is TemplateSpecializationType templateSpecializationType)
