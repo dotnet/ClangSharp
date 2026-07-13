@@ -1785,6 +1785,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor UsedContext => clangsharp.Cursor_getUsedContext(this);
 
+    public readonly CXCursor UsingEnumDeclEnumDecl => clangsharp.Cursor_getUsingEnumDeclEnumDecl(this);
+
     public readonly CXString Usr => clang.getCursorUSR(this);
 
     public readonly CXVisibilityKind Visibility => clang.getCursorVisibility(this);

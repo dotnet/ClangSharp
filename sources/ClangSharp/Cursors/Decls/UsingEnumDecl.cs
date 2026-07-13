@@ -10,7 +10,9 @@ public sealed class UsingEnumDecl : BaseUsingDecl, IMergeable<UsingEnumDecl>
 {
     private ValueLazy<UsingEnumDecl, EnumDecl> _enumDecl;
 
-    internal unsafe UsingEnumDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_UsingEnum)
+    // libClang surfaces a `using enum` declaration with `cursor.kind == CXCursor_EnumDecl`, even
+    // though its `DeclKind` is `CX_DeclKind_UsingEnum`, so that is the expected cursor kind here.
+    internal unsafe UsingEnumDecl(CXCursor handle) : base(handle, CXCursor_EnumDecl, CX_DeclKind_UsingEnum)
     {
         _enumDecl = new ValueLazy<UsingEnumDecl, EnumDecl>(&EnumDeclFactory);
     }
@@ -19,5 +21,5 @@ public sealed class UsingEnumDecl : BaseUsingDecl, IMergeable<UsingEnumDecl>
 
     public EnumDecl EnumDecl => _enumDecl.GetValue(this);
 
-    private static unsafe EnumDecl EnumDeclFactory(UsingEnumDecl self) => self.TranslationUnit.GetOrCreate<EnumDecl>(self.Handle.Definition);
+    private static unsafe EnumDecl EnumDeclFactory(UsingEnumDecl self) => self.TranslationUnit.GetOrCreate<EnumDecl>(self.Handle.UsingEnumDeclEnumDecl);
 }

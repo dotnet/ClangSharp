@@ -773,6 +773,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUninstantiatedDefaultArg(CXCurs
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUsedContext(CXCursor C);
 
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUsingEnumDeclEnumDecl(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getTypeParamHasExplicitBound(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getTypeParamVariance(CXCursor C);
