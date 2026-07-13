@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ClangSharp.UnitTests</RootNamespace>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- CA1515: Consider making public types internal -->
+    <!-- CA1707: Identifiers should not contain underscores -->
+    <!-- CA1711: Identifiers should not have incorrect suffix -->
+    <!-- CA1861: Prefer 'static readonly' fields over constant array arguments -->
+    <!-- IDE0130: Namespace does not match folder structure -->
+    <NoWarn>$(NoWarn);CA1515;CA1707;CA1711;CA1861;IDE0130</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\sources\ClangSharpPInvokeGenerator\ClangSharpPInvokeGenerator.csproj" />
+  </ItemGroup>
+
+</Project>

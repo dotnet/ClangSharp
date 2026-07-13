@@ -1,10 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using System;
-using System.CommandLine;
-using System.CommandLine.Help;
-using System.CommandLine.Invocation;
-
 namespace ClangSharp;
 
 internal static partial class Program
@@ -49,606 +44,193 @@ internal static partial class Program
     private static readonly string[] s_withTransparentStructOptionAliases = ["--with-transparent-struct", "-wts"];
     private static readonly string[] s_withTypeOptionAliases = ["--with-type", "-wt"];
     private static readonly string[] s_withUsingOptionAliases = ["--with-using", "-wu"];
+    private static readonly string[] s_helpOptionAliases = ["--help", "-?", "-h"];
 
-    private static readonly Option<string[]> s_additionalOption = GetAdditionalOption();
-    private static readonly Option<string[]> s_configOption = GetConfigOption();
-    private static readonly Option<string[]> s_defineMacros = GetDefineMacroOption();
-    private static readonly Option<string[]> s_excludedNames = GetExcludeOption();
-    private static readonly Option<string[]> s_files = GetFileOption();
-    private static readonly Option<string> s_fileDirectory = GetFileDirectoryOption();
-    private static readonly Option<string> s_headerFile = GetHeaderOption();
-    private static readonly Option<string[]> s_includedNames = GetIncludeOption();
-    private static readonly Option<string[]> s_includeDirectories = GetIncludeDirectoryOption();
-    private static readonly Option<string> s_language = GetLanguageOption();
-    private static readonly Option<string> s_libraryPath = GetLibraryOption();
-    private static readonly Option<string> s_methodClassName = GetMethodClassNameOption();
-    private static readonly Option<string> s_methodPrefixToStrip = GetPrefixStripOption();
-    private static readonly Option<string> s_namespaceName = GetNamespaceOption();
-    private static readonly Option<string[]> s_nativeTypeNamesToStrip = GetNativeTypeNamesStripOption();
-    private static readonly Option<string> s_outputLocation = GetOutputOption();
-    private static readonly Option<PInvokeGeneratorOutputMode> s_outputMode = GetOutputModeOption();
-    private static readonly Option<string[]> s_remappedNameValuePairs = GetRemapOption();
-    private static readonly Option<string[]> s_remappedTypeNameValuePairs = GetRemapTypeOption();
-    private static readonly Option<string[]> s_remappedFieldNameValuePairs = GetRemapFieldOption();
-    private static readonly Option<string> s_std = GetStdOption();
-    private static readonly Option<string> s_testOutputLocation = GetTestOutputOption();
-    private static readonly Option<string[]> s_traversalNames = GetTraverseOption();
-    private static readonly Option<bool> s_versionOption = GetVersionOption();
-    private static readonly Option<string[]> s_withAccessSpecifierNameValuePairs = GetWithAccessSpecifierOption();
-    private static readonly Option<string[]> s_withAttributeNameValuePairs = GetWithAttributeOption();
-    private static readonly Option<string[]> s_withCallConvNameValuePairs = GetWithCallConvOption();
-    private static readonly Option<string[]> s_withClassNameValuePairs = GetWithClassOption();
-    private static readonly Option<string[]> s_withGuidNameValuePairs = GetWithGuidOption();
-    private static readonly Option<string[]> s_withLengthNameValuePairs = GetWithLengthOption();
-    private static readonly Option<string[]> s_withLibraryPathNameValuePairs = GetWithLibraryPathOption();
-    private static readonly Option<string[]> s_withManualImports = GetWithManualImportOption();
-    private static readonly Option<string[]> s_withNamespaceNameValuePairs = GetWithNamespaceOption();
-    private static readonly Option<string[]> s_withPackingNameValuePairs = GetWithPackingOption();
-    private static readonly Option<string[]> s_withReadonlys = GetWithReadonlyOption();
-    private static readonly Option<string[]> s_withSetLastErrors = GetWithSetLastErrorOption();
-    private static readonly Option<string[]> s_withSuppressGCTransitions = GetWithSuppressGCTransitionOption();
-    private static readonly Option<string[]> s_withTransparentStructNameValuePairs = GetWithTransparentStructOption();
-    private static readonly Option<string[]> s_withTypeNameValuePairs = GetWithTypeOption();
-    private static readonly Option<string[]> s_withUsingNameValuePairs = GetWithUsingOption();
+    private static readonly CommandLineOption s_additionalOption = Multi(s_additionalOptionAliases, "An argument to pass to Clang when parsing the input files.");
+    private static readonly CommandLineOption s_configOption = Multi(s_configOptionAliases, "A configuration option that controls how the bindings are generated. Specify 'help' to see the available options.");
+    private static readonly CommandLineOption s_defineMacros = Multi(s_defineMacroOptionAliases, "Define <macro> to <value> (or 1 if <value> omitted).");
+    private static readonly CommandLineOption s_excludedNames = Multi(s_excludeOptionAliases, "A declaration name to exclude from binding generation.");
+    private static readonly CommandLineOption s_files = Multi(s_fileOptionAliases, "A file to parse and generate bindings for.");
+    private static readonly CommandLineOption s_fileDirectory = Single(s_fileDirectionOptionAliases, "The base path for files to parse.");
+    private static readonly CommandLineOption s_headerFile = Single(s_headerOptionAliases, "A file which contains the header to prefix every generated file with.");
+    private static readonly CommandLineOption s_includedNames = Multi(s_includeOptionAliases, "A declaration name to include in binding generation.");
+    private static readonly CommandLineOption s_includeDirectories = Multi(s_includeDirectoryOptionAliases, "Add directory to include search path.");
+    private static readonly CommandLineOption s_language = Single(s_languageOptionAliases, "Treat subsequent input files as having type <language>.", defaultValue: "c++", valueName: "c|c++", allowedValues: ["c", "c++"]);
+    private static readonly CommandLineOption s_libraryPath = Single(s_libraryOptionAliases, "The string to use in the DllImport attribute used when generating bindings.");
+    private static readonly CommandLineOption s_methodClassName = Single(s_methodClassNameOptionAliases, "The name of the static class that will contain the generated method bindings.", defaultValue: "Methods");
+    private static readonly CommandLineOption s_namespaceName = Single(s_namespaceOptionAliases, "The namespace in which to place the generated bindings.");
+    private static readonly CommandLineOption s_nativeTypeNamesToStrip = Multi(s_nativeTypeNamesStripOptionAliases, "The contents to strip from the generated NativeTypeName attributes.");
+    private static readonly CommandLineOption s_outputMode = Single(s_outputModeOptionAliases, "The mode describing how the information collected from the headers are presented in the resultant bindings.", defaultValue: "CSharp", valueName: "CSharp|Xml");
+    private static readonly CommandLineOption s_outputLocation = Single(s_outputOptionAliases, "The output location to write the generated bindings to.");
+    private static readonly CommandLineOption s_methodPrefixToStrip = Single(s_prefixStripOptionAliases, "The prefix to strip from the generated method bindings.");
+    private static readonly CommandLineOption s_remappedNameValuePairs = Multi(s_remapOptionAliases, "A declaration name to be remapped to another name during binding generation.");
+    private static readonly CommandLineOption s_remappedTypeNameValuePairs = Multi(s_remapTypeOptionAliases, "A type (record or enum) declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name.");
+    private static readonly CommandLineOption s_remappedFieldNameValuePairs = Multi(s_remapFieldOptionAliases, "A field declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name.");
+    private static readonly CommandLineOption s_std = Single(s_stdOptionAliases, "Language standard to compile for.");
+    private static readonly CommandLineOption s_testOutputLocation = Single(s_testOutputOptionAliases, "The output location to write the generated tests to.");
+    private static readonly CommandLineOption s_traversalNames = Multi(s_traverseOptionAliases, "A file name included either directly or indirectly by -f that should be traversed during binding generation.");
+    private static readonly CommandLineOption s_versionOption = Flag(s_versionOptionAliases, "Prints the current version information for the tool and its native dependencies.");
+    private static readonly CommandLineOption s_withAccessSpecifierNameValuePairs = Multi(s_withAccessSpecifierOptionAliases, "An access specifier to be used with the given qualified or remapped declaration name during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withAttributeNameValuePairs = Multi(s_withAttributeOptionAliases, "An attribute to be added to the given remapped declaration name during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withCallConvNameValuePairs = Multi(s_withCallConvOptionAliases, "A calling convention to be used for the given declaration during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withClassNameValuePairs = Multi(s_withClassOptionAliases, "A class to be used for the given remapped constant or function declaration name during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withGuidNameValuePairs = Multi(s_withGuidOptionAliases, "A GUID to be used for the given declaration during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withLengthNameValuePairs = Multi(s_withLengthOptionAliases, "A length to be used for the given declaration during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withLibraryPathNameValuePairs = Multi(s_withLibraryPathOptionAliases, "A library path to be used for the given declaration during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withManualImports = Multi(s_withManualImportOptionAliases, "A remapped function name to be treated as a manual import during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withNamespaceNameValuePairs = Multi(s_withNamespaceOptionAliases, "A namespace to be used for the given remapped declaration name during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withPackingNameValuePairs = Multi(s_withPackingOptionAliases, "Overrides the StructLayoutAttribute.Pack property for the given type. Supports wildcards.");
+    private static readonly CommandLineOption s_withReadonlys = Multi(s_withReadonlyOptionAliases, "Add the readonly modifier to a given instance method. Supports wildcards.");
+    private static readonly CommandLineOption s_withSetLastErrors = Multi(s_withSetLastErrorOptionAliases, "Add the SetLastError=true modifier or SetsSystemLastError attribute to a given DllImport or UnmanagedFunctionPointer. Supports wildcards.");
+    private static readonly CommandLineOption s_withSuppressGCTransitions = Multi(s_withSuppressGCTransitionOptionAliases, "Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer. Supports wildcards.");
+    private static readonly CommandLineOption s_withTransparentStructNameValuePairs = Multi(s_withTransparentStructOptionAliases, "A remapped type name to be treated as a transparent wrapper during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withTypeNameValuePairs = Multi(s_withTypeOptionAliases, "A type to be used for the given enum declaration during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withUsingNameValuePairs = Multi(s_withUsingOptionAliases, "A using directive to be included for the given remapped declaration name during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_helpOption = Flag(s_helpOptionAliases, "Show help and usage information");
 
-    private static readonly RootCommand s_rootCommand = GetRootCommand();
-
-    private static readonly TwoColumnHelpRow[] s_configOptions =
+    private static readonly CommandLineOption[] s_options =
     [
-        new TwoColumnHelpRow("?, h, help", "Show help and usage information for -c, --config"),
-
-        new TwoColumnHelpRow("", ""),
-        new TwoColumnHelpRow("# Codegen Options", ""),
-        new TwoColumnHelpRow("", ""),
-
-        new TwoColumnHelpRow("compatible-codegen", "Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation."),
-        new TwoColumnHelpRow("default-codegen", "Bindings should be generated for the current LTS version of .NET/C#. This is currently .NET 8/C# 12."),
-        new TwoColumnHelpRow("latest-codegen", "Bindings should be generated for the current STS version of .NET/C#. This is currently .NET 10/C# 14."),
-        new TwoColumnHelpRow("preview-codegen", "Bindings should be generated for the preview version of .NET/C#. This is currently .NET 10/C# 14."),
-
-        new TwoColumnHelpRow("", ""),
-        new TwoColumnHelpRow("# File Options", ""),
-        new TwoColumnHelpRow("", ""),
-
-        new TwoColumnHelpRow("single-file", "Bindings should be generated to a single output file. This is the default."),
-        new TwoColumnHelpRow("multi-file", "Bindings should be generated so there is approximately one type per file."),
-
-        new TwoColumnHelpRow("", ""),
-        new TwoColumnHelpRow("# Type Options", ""),
-        new TwoColumnHelpRow("", ""),
-
-        new TwoColumnHelpRow("unix-types", "Bindings should be generated assuming Unix defaults. This is the default on Unix platforms."),
-        new TwoColumnHelpRow("windows-types", "Bindings should be generated assuming Windows defaults. This is the default on Windows platforms."),
-
-        new TwoColumnHelpRow("", ""),
-        new TwoColumnHelpRow("# Exclusion Options", ""),
-        new TwoColumnHelpRow("", ""),
-
-        new TwoColumnHelpRow("exclude-anonymous-field-helpers", "The helper ref properties generated for fields in nested anonymous structs and unions should not be generated."),
-        new TwoColumnHelpRow("exclude-com-proxies", "Types recognized as COM proxies should not have bindings generated. These are currently function declarations ending with _UserFree, _UserMarshal, _UserSize, _UserUnmarshal, _Proxy, or _Stub."),
-        new TwoColumnHelpRow("exclude-default-remappings", "Default remappings for well known types should not be added. This currently includes intptr_t, ptrdiff_t, size_t, and uintptr_t"),
-        new TwoColumnHelpRow("exclude-empty-records", "Bindings for records that contain no members should not be generated. These are commonly encountered for opaque handle like types such as HWND."),
-        new TwoColumnHelpRow("exclude-enum-operators", "Bindings for operators over enum types should not be generated. These are largely unnecessary in C# as the operators are available by default."),
-        new TwoColumnHelpRow("exclude-fnptr-codegen", "Generated bindings for latest or preview codegen should not use function pointers."),
-        new TwoColumnHelpRow("exclude-funcs-with-body", "Bindings for functions with bodies should not be generated."),
-        new TwoColumnHelpRow("exclude-using-statics-for-enums", "Enum usages should be fully qualified and should not include a corresponding 'using static EnumName;'"),
-
-        new TwoColumnHelpRow("", ""),
-        new TwoColumnHelpRow("# Vtbl Options", ""),
-        new TwoColumnHelpRow("", ""),
-
-        new TwoColumnHelpRow("explicit-vtbls", "VTBLs should have an explicit type generated with named fields per entry."),
-        new TwoColumnHelpRow("implicit-vtbls", "VTBLs should be implicit to reduce metadata bloat. This is the current default"),
-        new TwoColumnHelpRow("trimmable-vtbls", "VTBLs should be defined but not used in helper methods to reduce metadata bloat when trimming."),
-
-        new TwoColumnHelpRow("", ""),
-        new TwoColumnHelpRow("# Test Options", ""),
-        new TwoColumnHelpRow("", ""),
-
-        new TwoColumnHelpRow("generate-tests-nunit", "Basic tests validating size, blittability, and associated metadata should be generated for NUnit."),
-        new TwoColumnHelpRow("generate-tests-xunit", "Basic tests validating size, blittability, and associated metadata should be generated for XUnit."),
-
-        new TwoColumnHelpRow("", ""),
-        new TwoColumnHelpRow("# Generation Options", ""),
-        new TwoColumnHelpRow("", ""),
-
-        new TwoColumnHelpRow("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
-        new TwoColumnHelpRow("generate-callconv-member-function", "Instance function pointers should use [CallConvMemberFunction] where applicable."),
-        new TwoColumnHelpRow("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
-        new TwoColumnHelpRow("generate-disable-runtime-marshalling", "[assembly: DisableRuntimeMarshalling] should be generated."),
-        new TwoColumnHelpRow("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
-        new TwoColumnHelpRow("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
-        new TwoColumnHelpRow("generate-fixed-buffer-indexer-overloads", "Fixed sized buffer helper types should generate additional uint, nint, and nuint indexer overloads."),
-        new TwoColumnHelpRow("generate-guid-member", "Types with an associated GUID should have a corresponding member generated."),
-        new TwoColumnHelpRow("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
-        new TwoColumnHelpRow("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
-        new TwoColumnHelpRow("generate-marker-interfaces", "Bindings for marker interfaces representing native inheritance hierarchies should be generated."),
-        new TwoColumnHelpRow("generate-native-bitfield-attribute", "[NativeBitfield(\"\", offset: #, length: #)] attribute should be generated to document the encountered bitfield layout."),
-        new TwoColumnHelpRow("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
-        new TwoColumnHelpRow("generate-generic-pointer-wrapper", "Pointer<T> should be used for limited generic type support."),
-        new TwoColumnHelpRow("generate-setslastsystemerror-attribute", "[SetsLastSystemError] attribute should be generated rather than using SetLastError = true."),
-        new TwoColumnHelpRow("generate-template-bindings", "Bindings for template-definitions should be generated. This is currently experimental."),
-        new TwoColumnHelpRow("generate-unmanaged-constants", "Unmanaged constants should be generated using static ref readonly properties. This is currently experimental."),
-        new TwoColumnHelpRow("generate-vtbl-index-attribute", "[VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method."),
-
-        new TwoColumnHelpRow("", ""),
-        new TwoColumnHelpRow("# Stripping Options", ""),
-        new TwoColumnHelpRow("", ""),
-
-        new TwoColumnHelpRow("strip-enum-member-type-name", "Strips the enum type name from the beginning of its member names."),
-
-        new TwoColumnHelpRow("", ""),
-        new TwoColumnHelpRow("# Logging Options", ""),
-        new TwoColumnHelpRow("", ""),
-
-        new TwoColumnHelpRow("log-exclusions", "A list of excluded declaration types should be generated. This will also log if the exclusion was due to an exact or partial match."),
-        new TwoColumnHelpRow("log-potential-typedef-remappings", "A list of potential typedef remappings should be generated. This can help identify missing remappings."),
-        new TwoColumnHelpRow("log-visited-files", "A list of the visited files should be generated. This can help identify traversal issues."),
+        s_additionalOption,
+        s_configOption,
+        s_defineMacros,
+        s_excludedNames,
+        s_files,
+        s_fileDirectory,
+        s_headerFile,
+        s_includedNames,
+        s_includeDirectories,
+        s_language,
+        s_libraryPath,
+        s_methodClassName,
+        s_namespaceName,
+        s_outputMode,
+        s_outputLocation,
+        s_methodPrefixToStrip,
+        s_nativeTypeNamesToStrip,
+        s_remappedNameValuePairs,
+        s_remappedTypeNameValuePairs,
+        s_remappedFieldNameValuePairs,
+        s_std,
+        s_testOutputLocation,
+        s_traversalNames,
+        s_versionOption,
+        s_withAccessSpecifierNameValuePairs,
+        s_withAttributeNameValuePairs,
+        s_withCallConvNameValuePairs,
+        s_withClassNameValuePairs,
+        s_withGuidNameValuePairs,
+        s_withLengthNameValuePairs,
+        s_withLibraryPathNameValuePairs,
+        s_withManualImports,
+        s_withNamespaceNameValuePairs,
+        s_withPackingNameValuePairs,
+        s_withReadonlys,
+        s_withSetLastErrors,
+        s_withSuppressGCTransitions,
+        s_withTransparentStructNameValuePairs,
+        s_withTypeNameValuePairs,
+        s_withUsingNameValuePairs,
+        s_helpOption,
     ];
 
-    private static Option<string[]> GetAdditionalOption()
-    {
-        return new Option<string[]>(
-            aliases: s_additionalOptionAliases,
-            description: "An argument to pass to Clang when parsing the input files.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+    private static readonly CommandLineParser s_parser = new(s_options);
 
-    private static Option<string[]> GetConfigOption()
-    {
-        return new Option<string[]>(
-            aliases: s_configOptionAliases,
-            description: "A configuration option that controls how the bindings are generated. Specify 'help' to see the available options.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+    private static readonly HelpRow[] s_configOptions =
+    [
+        new HelpRow("?, h, help", "Show help and usage information for -c, --config"),
 
-    private static Option<string[]> GetDefineMacroOption()
-    {
-        return new Option<string[]>(
-            aliases: s_defineMacroOptionAliases,
-            description: "Define <macro> to <value> (or 1 if <value> omitted).",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+        new HelpRow("", ""),
+        new HelpRow("# Codegen Options", ""),
+        new HelpRow("", ""),
 
-    private static Option<string[]> GetExcludeOption()
-    {
-        return new Option<string[]>(
-            aliases: s_excludeOptionAliases,
-            description: "A declaration name to exclude from binding generation.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+        new HelpRow("compatible-codegen", "Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation."),
+        new HelpRow("default-codegen", "Bindings should be generated for the current LTS version of .NET/C#. This is currently .NET 8/C# 12."),
+        new HelpRow("latest-codegen", "Bindings should be generated for the current STS version of .NET/C#. This is currently .NET 10/C# 14."),
+        new HelpRow("preview-codegen", "Bindings should be generated for the preview version of .NET/C#. This is currently .NET 10/C# 14."),
 
-    private static Option<string[]> GetFileOption()
-    {
-        return new Option<string[]>(
-            aliases: s_fileOptionAliases,
-            description: "A file to parse and generate bindings for.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+        new HelpRow("", ""),
+        new HelpRow("# File Options", ""),
+        new HelpRow("", ""),
 
-    private static Option<string> GetFileDirectoryOption()
-    {
-        return new Option<string>(
-            aliases: s_fileDirectionOptionAliases,
-            description: "The base path for files to parse.",
-            getDefaultValue: () => string.Empty
-        );
-    }
+        new HelpRow("single-file", "Bindings should be generated to a single output file. This is the default."),
+        new HelpRow("multi-file", "Bindings should be generated so there is approximately one type per file."),
 
-    private static Option<string> GetHeaderOption()
-    {
-        return new Option<string>(
-            aliases: s_headerOptionAliases,
-            description: "A file which contains the header to prefix every generated file with.",
-            getDefaultValue: () => string.Empty
-        );
-    }
+        new HelpRow("", ""),
+        new HelpRow("# Type Options", ""),
+        new HelpRow("", ""),
 
-    private static Option<string[]> GetIncludeOption()
-    {
-        return new Option<string[]>(
-            aliases: s_includeOptionAliases,
-            description: "A declaration name to include in binding generation.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+        new HelpRow("unix-types", "Bindings should be generated assuming Unix defaults. This is the default on Unix platforms."),
+        new HelpRow("windows-types", "Bindings should be generated assuming Windows defaults. This is the default on Windows platforms."),
 
-    private static Option<string[]> GetIncludeDirectoryOption()
-    {
-        return new Option<string[]>(
-            aliases: s_includeDirectoryOptionAliases,
-            description: "Add directory to include search path.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+        new HelpRow("", ""),
+        new HelpRow("# Exclusion Options", ""),
+        new HelpRow("", ""),
 
-    private static Option<string> GetLanguageOption()
-    {
-        return new Option<string>(
-            aliases: s_languageOptionAliases,
-            description: "Treat subsequent input files as having type <language>.",
-            getDefaultValue: () => "c++"
-        ).FromAmong("c", "c++");
-    }
+        new HelpRow("exclude-anonymous-field-helpers", "The helper ref properties generated for fields in nested anonymous structs and unions should not be generated."),
+        new HelpRow("exclude-com-proxies", "Types recognized as COM proxies should not have bindings generated. These are currently function declarations ending with _UserFree, _UserMarshal, _UserSize, _UserUnmarshal, _Proxy, or _Stub."),
+        new HelpRow("exclude-default-remappings", "Default remappings for well known types should not be added. This currently includes intptr_t, ptrdiff_t, size_t, and uintptr_t"),
+        new HelpRow("exclude-empty-records", "Bindings for records that contain no members should not be generated. These are commonly encountered for opaque handle like types such as HWND."),
+        new HelpRow("exclude-enum-operators", "Bindings for operators over enum types should not be generated. These are largely unnecessary in C# as the operators are available by default."),
+        new HelpRow("exclude-fnptr-codegen", "Generated bindings for latest or preview codegen should not use function pointers."),
+        new HelpRow("exclude-funcs-with-body", "Bindings for functions with bodies should not be generated."),
+        new HelpRow("exclude-using-statics-for-enums", "Enum usages should be fully qualified and should not include a corresponding 'using static EnumName;'"),
 
-    private static Option<string> GetLibraryOption()
-    {
-        return new Option<string>(
-            aliases: s_libraryOptionAliases,
-            description: "The string to use in the DllImport attribute used when generating bindings.",
-            getDefaultValue: () => string.Empty
-        );
-    }
+        new HelpRow("", ""),
+        new HelpRow("# Vtbl Options", ""),
+        new HelpRow("", ""),
 
-    private static Option<string> GetMethodClassNameOption()
-    {
-        return new Option<string>(
-            aliases: s_methodClassNameOptionAliases,
-            description: "The name of the static class that will contain the generated method bindings.",
-            getDefaultValue: () => "Methods"
-        );
-    }
+        new HelpRow("explicit-vtbls", "VTBLs should have an explicit type generated with named fields per entry."),
+        new HelpRow("implicit-vtbls", "VTBLs should be implicit to reduce metadata bloat. This is the current default"),
+        new HelpRow("trimmable-vtbls", "VTBLs should be defined but not used in helper methods to reduce metadata bloat when trimming."),
 
-    private static Option<string> GetNamespaceOption()
-    {
-        return new Option<string>(
-            aliases: s_namespaceOptionAliases,
-            description: "The namespace in which to place the generated bindings.",
-            getDefaultValue: () => string.Empty
-        );
-    }
+        new HelpRow("", ""),
+        new HelpRow("# Test Options", ""),
+        new HelpRow("", ""),
 
-    private static Option<string[]> GetNativeTypeNamesStripOption()
-    {
-        return new Option<string[]>(
-            aliases: s_nativeTypeNamesStripOptionAliases,
-            description: "The contents to strip from the generated NativeTypeName attributes.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+        new HelpRow("generate-tests-nunit", "Basic tests validating size, blittability, and associated metadata should be generated for NUnit."),
+        new HelpRow("generate-tests-xunit", "Basic tests validating size, blittability, and associated metadata should be generated for XUnit."),
 
-    private static Option<PInvokeGeneratorOutputMode> GetOutputModeOption()
-    {
-        return new Option<PInvokeGeneratorOutputMode>(
-            aliases: s_outputModeOptionAliases,
-            description: "The mode describing how the information collected from the headers are presented in the resultant bindings.",
-            getDefaultValue: () => PInvokeGeneratorOutputMode.CSharp
-        );
-    }
+        new HelpRow("", ""),
+        new HelpRow("# Generation Options", ""),
+        new HelpRow("", ""),
 
-    private static Option<string> GetOutputOption()
-    {
-        return new Option<string>(
-            aliases: s_outputOptionAliases,
-            description: "The output location to write the generated bindings to.",
-            getDefaultValue: () => string.Empty
-        );
-    }
+        new HelpRow("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
+        new HelpRow("generate-callconv-member-function", "Instance function pointers should use [CallConvMemberFunction] where applicable."),
+        new HelpRow("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
+        new HelpRow("generate-disable-runtime-marshalling", "[assembly: DisableRuntimeMarshalling] should be generated."),
+        new HelpRow("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
+        new HelpRow("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
+        new HelpRow("generate-fixed-buffer-indexer-overloads", "Fixed sized buffer helper types should generate additional uint, nint, and nuint indexer overloads."),
+        new HelpRow("generate-guid-member", "Types with an associated GUID should have a corresponding member generated."),
+        new HelpRow("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
+        new HelpRow("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
+        new HelpRow("generate-marker-interfaces", "Bindings for marker interfaces representing native inheritance hierarchies should be generated."),
+        new HelpRow("generate-native-bitfield-attribute", "[NativeBitfield(\"\", offset: #, length: #)] attribute should be generated to document the encountered bitfield layout."),
+        new HelpRow("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
+        new HelpRow("generate-generic-pointer-wrapper", "Pointer<T> should be used for limited generic type support."),
+        new HelpRow("generate-setslastsystemerror-attribute", "[SetsLastSystemError] attribute should be generated rather than using SetLastError = true."),
+        new HelpRow("generate-template-bindings", "Bindings for template-definitions should be generated. This is currently experimental."),
+        new HelpRow("generate-unmanaged-constants", "Unmanaged constants should be generated using static ref readonly properties. This is currently experimental."),
+        new HelpRow("generate-vtbl-index-attribute", "[VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method."),
 
-    private static Option<string> GetPrefixStripOption()
-    {
-        return new Option<string>(
-            aliases: s_prefixStripOptionAliases,
-            description: "The prefix to strip from the generated method bindings.",
-            getDefaultValue: () => string.Empty
-        );
-    }
+        new HelpRow("", ""),
+        new HelpRow("# Stripping Options", ""),
+        new HelpRow("", ""),
 
-    private static Option<string[]> GetRemapOption()
-    {
-        return new Option<string[]>(
-            aliases: s_remapOptionAliases,
-            description: "A declaration name to be remapped to another name during binding generation.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+        new HelpRow("strip-enum-member-type-name", "Strips the enum type name from the beginning of its member names."),
 
-    private static Option<string[]> GetRemapTypeOption()
-    {
-        return new Option<string[]>(
-            aliases: s_remapTypeOptionAliases,
-            description: "A type (record or enum) declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+        new HelpRow("", ""),
+        new HelpRow("# Logging Options", ""),
+        new HelpRow("", ""),
 
-    private static Option<string[]> GetRemapFieldOption()
-    {
-        return new Option<string[]>(
-            aliases: s_remapFieldOptionAliases,
-            description: "A field declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+        new HelpRow("log-exclusions", "A list of excluded declaration types should be generated. This will also log if the exclusion was due to an exact or partial match."),
+        new HelpRow("log-potential-typedef-remappings", "A list of potential typedef remappings should be generated. This can help identify missing remappings."),
+        new HelpRow("log-visited-files", "A list of the visited files should be generated. This can help identify traversal issues."),
+    ];
 
-    private static RootCommand GetRootCommand()
-    {
-        var rootCommand = new RootCommand("ClangSharp P/Invoke Binding Generator")
-        {
-            s_additionalOption,
-            s_configOption,
-            s_defineMacros,
-            s_excludedNames,
-            s_files,
-            s_fileDirectory,
-            s_headerFile,
-            s_includedNames,
-            s_includeDirectories,
-            s_language,
-            s_libraryPath,
-            s_methodClassName,
-            s_namespaceName,
-            s_outputMode,
-            s_outputLocation,
-            s_methodPrefixToStrip,
-            s_nativeTypeNamesToStrip,
-            s_remappedNameValuePairs,
-            s_remappedTypeNameValuePairs,
-            s_remappedFieldNameValuePairs,
-            s_std,
-            s_testOutputLocation,
-            s_traversalNames,
-            s_versionOption,
-            s_withAccessSpecifierNameValuePairs,
-            s_withAttributeNameValuePairs,
-            s_withCallConvNameValuePairs,
-            s_withClassNameValuePairs,
-            s_withGuidNameValuePairs,
-            s_withLengthNameValuePairs,
-            s_withLibraryPathNameValuePairs,
-            s_withManualImports,
-            s_withNamespaceNameValuePairs,
-            s_withPackingNameValuePairs,
-            s_withReadonlys,
-            s_withSetLastErrors,
-            s_withSuppressGCTransitions,
-            s_withTransparentStructNameValuePairs,
-            s_withTypeNameValuePairs,
-            s_withUsingNameValuePairs
-        };
-        Handler.SetHandler(rootCommand, (Action<InvocationContext>)Run);
-        return rootCommand;
-    }
+    private static CommandLineOption Multi(string[] aliases, string description) => new(aliases, description, CommandLineOptionKind.MultipleValue);
 
-    private static Option<string> GetStdOption()
-    {
-        return new Option<string>(
-            aliases: s_stdOptionAliases,
-            description: "Language standard to compile for.",
-            getDefaultValue: () => ""
-        );
-    }
+    private static CommandLineOption Single(string[] aliases, string description, string defaultValue = "", string? valueName = null, string[]? allowedValues = null) => new(aliases, description, CommandLineOptionKind.SingleValue, valueName, defaultValue, allowedValues);
 
-    private static Option<string> GetTestOutputOption()
-    {
-        return new Option<string>(
-            aliases: s_testOutputOptionAliases,
-            description: "The output location to write the generated tests to.",
-            getDefaultValue: () => string.Empty
-        );
-    }
-
-    private static Option<bool> GetVersionOption()
-    {
-        return new Option<bool>(
-            aliases: s_versionOptionAliases,
-            description: "Prints the current version information for the tool and its native dependencies."
-        ) {
-            Arity = ArgumentArity.Zero
-        };
-    }
-
-    private static Option<string[]> GetTraverseOption()
-    {
-        return new Option<string[]>(
-            aliases: s_traverseOptionAliases,
-            description: "A file name included either directly or indirectly by -f that should be traversed during binding generation.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithAccessSpecifierOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withAccessSpecifierOptionAliases,
-            description: "An access specifier to be used with the given qualified or remapped declaration name during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithAttributeOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withAttributeOptionAliases,
-            description: "An attribute to be added to the given remapped declaration name during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithCallConvOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withCallConvOptionAliases,
-            description: "A calling convention to be used for the given declaration during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithClassOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withClassOptionAliases,
-            description: "A class to be used for the given remapped constant or function declaration name during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithGuidOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withGuidOptionAliases,
-            description: "A GUID to be used for the given declaration during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithLengthOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withLengthOptionAliases,
-            description: "A length to be used for the given declaration during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithLibraryPathOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withLibraryPathOptionAliases,
-            description: "A library path to be used for the given declaration during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithManualImportOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withManualImportOptionAliases,
-            description: "A remapped function name to be treated as a manual import during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithNamespaceOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withNamespaceOptionAliases,
-            description: "A namespace to be used for the given remapped declaration name during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithReadonlyOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withReadonlyOptionAliases,
-            description: "Add the readonly modifier to a given instance method. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithSetLastErrorOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withSetLastErrorOptionAliases,
-            description: "Add the SetLastError=true modifier or SetsSystemLastError attribute to a given DllImport or UnmanagedFunctionPointer. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithSuppressGCTransitionOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withSuppressGCTransitionOptionAliases,
-            description: "Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithTransparentStructOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withTransparentStructOptionAliases,
-            description: "A remapped type name to be treated as a transparent wrapper during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithTypeOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withTypeOptionAliases,
-            description: "A type to be used for the given enum declaration during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithUsingOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withUsingOptionAliases,
-            description: "A using directive to be included for the given remapped declaration name during binding generation. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
-
-    private static Option<string[]> GetWithPackingOption()
-    {
-        return new Option<string[]>(
-            aliases: s_withPackingOptionAliases,
-            description: "Overrides the StructLayoutAttribute.Pack property for the given type. Supports wildcards.",
-            getDefaultValue: Array.Empty<string>
-        ) {
-            AllowMultipleArgumentsPerToken = true
-        };
-    }
+    private static CommandLineOption Flag(string[] aliases, string description) => new(aliases, description, CommandLineOptionKind.Flag);
 }
