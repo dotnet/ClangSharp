@@ -15,7 +15,7 @@ public sealed class ClassTemplateDecl : RedeclarableTemplateDecl
     internal unsafe ClassTemplateDecl(CXCursor handle) : base(handle, CXCursor_ClassTemplate, CX_DeclKind_ClassTemplate)
     {
         _injectedClassNameSpecialization = new ValueLazy<ClassTemplateDecl, Type>(&InjectedClassNameSpecializationFactory);
-        _specializations = LazyList.Create<ClassTemplateSpecializationDecl>(Handle.NumSpecializations, (i) => TranslationUnit.GetOrCreate<ClassTemplateSpecializationDecl>(Handle.GetSpecialization(unchecked((uint)i))));
+        _specializations = LazyList.Create<ClassTemplateSpecializationDecl>(this, Handle.NumSpecializations, &SpecializationsFactory);
     }
 
     public new ClassTemplateDecl CanonicalDecl => (ClassTemplateDecl)base.CanonicalDecl;
@@ -35,4 +35,10 @@ public sealed class ClassTemplateDecl : RedeclarableTemplateDecl
     public new CXXRecordDecl TemplatedDecl => (CXXRecordDecl)base.TemplatedDecl;
 
     private static unsafe Type InjectedClassNameSpecializationFactory(ClassTemplateDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.InjectedSpecializationType);
+
+    private static unsafe ClassTemplateSpecializationDecl SpecializationsFactory(object self, int i)
+    {
+        var @this = (ClassTemplateDecl)self;
+        return @this.TranslationUnit.GetOrCreate<ClassTemplateSpecializationDecl>(@this.Handle.GetSpecialization(unchecked((uint)i)));
+    }
 }

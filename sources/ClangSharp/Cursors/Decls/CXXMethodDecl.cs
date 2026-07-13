@@ -25,7 +25,7 @@ public class CXXMethodDecl : FunctionDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _overriddenMethods = LazyList.Create<CXXMethodDecl>(Handle.NumMethods, (i) => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.GetMethod(unchecked((uint)i))));
+        _overriddenMethods = LazyList.Create<CXXMethodDecl>(this, Handle.NumMethods, &OverriddenMethodsFactory);
         _thisType = new ValueLazy<CXXMethodDecl, Type>(&ThisTypeFactory);
         _thisObjectType = new ValueLazy<CXXMethodDecl, Type>(&ThisObjectTypeFactory);
     }
@@ -57,4 +57,10 @@ public class CXXMethodDecl : FunctionDecl
     private static unsafe Type ThisObjectTypeFactory(CXXMethodDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ThisObjectType);
 
     private static unsafe Type ThisTypeFactory(CXXMethodDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ThisType);
+
+    private static unsafe CXXMethodDecl OverriddenMethodsFactory(object self, int i)
+    {
+        var @this = (CXXMethodDecl)self;
+        return @this.TranslationUnit.GetOrCreate<CXXMethodDecl>(@this.Handle.GetMethod(unchecked((uint)i)));
+    }
 }

@@ -23,7 +23,7 @@ public class CastExpr : Expr
 
         Debug.Assert(NumChildren is 1);
 
-        _path = LazyList.Create<CXXBaseSpecifier>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetArgument(unchecked((uint)i))));
+        _path = LazyList.Create<CXXBaseSpecifier>(this, Handle.NumArguments, &PathFactory);
         _targetUnionField = new ValueLazy<CastExpr, FieldDecl>(&TargetUnionFieldFactory);
     }
 
@@ -106,4 +106,10 @@ public class CastExpr : Expr
     public FieldDecl TargetUnionField => _targetUnionField.GetValue(this);
 
     private static unsafe FieldDecl TargetUnionFieldFactory(CastExpr self) => self.TranslationUnit.GetOrCreate<FieldDecl>(self.Handle.TargetUnionField);
+
+    private static unsafe CXXBaseSpecifier PathFactory(object self, int i)
+    {
+        var @this = (CastExpr)self;
+        return @this.TranslationUnit.GetOrCreate<CXXBaseSpecifier>(@this.Handle.GetArgument(unchecked((uint)i)));
+    }
 }

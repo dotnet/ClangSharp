@@ -26,7 +26,7 @@ public sealed class DeclRefExpr : Expr
 
         _decl = new ValueLazy<DeclRefExpr, ValueDecl>(&DeclFactory);
         _foundDecl = new ValueLazy<DeclRefExpr, NamedDecl>(&FoundDeclFactory);
-        _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgumentLoc>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
     }
 
     public ValueDecl Decl => _decl.GetValue(this);
@@ -48,4 +48,10 @@ public sealed class DeclRefExpr : Expr
     private static unsafe NamedDecl FoundDeclFactory(DeclRefExpr self) => self.TranslationUnit.GetOrCreate<NamedDecl>(self.Handle.FoundDecl);
 
     private static unsafe ValueDecl DeclFactory(DeclRefExpr self) => self.TranslationUnit.GetOrCreate<ValueDecl>(self.Handle.Referenced);
+
+    private static unsafe TemplateArgumentLoc TemplateArgsFactory(object self, int i)
+    {
+        var @this = (DeclRefExpr)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgumentLoc(unchecked((uint)i)));
+    }
 }

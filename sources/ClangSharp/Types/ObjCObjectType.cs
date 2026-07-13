@@ -23,9 +23,9 @@ public class ObjCObjectType : Type
     {
         _baseType = new ValueLazy<ObjCObjectType, Type>(&BaseTypeFactory);
         _interface = new ValueLazy<ObjCObjectType, ObjCInterfaceDecl>(&InterfaceFactory);
-        _protocols = LazyList.Create<ObjCProtocolDecl>(unchecked((int)Handle.NumObjCProtocolRefs), (i) => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetObjCProtocolDecl(unchecked((uint)i))));
+        _protocols = LazyList.Create<ObjCProtocolDecl>(this, unchecked((int)Handle.NumObjCProtocolRefs), &ProtocolsFactory);
         _superClassType = new ValueLazy<ObjCObjectType, Type>(&SuperClassTypeFactory);
-        _typeArgs = LazyList.Create<Type>(unchecked((int)Handle.NumObjCTypeArgs), (i) => TranslationUnit.GetOrCreate<Type>(Handle.GetObjCTypeArg(unchecked((uint)i))));
+        _typeArgs = LazyList.Create<Type>(this, unchecked((int)Handle.NumObjCTypeArgs), &TypeArgsFactory);
     }
 
     public Type BaseType => _baseType.GetValue(this);
@@ -43,4 +43,16 @@ public class ObjCObjectType : Type
     private static unsafe ObjCInterfaceDecl InterfaceFactory(ObjCObjectType self) => self.TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(self.Handle.Declaration);
 
     private static unsafe Type BaseTypeFactory(ObjCObjectType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ObjCObjectBaseType);
+
+    private static unsafe ObjCProtocolDecl ProtocolsFactory(object self, int i)
+    {
+        var @this = (ObjCObjectType)self;
+        return @this.TranslationUnit.GetOrCreate<ObjCProtocolDecl>(@this.Handle.GetObjCProtocolDecl(unchecked((uint)i)));
+    }
+
+    private static unsafe Type TypeArgsFactory(object self, int i)
+    {
+        var @this = (ObjCObjectType)self;
+        return @this.TranslationUnit.GetOrCreate<Type>(@this.Handle.GetObjCTypeArg(unchecked((uint)i)));
+    }
 }

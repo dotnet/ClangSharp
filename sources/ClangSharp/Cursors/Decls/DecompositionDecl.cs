@@ -11,10 +11,16 @@ public sealed class DecompositionDecl : VarDecl
 {
     private readonly LazyList<BindingDecl> _bindings;
 
-    internal DecompositionDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Decomposition)
+    internal unsafe DecompositionDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Decomposition)
     {
-        _bindings = LazyList.Create<BindingDecl>(Handle.NumBindings, (i) => TranslationUnit.GetOrCreate<BindingDecl>(Handle.GetBindingDecl(unchecked((uint)i))));
+        _bindings = LazyList.Create<BindingDecl>(this, Handle.NumBindings, &BindingsFactory);
     }
 
     public IReadOnlyList<BindingDecl> Bindings => _bindings;
+
+    private static unsafe BindingDecl BindingsFactory(object self, int i)
+    {
+        var @this = (DecompositionDecl)self;
+        return @this.TranslationUnit.GetOrCreate<BindingDecl>(@this.Handle.GetBindingDecl(unchecked((uint)i)));
+    }
 }

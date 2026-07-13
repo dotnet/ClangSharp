@@ -20,9 +20,9 @@ public class TemplateDecl : NamedDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
+        _associatedConstraints = LazyList.Create<Expr>(this, Handle.NumAssociatedConstraints, &AssociatedConstraintsFactory);
         _templatedDecl = new ValueLazy<TemplateDecl, NamedDecl>(&TemplatedDeclFactory);
-        _templateParameters = LazyList.Create<NamedDecl>(Handle.GetNumTemplateParameters(0), (i) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i))));
+        _templateParameters = LazyList.Create<NamedDecl>(this, Handle.GetNumTemplateParameters(0), &TemplateParametersFactory);
     }
 
     public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints;
@@ -34,4 +34,16 @@ public class TemplateDecl : NamedDecl
     public IReadOnlyList<NamedDecl> TemplateParameters => _templateParameters;
 
     private static unsafe NamedDecl TemplatedDeclFactory(TemplateDecl self) => self.TranslationUnit.GetOrCreate<NamedDecl>(self.Handle.TemplatedDecl);
+
+    private static unsafe Expr AssociatedConstraintsFactory(object self, int i)
+    {
+        var @this = (TemplateDecl)self;
+        return @this.TranslationUnit.GetOrCreate<Expr>(@this.Handle.GetAssociatedConstraint(unchecked((uint)i)));
+    }
+
+    private static unsafe NamedDecl TemplateParametersFactory(object self, int i)
+    {
+        var @this = (TemplateDecl)self;
+        return @this.TranslationUnit.GetOrCreate<NamedDecl>(@this.Handle.GetTemplateParameter(0, unchecked((uint)i)));
+    }
 }

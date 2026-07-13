@@ -11,9 +11,9 @@ public sealed class FunctionProtoType : FunctionType
 {
     private readonly LazyList<Type> _paramTypes;
 
-    internal FunctionProtoType(CXType handle) : base(handle, CXType_FunctionProto, CX_TypeClass_FunctionProto)
+    internal unsafe FunctionProtoType(CXType handle) : base(handle, CXType_FunctionProto, CX_TypeClass_FunctionProto)
     {
-        _paramTypes = LazyList.Create<Type>(Handle.NumArgTypes, (i) => TranslationUnit.GetOrCreate<Type>(Handle.GetArgType(unchecked((uint)i))));
+        _paramTypes = LazyList.Create<Type>(this, Handle.NumArgTypes, &ParamTypesFactory);
     }
 
     public CXCursor_ExceptionSpecificationKind ExceptionSpecType => Handle.ExceptionSpecificationType;
@@ -25,4 +25,10 @@ public sealed class FunctionProtoType : FunctionType
     public IReadOnlyList<Type> ParamTypes => _paramTypes;
 
     public CXRefQualifierKind RefQualifier => Handle.CXXRefQualifier;
+
+    private static unsafe Type ParamTypesFactory(object self, int i)
+    {
+        var @this = (FunctionProtoType)self;
+        return @this.TranslationUnit.GetOrCreate<Type>(@this.Handle.GetArgType(unchecked((uint)i)));
+    }
 }

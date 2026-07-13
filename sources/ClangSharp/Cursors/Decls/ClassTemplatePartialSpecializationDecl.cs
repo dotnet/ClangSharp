@@ -16,10 +16,10 @@ public sealed class ClassTemplatePartialSpecializationDecl : ClassTemplateSpecia
 
     internal unsafe ClassTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursor_ClassTemplatePartialSpecialization, CX_DeclKind_ClassTemplatePartialSpecialization)
     {
-        _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
+        _associatedConstraints = LazyList.Create<Expr>(this, Handle.NumAssociatedConstraints, &AssociatedConstraintsFactory);
         _injectedSpecializationType = new ValueLazy<ClassTemplatePartialSpecializationDecl, Type>(&InjectedSpecializationTypeFactory);
         _instantiatedFromMember = new ValueLazy<ClassTemplatePartialSpecializationDecl, ClassTemplatePartialSpecializationDecl>(&InstantiatedFromMemberFactory);
-        _templateParameters = LazyList.Create<NamedDecl>(Handle.GetNumTemplateParameters(0), (i) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i))));
+        _templateParameters = LazyList.Create<NamedDecl>(this, Handle.GetNumTemplateParameters(0), &TemplateParametersFactory);
     }
 
     public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints;
@@ -41,4 +41,16 @@ public sealed class ClassTemplatePartialSpecializationDecl : ClassTemplateSpecia
     private static unsafe ClassTemplatePartialSpecializationDecl InstantiatedFromMemberFactory(ClassTemplatePartialSpecializationDecl self) => self.TranslationUnit.GetOrCreate<ClassTemplatePartialSpecializationDecl>(self.Handle.InstantiatedFromMember);
 
     private static unsafe Type InjectedSpecializationTypeFactory(ClassTemplatePartialSpecializationDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.InjectedSpecializationType);
+
+    private static unsafe Expr AssociatedConstraintsFactory(object self, int i)
+    {
+        var @this = (ClassTemplatePartialSpecializationDecl)self;
+        return @this.TranslationUnit.GetOrCreate<Expr>(@this.Handle.GetAssociatedConstraint(unchecked((uint)i)));
+    }
+
+    private static unsafe NamedDecl TemplateParametersFactory(object self, int i)
+    {
+        var @this = (ClassTemplatePartialSpecializationDecl)self;
+        return @this.TranslationUnit.GetOrCreate<NamedDecl>(@this.Handle.GetTemplateParameter(0, unchecked((uint)i)));
+    }
 }

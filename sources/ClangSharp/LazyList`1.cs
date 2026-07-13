@@ -7,28 +7,33 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ClangSharp;
 
-internal sealed class LazyList<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T> : IList<T>, IReadOnlyList<T>
+internal sealed unsafe class LazyList<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T> : IList<T>, IReadOnlyList<T>
     where T : class
 {
     internal readonly T[] _items;
-    internal readonly Func<int, T>? _valueFactory;
-    internal readonly Func<int, T?, T>? _valueFactoryWithPreviousValue;
+    internal readonly object? _self;
+    internal readonly delegate*<object, int, T> _valueFactory;
+    internal readonly delegate*<object, int, T?, T> _valueFactoryWithPreviousValue;
 
-    public static readonly LazyList<T> Empty = new LazyList<T>(0, _ => null!);
+    public static readonly LazyList<T> Empty = new LazyList<T>(null!, 0, &EmptyFactory);
 
-    public LazyList(int count, Func<int, T> valueFactory)
+    public LazyList(object self, int count, delegate*<object, int, T> valueFactory)
     {
         _items = (count <= 0) ? [] : new T[count];
+        _self = self;
         _valueFactory = valueFactory;
         _valueFactoryWithPreviousValue = null;
     }
 
-    public LazyList(int count, Func<int, T?, T> valueFactoryWithPreviousValue)
+    public LazyList(object self, int count, delegate*<object, int, T?, T> valueFactoryWithPreviousValue)
     {
         _items = (count <= 0) ? [] : new T[count];
+        _self = self;
         _valueFactory = null;
         _valueFactoryWithPreviousValue = valueFactoryWithPreviousValue;
     }
+
+    private static T EmptyFactory(object self, int index) => null!;
 
     public T this[int index]
     {
@@ -39,13 +44,13 @@ internal sealed class LazyList<[DynamicallyAccessedMembers(DynamicallyAccessedMe
 
             if (item is null)
             {
-                if (_valueFactoryWithPreviousValue is not null)
+                if (_valueFactoryWithPreviousValue != null)
                 {
-                    item = _valueFactoryWithPreviousValue(index, index == 0 ? null : _items[index - 1]);
+                    item = _valueFactoryWithPreviousValue(_self!, index, index == 0 ? null : _items[index - 1]);
                 }
                 else
                 {
-                    item = _valueFactory!.Invoke(index);
+                    item = _valueFactory(_self!, index);
                 }
                 items[index] = item;
             }

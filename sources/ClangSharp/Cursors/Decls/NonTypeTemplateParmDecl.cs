@@ -16,9 +16,9 @@ public sealed class NonTypeTemplateParmDecl : DeclaratorDecl, ITemplateParmPosit
 
     internal unsafe NonTypeTemplateParmDecl(CXCursor handle) : base(handle, CXCursor_NonTypeTemplateParameter, CX_DeclKind_NonTypeTemplateParm)
     {
-        _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
+        _associatedConstraints = LazyList.Create<Expr>(this, Handle.NumAssociatedConstraints, &AssociatedConstraintsFactory);
         _defaultArgument = new ValueLazy<NonTypeTemplateParmDecl, Expr>(&DefaultArgumentFactory);
-        _expansionTypes = LazyList.Create<Type>(Handle.NumExpansionTypes, (i) => TranslationUnit.GetOrCreate<Type>(Handle.GetExpansionType(unchecked((uint)i))));
+        _expansionTypes = LazyList.Create<Type>(this, Handle.NumExpansionTypes, &ExpansionTypesFactory);
         _placeholderTypeConstraint = new ValueLazy<NonTypeTemplateParmDecl, Expr>(&PlaceholderTypeConstraintFactory);
     }
 
@@ -49,4 +49,16 @@ public sealed class NonTypeTemplateParmDecl : DeclaratorDecl, ITemplateParmPosit
     private static unsafe Expr PlaceholderTypeConstraintFactory(NonTypeTemplateParmDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.PlaceholderTypeConstraint);
 
     private static unsafe Expr DefaultArgumentFactory(NonTypeTemplateParmDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.DefaultArg);
+
+    private static unsafe Expr AssociatedConstraintsFactory(object self, int i)
+    {
+        var @this = (NonTypeTemplateParmDecl)self;
+        return @this.TranslationUnit.GetOrCreate<Expr>(@this.Handle.GetAssociatedConstraint(unchecked((uint)i)));
+    }
+
+    private static unsafe Type ExpansionTypesFactory(object self, int i)
+    {
+        var @this = (NonTypeTemplateParmDecl)self;
+        return @this.TranslationUnit.GetOrCreate<Type>(@this.Handle.GetExpansionType(unchecked((uint)i)));
+    }
 }

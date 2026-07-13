@@ -16,8 +16,8 @@ public sealed class CXXParenListInitExpr : Expr
     internal unsafe CXXParenListInitExpr(CXCursor handle) : base(handle, CXCursor_CXXParenListInitExpr, CX_StmtClass_CXXParenListInitExpr)
     {
         _arrayFillerOrUnionFieldInit = new ValueLazy<CXXParenListInitExpr, Cursor>(&ArrayFillerOrUnionFieldInitFactory);
-        _initExprs = LazyList.Create<Expr>(Handle.NumExprs, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)i))));
-        _userSpecifiedInitExprs = LazyList.Create<Expr>(Handle.NumExprsOther, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)i))));
+        _initExprs = LazyList.Create<Expr>(this, Handle.NumExprs, &InitExprsFactory);
+        _userSpecifiedInitExprs = LazyList.Create<Expr>(this, Handle.NumExprsOther, &UserSpecifiedInitExprsFactory);
     }
 
     public Expr? ArrayFiller => _arrayFillerOrUnionFieldInit.GetValue(this) as Expr;
@@ -29,4 +29,16 @@ public sealed class CXXParenListInitExpr : Expr
     public IReadOnlyList<Expr> UserSpecifiedInitExprs => _userSpecifiedInitExprs;
 
     private static unsafe Cursor ArrayFillerOrUnionFieldInitFactory(CXXParenListInitExpr self) => self.TranslationUnit.GetOrCreate<Cursor>(self.Handle.SubExpr);
+
+    private static unsafe Expr InitExprsFactory(object self, int i)
+    {
+        var @this = (CXXParenListInitExpr)self;
+        return @this.TranslationUnit.GetOrCreate<Expr>(@this.Handle.GetExpr(unchecked((uint)i)));
+    }
+
+    private static unsafe Expr UserSpecifiedInitExprsFactory(object self, int i)
+    {
+        var @this = (CXXParenListInitExpr)self;
+        return @this.TranslationUnit.GetOrCreate<Expr>(@this.Handle.GetExpr(unchecked((uint)i)));
+    }
 }

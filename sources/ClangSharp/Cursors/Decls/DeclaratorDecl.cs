@@ -19,10 +19,7 @@ public class DeclaratorDecl : ValueDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _templateParameterLists = LazyList.Create<LazyList<NamedDecl>>(Handle.NumTemplateParameterLists, (listIndex) => {
-            var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
-            return LazyList.Create<NamedDecl>(numTemplateParameters, (parameterIndex) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex))));
-        });
+        _templateParameterLists = CreateTemplateParameterLists(this);
         _trailingRequiresClause = new ValueLazy<DeclaratorDecl, Expr>(&TrailingRequiresClauseFactory);
     }
 

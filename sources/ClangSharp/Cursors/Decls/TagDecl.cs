@@ -22,10 +22,7 @@ public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
         }
 
         _definition = new ValueLazy<TagDecl, TagDecl?>(&DefinitionFactory);
-        _templateParameterLists = LazyList.Create<LazyList<NamedDecl>>(Handle.NumTemplateParameterLists, (listIndex) => {
-            var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
-            return LazyList.Create<NamedDecl>(numTemplateParameters, (parameterIndex) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex))));
-        });
+        _templateParameterLists = CreateTemplateParameterLists(this);
         _typedefNameForAnonDecl = new ValueLazy<TagDecl, TypedefNameDecl?>(&TypedefNameForAnonDeclFactory);
     }
 

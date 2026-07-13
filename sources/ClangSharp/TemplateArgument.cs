@@ -39,7 +39,7 @@ public sealed unsafe class TemplateArgument : IDisposable
         _nonTypeTemplateArgumentType = new ValueLazy<TemplateArgument, Type>(&NonTypeTemplateArgumentTypeFactory);
         _nullPtrType = new ValueLazy<TemplateArgument, Type>(&NullPtrTypeFactory);
         _packExpansionPattern = new ValueLazy<TemplateArgument, TemplateArgument>(&PackExpansionPatternFactory);
-        _packElements = LazyList.Create<TemplateArgument>(Handle.NumPackElements, (i) => TranslationUnit.GetOrCreate(Handle.GetPackElement(unchecked((uint)i))));
+        _packElements = LazyList.Create<TemplateArgument>(this, Handle.NumPackElements, &PackElementsFactory);
         _paramTypeForDecl = new ValueLazy<TemplateArgument, Type>(&ParamTypeForDeclFactory);
     }
 
@@ -151,4 +151,10 @@ public sealed unsafe class TemplateArgument : IDisposable
     private static unsafe ValueDecl AsDeclFactory(TemplateArgument self) => self.TranslationUnit.GetOrCreate<ValueDecl>(self.Handle.AsDecl);
 
     private static unsafe TranslationUnit TranslationUnitFactory(TemplateArgument self) => TranslationUnit.GetOrCreate(self.Handle.tu);
+
+    private static unsafe TemplateArgument PackElementsFactory(object self, int i)
+    {
+        var @this = (TemplateArgument)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetPackElement(unchecked((uint)i)));
+    }
 }

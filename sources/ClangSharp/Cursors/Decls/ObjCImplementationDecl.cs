@@ -16,7 +16,7 @@ public sealed class ObjCImplementationDecl : ObjCImplDecl
 
     internal unsafe ObjCImplementationDecl(CXCursor handle) : base(handle, CXCursor_ObjCImplementationDecl, CX_DeclKind_ObjCImplementation)
     {
-        _initExprs = LazyList.Create<Expr>(Handle.NumExprs, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)i))));
+        _initExprs = LazyList.Create<Expr>(this, Handle.NumExprs, &InitExprsFactory);
         _ivars = new ValueLazy<ObjCImplementationDecl, List<ObjCIvarDecl>>(&IvarsFactory);
         _superClass = new ValueLazy<ObjCImplementationDecl, ObjCInterfaceDecl>(&SuperClassFactory);
     }
@@ -32,4 +32,10 @@ public sealed class ObjCImplementationDecl : ObjCImplDecl
     private static unsafe ObjCInterfaceDecl SuperClassFactory(ObjCImplementationDecl self) => self.TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(self.Handle.GetSubDecl(1));
 
     private static unsafe List<ObjCIvarDecl> IvarsFactory(ObjCImplementationDecl self) => [.. self.Decls.OfType<ObjCIvarDecl>()];
+
+    private static unsafe Expr InitExprsFactory(object self, int i)
+    {
+        var @this = (ObjCImplementationDecl)self;
+        return @this.TranslationUnit.GetOrCreate<Expr>(@this.Handle.GetExpr(unchecked((uint)i)));
+    }
 }

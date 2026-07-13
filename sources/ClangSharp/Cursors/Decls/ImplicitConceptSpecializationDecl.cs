@@ -11,12 +11,18 @@ public sealed class ImplicitConceptSpecializationDecl : Decl
 {
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
-    internal ImplicitConceptSpecializationDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_ImplicitConceptSpecialization)
+    internal unsafe ImplicitConceptSpecializationDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_ImplicitConceptSpecialization)
     {
-        _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgumentLoc>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
     }
 
     public uint NumTemplateArgs => unchecked((uint)Handle.NumTemplateArguments);
 
     public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs;
+
+    private static unsafe TemplateArgumentLoc TemplateArgsFactory(object self, int i)
+    {
+        var @this = (ImplicitConceptSpecializationDecl)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgumentLoc(unchecked((uint)i)));
+    }
 }

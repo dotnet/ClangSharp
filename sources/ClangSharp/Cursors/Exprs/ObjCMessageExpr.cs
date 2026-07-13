@@ -18,7 +18,7 @@ public sealed class ObjCMessageExpr : Expr
 
     internal unsafe ObjCMessageExpr(CXCursor handle) : base(handle, CXCursor_ObjCMessageExpr, CX_StmtClass_ObjCMessageExpr)
     {
-        _args = LazyList.Create<Expr>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetArgument(unchecked((uint)i))));
+        _args = LazyList.Create<Expr>(this, Handle.NumArguments, &ArgsFactory);
         _classReceiver = new ValueLazy<ObjCMessageExpr, Type>(&ClassReceiverFactory);
         _instanceReceiver = new ValueLazy<ObjCMessageExpr, Expr>(&InstanceReceiverFactory);
         _methodDecl = new ValueLazy<ObjCMessageExpr, ObjCMethodDecl>(&MethodDeclFactory);
@@ -51,4 +51,10 @@ public sealed class ObjCMessageExpr : Expr
     private static unsafe Expr InstanceReceiverFactory(ObjCMessageExpr self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.GetExpr(0));
 
     private static unsafe Type ClassReceiverFactory(ObjCMessageExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
+
+    private static unsafe Expr ArgsFactory(object self, int i)
+    {
+        var @this = (ObjCMessageExpr)self;
+        return @this.TranslationUnit.GetOrCreate<Expr>(@this.Handle.GetArgument(unchecked((uint)i)));
+    }
 }

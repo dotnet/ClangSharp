@@ -7,13 +7,14 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ClangSharp;
 
-internal sealed class LazyList<T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TBase> : IList<T>, IReadOnlyList<T>
+internal sealed unsafe class LazyList<T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TBase> : IList<T>, IReadOnlyList<T>
     where T : class, TBase
     where TBase : class
 {
     internal readonly TBase[] _items;
-    internal readonly Func<int, TBase>? _valueFactory;
-    internal readonly Func<int, TBase?, TBase>? _valueFactoryWithPreviousValue;
+    internal readonly object? _self;
+    internal readonly delegate*<object, int, TBase> _valueFactory;
+    internal readonly delegate*<object, int, TBase?, TBase> _valueFactoryWithPreviousValue;
 
     private readonly int _start;
     private readonly int _count;
@@ -24,6 +25,7 @@ internal sealed class LazyList<T, [DynamicallyAccessedMembers(DynamicallyAccesse
         take = (take < 0) ? (list.Count - skip) : take;
 
         _items = list._items;
+        _self = list._self;
         _valueFactory = list._valueFactory;
         _valueFactoryWithPreviousValue = list._valueFactoryWithPreviousValue;
 
@@ -41,13 +43,13 @@ internal sealed class LazyList<T, [DynamicallyAccessedMembers(DynamicallyAccesse
             if (item is null)
             {
                 var idx = index + _start;
-                if (_valueFactoryWithPreviousValue is not null)
+                if (_valueFactoryWithPreviousValue != null)
                 {
-                    item = _valueFactoryWithPreviousValue(idx, idx == 0 ? null : _items[idx - 1]);
+                    item = _valueFactoryWithPreviousValue(_self!, idx, idx == 0 ? null : _items[idx - 1]);
                 }
                 else
                 {
-                    item = _valueFactory!.Invoke(idx);
+                    item = _valueFactory(_self!, idx);
                 }
                 items[index] = item;
             }

@@ -15,7 +15,7 @@ public sealed class TemplateSpecializationType : Type
 
     internal unsafe TemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TemplateSpecialization)
     {
-        _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgument>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
         _templateName = new ValueLazy<TemplateSpecializationType, TemplateName>(&TemplateNameFactory);
     }
 
@@ -29,4 +29,10 @@ public sealed class TemplateSpecializationType : Type
     public TemplateName TemplateName => _templateName.GetValue(this);
 
     private static unsafe TemplateName TemplateNameFactory(TemplateSpecializationType self) => self.TranslationUnit.GetOrCreate(self.Handle.TemplateName);
+
+    private static unsafe TemplateArgument TemplateArgsFactory(object self, int i)
+    {
+        var @this = (TemplateSpecializationType)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgument(unchecked((uint)i)));
+    }
 }

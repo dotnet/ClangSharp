@@ -16,8 +16,8 @@ public sealed partial class BlockDecl : Decl, IDeclContext
     internal unsafe BlockDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Block)
     {
         _blockManglingContextDecl = new ValueLazy<BlockDecl, Decl>(&BlockManglingContextDeclFactory);
-        _captures = LazyList.Create<Capture>(Handle.NumCaptures, (i) => new Capture(this, unchecked((uint)i)));
-        _parameters = LazyList.Create<ParmVarDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i))));
+        _captures = LazyList.Create<Capture>(this, Handle.NumCaptures, &CapturesFactory);
+        _parameters = LazyList.Create<ParmVarDecl>(this, Handle.NumArguments, &ParametersFactory);
     }
 
     public Decl BlockManglingContextDecl => _blockManglingContextDecl.GetValue(this);
@@ -55,4 +55,16 @@ public sealed partial class BlockDecl : Decl, IDeclContext
     public bool CapturesVariable(VarDecl var) => Handle.CapturesVariable((var is not null) ? var.Handle : CXCursor.Null);
 
     private static unsafe Decl BlockManglingContextDeclFactory(BlockDecl self) => self.TranslationUnit.GetOrCreate<Decl>(self.Handle.BlockManglingContextDecl);
+
+    private static unsafe Capture CapturesFactory(object self, int i)
+    {
+        var @this = (BlockDecl)self;
+        return new Capture(@this, unchecked((uint)i));
+    }
+
+    private static unsafe ParmVarDecl ParametersFactory(object self, int i)
+    {
+        var @this = (BlockDecl)self;
+        return @this.TranslationUnit.GetOrCreate<ParmVarDecl>(@this.Handle.GetArgument(unchecked((uint)i)));
+    }
 }

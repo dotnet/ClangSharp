@@ -17,7 +17,7 @@ public sealed class EnumDecl : TagDecl
 
     internal unsafe EnumDecl(CXCursor handle) : base(handle, CXCursor_EnumDecl, CX_DeclKind_Enum)
     {
-        _enumerators = LazyList.Create<EnumConstantDecl>(Handle.NumEnumerators, (i) => TranslationUnit.GetOrCreate<EnumConstantDecl>(Handle.GetEnumerator(unchecked((uint)i))));
+        _enumerators = LazyList.Create<EnumConstantDecl>(this, Handle.NumEnumerators, &EnumeratorsFactory);
         _instantiatedFromMemberEnum = new ValueLazy<EnumDecl, EnumDecl>(&InstantiatedFromMemberEnumFactory);
         _integerType = new ValueLazy<EnumDecl, Type>(&IntegerTypeFactory);
         _promotionType = new ValueLazy<EnumDecl, Type>(&PromotionTypeFactory);
@@ -55,4 +55,10 @@ public sealed class EnumDecl : TagDecl
     private static unsafe Type IntegerTypeFactory(EnumDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.EnumDecl_IntegerType);
 
     private static unsafe EnumDecl InstantiatedFromMemberEnumFactory(EnumDecl self) => self.TranslationUnit.GetOrCreate<EnumDecl>(self.Handle.InstantiatedFromMember);
+
+    private static unsafe EnumConstantDecl EnumeratorsFactory(object self, int i)
+    {
+        var @this = (EnumDecl)self;
+        return @this.TranslationUnit.GetOrCreate<EnumConstantDecl>(@this.Handle.GetEnumerator(unchecked((uint)i)));
+    }
 }

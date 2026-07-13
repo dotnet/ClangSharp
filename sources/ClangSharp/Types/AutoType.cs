@@ -11,10 +11,16 @@ public sealed class AutoType : DeducedType
 {
     private readonly LazyList<TemplateArgument> _templateArgs;
 
-    internal AutoType(CXType handle) : base(handle, CXType_Auto, CX_TypeClass_Auto)
+    internal unsafe AutoType(CXType handle) : base(handle, CXType_Auto, CX_TypeClass_Auto)
     {
-        _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgument>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
     }
 
     public IReadOnlyList<TemplateArgument> Args => _templateArgs;
+
+    private static unsafe TemplateArgument TemplateArgsFactory(object self, int i)
+    {
+        var @this = (AutoType)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgument(unchecked((uint)i)));
+    }
 }
