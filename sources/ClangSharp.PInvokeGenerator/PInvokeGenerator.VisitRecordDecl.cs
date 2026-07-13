@@ -1128,6 +1128,12 @@ public partial class PInvokeGenerator
             var currentSize = fieldDecl.Type.Handle.SizeOf;
             var bitfieldName = "_bitfield";
 
+            // A `bool` bitfield cannot be shifted or masked directly and needs an integer
+            // backing store. It is emitted using the same unsigned-integer path as the
+            // equivalently-sized integer type, with the public accessor kept as `bool` and
+            // the conversion done at the get/set boundary.
+            var isBooleanBitfield = fieldDecl.Type.CanonicalType.Kind == CXType_Bool;
+
             Type typeBacking;
             string typeNameBacking;
 
@@ -1148,6 +1154,11 @@ public partial class PInvokeGenerator
                 var bitfieldDesc = (index > 0) ? bitfieldDescs[index - 1] : bitfieldDescs[0];
                 typeBacking = bitfieldDesc.TypeBacking;
                 typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
+
+                if (isBooleanBitfield)
+                {
+                    typeNameBacking = "byte";
+                }
 
                 if (parent == recordDecl)
                 {
@@ -1201,6 +1212,11 @@ public partial class PInvokeGenerator
                 var bitfieldDesc = (index > 0) ? bitfieldDescs[index - 1] : bitfieldDescs[0];
                 typeBacking = bitfieldDesc.TypeBacking;
                 typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
+
+                if (isBooleanBitfield)
+                {
+                    typeNameBacking = "byte";
+                }
             }
 
             var bitfieldOffset = (currentSize * 8) - remainingBits;
@@ -1216,6 +1232,7 @@ public partial class PInvokeGenerator
 
             switch (builtinTypeBacking.Kind)
             {
+                case CXType_Bool:
                 case CXType_Char_U:
                 case CXType_UChar:
                 case CXType_UShort:
@@ -1315,6 +1332,7 @@ public partial class PInvokeGenerator
 
             switch (builtinType.Kind)
             {
+                case CXType_Bool:
                 case CXType_Char_U:
                 case CXType_UChar:
                 case CXType_UShort:
@@ -1389,6 +1407,16 @@ public partial class PInvokeGenerator
             var name = GetRemappedCursorName(fieldDecl);
             var escapedName = EscapeName(name);
 
+            // The public accessor keeps the original type (e.g. `bool`) while the shift/mask
+            // arithmetic is done against the integer backing type; the two only differ for a
+            // `bool` bitfield, which is converted at the get/set boundary below.
+            var fieldTypeName = typeName;
+
+            if (isBooleanBitfield)
+            {
+                typeName = typeNameBacking;
+            }
+
             var desc = new FieldDesc {
                 AccessSpecifier = accessSpecifier,
                 NativeTypeName = nativeTypeName,
@@ -1409,7 +1437,7 @@ public partial class PInvokeGenerator
 
             _outputBuilder.WriteDivider();
             _outputBuilder.BeginField(in desc);
-            _outputBuilder.WriteRegularField(typeName, escapedName);
+            _outputBuilder.WriteRegularField(fieldTypeName, escapedName);
             _outputBuilder.BeginBody();
 
             var recordDeclName = GetCursorName(recordDecl);
@@ -1461,7 +1489,7 @@ public partial class PInvokeGenerator
                     code.Write(")(");
                 }
 
-                if (needsCastToFinal)
+                if (needsCastToFinal && !isBooleanBitfield)
                 {
                     code.Write('(');
                     code.BeginMarker("typeName");
@@ -1565,6 +1593,11 @@ public partial class PInvokeGenerator
                     code.Write(')');
                 }
 
+                if (isBooleanBitfield)
+                {
+                    code.Write(" != 0");
+                }
+
                 code.WriteSemicolon();
                 code.WriteNewline();
                 _outputBuilder.EndCSharpCode(code);
@@ -1657,6 +1690,10 @@ public partial class PInvokeGenerator
                     code.Write('(');
                     code.Write(typeNameBacking);
                     code.Write(")(value)");
+                }
+                else if (isBooleanBitfield)
+                {
+                    code.Write("(value ? 1 : 0)");
                 }
                 else
                 {
