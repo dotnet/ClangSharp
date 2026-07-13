@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using ClangSharp.Abstractions;
@@ -19,28 +20,66 @@ internal partial class XmlOutputBuilder(string name, PInvokeGenerator generator)
 
     public bool IsTestOutput { get; }
 
+    private static readonly XmlWriterSettings s_writerSettings = new()
+    {
+        Indent = true,
+        IndentChars = "  ",
+        ConformanceLevel = ConformanceLevel.Fragment,
+        NewLineChars = "\n",
+    };
+
     public IEnumerable<string> Contents
     {
         get
         {
-            StringWriter sw = new();
-            using var writer = XmlWriter.Create(sw, new()
-            {
-                Indent = true,
-                IndentChars = "  ",
-                ConformanceLevel = ConformanceLevel.Fragment,
-                NewLineChars = "\n",
-            });
+            using StringWriter sw = new();
 
-            foreach (var node in XElement.Parse($"<tmp>{_sb}</tmp>").Nodes())
+            using (var writer = XmlWriter.Create(sw, s_writerSettings))
             {
-                node.WriteTo(writer);
+                foreach (var node in XElement.Parse($"<tmp>{_sb}</tmp>").Nodes())
+                {
+                    node.WriteTo(writer);
+                }
             }
 
-            writer.Flush();
             return sw.ToString().Split('\n');
         }
     }
 
-    private static string EscapeText(string value) => new XText(value).ToString();
+    private static string EscapeText(string value)
+    {
+        var sb = new StringBuilder(value.Length);
+
+        foreach (var c in value)
+        {
+            switch (c)
+            {
+                case '<':
+                {
+                    _ = sb.Append("&lt;");
+                    break;
+                }
+
+                case '>':
+                {
+                    _ = sb.Append("&gt;");
+                    break;
+                }
+
+                case '&':
+                {
+                    _ = sb.Append("&amp;");
+                    break;
+                }
+
+                default:
+                {
+                    _ = sb.Append(c);
+                    break;
+                }
+            }
+        }
+
+        return sb.ToString();
+    }
 }
