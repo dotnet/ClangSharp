@@ -1052,6 +1052,14 @@ public partial class PInvokeGenerator
                 }
                 else
                 {
+                    if (IsAnonymousEnum(enumName))
+                    {
+                        // Anonymous enum members are emitted as constants on the enum's
+                        // backing class rather than a generated enum type, so qualify the
+                        // reference with that class instead of the non-existent enum name.
+                        enumName = GetClass(enumName);
+                    }
+
                     outputBuilder.Write(enumName);
                     outputBuilder.Write(".");
                 }
