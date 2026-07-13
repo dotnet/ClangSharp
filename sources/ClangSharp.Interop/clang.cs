@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -168,9 +167,7 @@ public static unsafe partial class @clang
 
         if (resolveLibrary is not null)
         {
-            var resolvers = resolveLibrary.GetInvocationList().Cast<DllImportResolver>();
-
-            foreach (DllImportResolver resolver in resolvers)
+            foreach (DllImportResolver resolver in Delegate.EnumerateInvocationList(resolveLibrary))
             {
                 nativeLibrary = resolver(libraryName, assembly, searchPath);
 
