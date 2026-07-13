@@ -812,6 +812,19 @@ public sealed partial class PInvokeGenerator
             nativeTypeName = string.Empty;
         }
 
+        if (remappedName.IndexOf('[', StringComparison.Ordinal) is int bracketIndex and >= 0 &&
+            (bracketIndex + 1) < remappedName.Length && char.IsAsciiDigit(remappedName[bracketIndex + 1]))
+        {
+            // A type remapped to a fixed-size-buffer shape, such as `sbyte[8]`, is not a
+            // legal C# type in an unmanaged signature. Lower it to the equivalent pointer,
+            // matching how C decays an array to a pointer at the ABI boundary. This also
+            // ensures the containing member is correctly detected as unsafe via the `*`.
+            // A managed array such as `int[]` has an empty subscript and is left untouched.
+
+            var rank = remappedName.AsSpan().Count('[');
+            remappedName = string.Concat(remappedName.AsSpan(0, bracketIndex), new string('*', rank));
+        }
+
         return remappedName;
     }
 }
