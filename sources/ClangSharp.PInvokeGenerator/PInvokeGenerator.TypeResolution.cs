@@ -274,7 +274,7 @@ public sealed partial class PInvokeGenerator
 
                     case CXType_NullPtr:
                     {
-                        result.typeName = "null";
+                        result.typeName = "void*";
                         break;
                     }
 
