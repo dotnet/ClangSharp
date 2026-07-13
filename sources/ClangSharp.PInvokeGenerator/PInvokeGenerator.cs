@@ -2060,14 +2060,11 @@ public sealed partial class PInvokeGenerator : IDisposable
                         }
 
                         var attrText = GetSourceRangeContents(namedDecl.TranslationUnit.Handle, attr.Extent);
+                        var message = GetDeprecatedMessage(attrText);
 
-                        var textStart = attrText.IndexOf('"', StringComparison.Ordinal);
-                        var textLength = attrText.LastIndexOf('"') - textStart;
-
-                        if (textLength > 1)
+                        if (!string.IsNullOrEmpty(message))
                         {
-                            var text = attrText.AsSpan(textStart + 1, textLength - 1);
-                            outputBuilder.WriteCustomAttribute($"Obsolete(\"{text}\")");
+                            outputBuilder.WriteCustomAttribute($"Obsolete(\"{message}\")");
                         }
                         else
                         {
@@ -2107,6 +2104,48 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
             }
         }
+    }
+
+    private static string? GetDeprecatedMessage(string attrText)
+    {
+        // The attribute source looks like `deprecated("message")`, but C allows the message to be
+        // written as adjacent string literals (e.g. `deprecated("part1" "part2")`), which the
+        // compiler concatenates into a single value. Gather the contents of every literal and join
+        // them so the emitted `Obsolete("...")` is a single, valid C# string.
+
+        var builder = new StringBuilder();
+        var hasLiteral = false;
+        var index = 0;
+
+        while (index < attrText.Length)
+        {
+            if (attrText[index] != '"')
+            {
+                index++;
+                continue;
+            }
+
+            hasLiteral = true;
+            index++;
+
+            while ((index < attrText.Length) && (attrText[index] != '"'))
+            {
+                // Preserve escape sequences verbatim so an escaped quote isn't treated as the end
+                // of the literal and the contents are emitted unchanged (as before).
+                if ((attrText[index] == '\\') && ((index + 1) < attrText.Length))
+                {
+                    _ = builder.Append(attrText[index]);
+                    index++;
+                }
+
+                _ = builder.Append(attrText[index]);
+                index++;
+            }
+
+            index++;
+        }
+
+        return hasLiteral ? builder.ToString() : null;
     }
 
     private string GetLibraryPath(string remappedName)
