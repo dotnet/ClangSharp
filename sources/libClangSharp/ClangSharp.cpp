@@ -3632,7 +3632,7 @@ int clangsharp_Cursor_getNumTemplateArguments(CXCursor C) {
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
             const TemplateArgumentList* TAL = FD->getTemplateSpecializationArgs();
-            return TAL && TAL->size();
+            return TAL ? TAL->size() : 0;
         }
 
         if (FunctionTemplateDecl* FTD = const_cast<FunctionTemplateDecl*>(dyn_cast<FunctionTemplateDecl>(D))) {
@@ -4522,9 +4522,9 @@ CX_TemplateArgument clangsharp_Cursor_getTemplateArgument(CXCursor C, unsigned i
             }
         }
 
-        if (const VarTemplatePartialSpecializationDecl* VTPSD = dyn_cast<VarTemplatePartialSpecializationDecl>(D)) {
-            if (i < VTPSD->getTemplateArgs().size()) {
-                const TemplateArgument* TA = &VTPSD->getTemplateArgs()[i];
+        if (const VarTemplateSpecializationDecl* VTSD = dyn_cast<VarTemplateSpecializationDecl>(D)) {
+            if (i < VTSD->getTemplateArgs().size()) {
+                const TemplateArgument* TA = &VTSD->getTemplateArgs()[i];
                 return MakeCXTemplateArgument(TA, getCursorTU(C));
             }
         }

@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using ClangSharp.Interop;
 using NUnit.Framework;
 using static ClangSharp.Interop.CX_CXXAccessSpecifier;
@@ -96,6 +98,50 @@ tuple<int, long> SomeFunction();
         Assert.That(packElements.Count, Is.EqualTo(2));
         Assert.That(packElements[0].AsType.AsString, Is.EqualTo("int"));
         Assert.That(packElements[1].AsType.AsString, Is.EqualTo("long"));
+    }
+
+    [Test]
+    public void FunctionTemplateSpecializationArgsTest()
+    {
+        SkipUntilNativeRebuild();
+
+        var inputContents = $@"template<class T, class U>
+void MyFunction(T t, U u);
+
+template<>
+void MyFunction<int, float>(int t, float u);
+";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var functionDecl = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionDecl>().Single((functionDecl) => functionDecl.TemplateSpecializationArgs.Count != 0);
+
+        Assert.That(functionDecl.TemplateSpecializationArgs.Count, Is.EqualTo(2));
+        Assert.That(functionDecl.TemplateSpecializationArgs[0].AsType.AsString, Is.EqualTo("int"));
+        Assert.That(functionDecl.TemplateSpecializationArgs[1].AsType.AsString, Is.EqualTo("float"));
+    }
+
+    [Test]
+    public void VarTemplateSpecializationArgsTest()
+    {
+        SkipUntilNativeRebuild();
+
+        var inputContents = $@"template<class T, class U>
+constexpr int MyVar = 0;
+
+template<>
+constexpr int MyVar<int, float> = 1;
+";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var varTemplateSpecializationDecl = translationUnit.TranslationUnitDecl.Decls.OfType<VarTemplateSpecializationDecl>().Single();
+
+        Assert.That(varTemplateSpecializationDecl.TemplateArgs.Count, Is.EqualTo(2));
+        Assert.That(varTemplateSpecializationDecl.TemplateArgs[0].IsNull, Is.False);
+        Assert.That(varTemplateSpecializationDecl.TemplateArgs[1].IsNull, Is.False);
+        Assert.That(varTemplateSpecializationDecl.TemplateArgs[0].AsType.AsString, Is.EqualTo("int"));
+        Assert.That(varTemplateSpecializationDecl.TemplateArgs[1].AsType.AsString, Is.EqualTo("float"));
     }
 
     [Test]
@@ -220,5 +266,21 @@ enum E {
             checkField("G", 4294967296, 4294967296, true);
             checkField("H", -1, 18446744073709551615UL, true);
         });
+    }
+
+    // The fix for these lives in the native libClangSharp shim (clangsharp_Cursor_getNumTemplateArguments
+    // and clangsharp_Cursor_getTemplateArgument). The pinned 21.1 prebuilt native package predates it, so
+    // skip until the native lib is rebuilt for a newer libClang. Rebuilding off 21.1 auto-unskips these.
+    private static void SkipUntilNativeRebuild()
+    {
+        using var versionString = clang.getClangVersion();
+        var match = Regex.Match(versionString.ToString(), @"version (\d+)\.(\d+)");
+
+        if (match.Success
+            && (int.Parse(match.Groups[1].ValueSpan, CultureInfo.InvariantCulture) == 21)
+            && (int.Parse(match.Groups[2].ValueSpan, CultureInfo.InvariantCulture) == 1))
+        {
+            Assert.Ignore("Requires a native libClangSharp rebuild that includes the template-argument accessor fix; the pinned 21.1 prebuilt package predates it. Remove this guard once libClang moves off 21.1 and the native lib is rebuilt.");
+        }
     }
 }
