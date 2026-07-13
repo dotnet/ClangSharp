@@ -532,7 +532,7 @@ public partial class PInvokeGenerator
 
                 if (hasVtbl || hasBaseVtbl)
                 {
-                    OutputDelegateSignatures(cxxRecordDecl, cxxRecordDecl);
+                    OutputDelegateSignatures(cxxRecordDecl, cxxRecordDecl, new HashSet<string>(StringComparer.Ordinal));
                 }
             }
 
@@ -565,7 +565,7 @@ public partial class PInvokeGenerator
                     _outputBuilder.EmitFnPtrSupport();
                 }
 
-                OutputVtblHelperMethods(cxxRecordDecl, cxxRecordDecl);
+                OutputVtblHelperMethods(cxxRecordDecl, cxxRecordDecl, new HashSet<string>(StringComparer.Ordinal));
 
                 if (_config.GenerateMarkerInterfaces)
                 {
@@ -587,7 +587,7 @@ public partial class PInvokeGenerator
                     }
 
                     _outputBuilder.BeginExplicitVtbl();
-                    OutputVtblEntries(cxxRecordDecl, cxxRecordDecl);
+                    OutputVtblEntries(cxxRecordDecl, cxxRecordDecl, new HashSet<string>(StringComparer.Ordinal));
                     _outputBuilder.EndExplicitVtbl();
                 }
             }
@@ -618,7 +618,7 @@ public partial class PInvokeGenerator
             return remappedName;
         }
 
-        void OutputDelegateSignatures(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
+        void OutputDelegateSignatures(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, HashSet<string> emittedMemberNames)
         {
             if (!_config.ExcludeFnptrCodegen)
             {
@@ -628,7 +628,7 @@ public partial class PInvokeGenerator
             foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
             {
                 var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
-                OutputDelegateSignatures(rootCxxRecordDecl, baseCxxRecordDecl);
+                OutputDelegateSignatures(rootCxxRecordDecl, baseCxxRecordDecl, emittedMemberNames);
             }
 
             var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -647,9 +647,15 @@ public partial class PInvokeGenerator
                         continue;
                     }
 
+                    var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
+
+                    if (!emittedMemberNames.Add(GetVtblMemberDeduplicationKey(remappedName, cxxMethodDecl)))
+                    {
+                        continue;
+                    }
+
                     _outputBuilder.WriteDivider();
 
-                    var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
                     Debug.Assert(CurrentContext.Cursor == rootCxxRecordDecl);
                     Visit(cxxMethodDecl);
                 }
@@ -772,12 +778,12 @@ public partial class PInvokeGenerator
             }
         }
 
-        void OutputVtblEntries(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
+        void OutputVtblEntries(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, HashSet<string> emittedMemberNames)
         {
             foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
             {
                 var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
-                OutputVtblEntries(rootCxxRecordDecl, baseCxxRecordDecl);
+                OutputVtblEntries(rootCxxRecordDecl, baseCxxRecordDecl, emittedMemberNames);
             }
 
             var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -786,12 +792,12 @@ public partial class PInvokeGenerator
             {
                 foreach (var cxxMethodDecl in cxxMethodDecls.OrderBy((cxxmd) => cxxmd.VtblIndex))
                 {
-                    OutputVtblEntry(rootCxxRecordDecl, cxxMethodDecl);
+                    OutputVtblEntry(rootCxxRecordDecl, cxxMethodDecl, emittedMemberNames);
                 }
             }
         }
 
-        void OutputVtblEntry(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl)
+        void OutputVtblEntry(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, HashSet<string> emittedMemberNames)
         {
             if (!cxxMethodDecl.IsVirtual)
             {
@@ -813,6 +819,11 @@ public partial class PInvokeGenerator
 
             var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
             var escapedName = EscapeAndStripMethodName(remappedName);
+
+            if (!emittedMemberNames.Add(GetVtblMemberDeduplicationKey(escapedName, cxxMethodDecl)))
+            {
+                return;
+            }
 
             var desc = new FieldDesc {
                 AccessSpecifier = AccessSpecifier.Public,
@@ -837,7 +848,7 @@ public partial class PInvokeGenerator
             _outputBuilder.WriteDivider();
         }
 
-        void OutputVtblHelperMethod(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl)
+        void OutputVtblHelperMethod(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, HashSet<string> emittedMemberNames)
         {
             if (!cxxMethodDecl.IsVirtual)
             {
@@ -845,6 +856,11 @@ public partial class PInvokeGenerator
             }
 
             if (IsExcluded(cxxMethodDecl, out var isExcludedByConflictingDefinition))
+            {
+                return;
+            }
+
+            if (!emittedMemberNames.Add(GetVtblMemberDeduplicationKey(EscapeAndStripMethodName(GetRemappedCursorName(cxxMethodDecl)), cxxMethodDecl)))
             {
                 return;
             }
@@ -1092,12 +1108,12 @@ public partial class PInvokeGenerator
             _context.RemoveLast();
         }
 
-        void OutputVtblHelperMethods(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
+        void OutputVtblHelperMethods(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, HashSet<string> emittedMemberNames)
         {
             foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
             {
                 var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
-                OutputVtblHelperMethods(rootCxxRecordDecl, baseCxxRecordDecl);
+                OutputVtblHelperMethods(rootCxxRecordDecl, baseCxxRecordDecl, emittedMemberNames);
             }
 
             var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -1107,7 +1123,7 @@ public partial class PInvokeGenerator
                 foreach (var cxxMethodDecl in cxxMethodDecls.OrderBy((cxxmd) => cxxmd.VtblIndex))
                 {
                     _outputBuilder.WriteDivider();
-                    OutputVtblHelperMethod(rootCxxRecordDecl, cxxMethodDecl);
+                    OutputVtblHelperMethod(rootCxxRecordDecl, cxxMethodDecl, emittedMemberNames);
                 }
             }
         }
@@ -2036,5 +2052,30 @@ public partial class PInvokeGenerator
                 testOutputStarted = true;
             }
         }
+    }
+
+    // Multiple base classes can each contribute a virtual member that maps to the same C# name and
+    // signature (most notably each base's virtual destructor becoming `Dispose`). The single `lpVtbl`
+    // model flattens every base into one vtable, so the same member would otherwise be emitted more
+    // than once, which is a compile error. This builds a key of the emitted name plus the canonical
+    // parameter types so that legitimate overloads remain distinct. See https://github.com/dotnet/ClangSharp/issues/592
+    private static string GetVtblMemberDeduplicationKey(string emittedName, CXXMethodDecl cxxMethodDecl)
+    {
+        var builder = new StringBuilder(emittedName);
+        _ = builder.Append('(');
+
+        var parameters = cxxMethodDecl.Parameters;
+
+        for (var index = 0; index < parameters.Count; index++)
+        {
+            if (index != 0)
+            {
+                _ = builder.Append(',');
+            }
+            _ = builder.Append(parameters[index].Type.CanonicalType.AsString);
+        }
+
+        _ = builder.Append(')');
+        return builder.ToString();
     }
 }
