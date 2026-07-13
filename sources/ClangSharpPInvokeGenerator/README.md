@@ -32,6 +32,7 @@ You can see the full set of available switches by passing `--help`, and the avai
 
 ## More information
 
+* Best practices for driving the generator: https://github.com/dotnet/ClangSharp/blob/main/docs/generating-bindings-best-practices.md
 * Full documentation and the list of options: https://github.com/dotnet/ClangSharp#generating-bindings
 * Source repository: https://github.com/dotnet/ClangSharp
 * Nightly packages: https://pkgs.clangsharp.dev/index.json
