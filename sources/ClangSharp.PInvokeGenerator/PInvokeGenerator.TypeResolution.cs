@@ -705,9 +705,19 @@ public sealed partial class PInvokeGenerator
 
             if (wasRemapped)
             {
-                name = isTemplate && Config.GenerateGenericPointerWrapper
-                     ? $"Pointer<{remappedName}>"
-                     : $"{remappedName}*";
+                if (_config.ExcludeFnptrCodegen && IsType<FunctionType>(cursor, typedefType.Decl.UnderlyingType))
+                {
+                    // In compatible mode the typedef resolves to a managed delegate, so a
+                    // pointer to it is a pointer to a managed type and is invalid. Match the
+                    // non-remapped path and emit IntPtr instead.
+                    name = "IntPtr";
+                }
+                else
+                {
+                    name = isTemplate && Config.GenerateGenericPointerWrapper
+                         ? $"Pointer<{remappedName}>"
+                         : $"{remappedName}*";
+                }
             }
             else
             {
