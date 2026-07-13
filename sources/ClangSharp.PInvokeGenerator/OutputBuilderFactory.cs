@@ -20,10 +20,7 @@ internal sealed class OutputBuilderFactory(PInvokeGenerator generator)
 
     public IOutputBuilder Create(string name)
     {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ValidateName(name);
 
         var outputBuilder = generator.Config.OutputMode switch
         {
@@ -38,10 +35,7 @@ internal sealed class OutputBuilderFactory(PInvokeGenerator generator)
 
     public CSharpOutputBuilder CreateTests(string name)
     {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ValidateName(name);
 
         var outputBuilder = new CSharpOutputBuilder(name, generator, isTestOutput: true, writeSourceLocation: _writeSourceLocation);
 
@@ -49,21 +43,31 @@ internal sealed class OutputBuilderFactory(PInvokeGenerator generator)
         return outputBuilder;
     }
 
-    public IOutputBuilder GetOutputBuilder(string name) => string.IsNullOrWhiteSpace(name) ? throw new ArgumentNullException(nameof(name)) : _outputBuilders[name];
+    public IOutputBuilder GetOutputBuilder(string name)
+    {
+        ValidateName(name);
+        return _outputBuilders[name];
+    }
 
     public CSharpOutputBuilder GetTestOutputBuilder(string name)
     {
-        return string.IsNullOrWhiteSpace(name)
-            ? throw new ArgumentNullException(nameof(name))
-            : _outputBuilders[name] is CSharpOutputBuilder csharpOutputBuilder && csharpOutputBuilder.IsTestOutput
+        ValidateName(name);
+        return _outputBuilders[name] is CSharpOutputBuilder csharpOutputBuilder && csharpOutputBuilder.IsTestOutput
             ? csharpOutputBuilder
             : throw new ArgumentException("A test output builder was not found with the given name", nameof(name));
     }
 
     public bool TryGetOutputBuilder(string name, [MaybeNullWhen(false)] out IOutputBuilder outputBuilder)
     {
-        return string.IsNullOrWhiteSpace(name)
-            ? throw new ArgumentNullException(nameof(name))
-            : _outputBuilders.TryGetValue(name, out outputBuilder);
+        ValidateName(name);
+        return _outputBuilders.TryGetValue(name, out outputBuilder);
+    }
+
+    private static void ValidateName([NotNull] string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
     }
 }
