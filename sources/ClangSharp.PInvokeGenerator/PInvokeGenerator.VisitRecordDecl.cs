@@ -1879,39 +1879,53 @@ public partial class PInvokeGenerator
 
             if (generateCompatibleCode || isUnsafeElementType)
             {
-                _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: generateCompatibleCode && !isUnsafeElementType, needsUnscopedRef: false);
-                _outputBuilder.WriteIndexer($"ref {arrayTypeName}");
-                _outputBuilder.BeginIndexerParameters();
-                var param = new ParameterDesc {
-                    Name = "index",
-                    Type = "int",
-                };
-                _outputBuilder.BeginParameter(in param);
-                _outputBuilder.EndParameter(in param);
-                _outputBuilder.EndIndexerParameters();
-                _outputBuilder.BeginBody();
+                // Always emit the int indexer; when GenerateFixedBufferIndexerOverloads is set, also
+                // emit uint, nint, and nuint overloads so callers can index without casting. Pointer
+                // element access accepts all four types, so the body is identical.
+                var indexTypes = _config.GenerateFixedBufferIndexerOverloads
+                                 ? (ReadOnlySpan<string>)["int", "uint", "nint", "nuint"]
+                                 : (ReadOnlySpan<string>)["int"];
 
-                _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: false);
-                var code = _outputBuilder.BeginCSharpCode();
+                foreach (var indexType in indexTypes)
+                {
+                    _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: generateCompatibleCode && !isUnsafeElementType, needsUnscopedRef: false);
+                    _outputBuilder.WriteIndexer($"ref {arrayTypeName}");
+                    _outputBuilder.BeginIndexerParameters();
+                    var param = new ParameterDesc {
+                        Name = "index",
+                        Type = indexType,
+                    };
+                    _outputBuilder.BeginParameter(in param);
+                    _outputBuilder.EndParameter(in param);
+                    _outputBuilder.EndIndexerParameters();
+                    _outputBuilder.BeginBody();
 
-                code.WriteIndented("fixed (");
-                code.Write(arrayTypeName);
-                code.Write("* pThis = &");
-                code.Write(firstFieldName);
-                code.WriteLine(')');
-                code.WriteBlockStart();
-                code.WriteIndented("return ref pThis[index]");
-                code.WriteSemicolon();
-                code.WriteNewline();
-                code.WriteBlockEnd();
-                _outputBuilder.EndCSharpCode(code);
+                    _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: false);
+                    var code = _outputBuilder.BeginCSharpCode();
 
-                _outputBuilder.EndGetter();
-                _outputBuilder.EndBody();
-                _outputBuilder.EndIndexer();
+                    code.WriteIndented("fixed (");
+                    code.Write(arrayTypeName);
+                    code.Write("* pThis = &");
+                    code.Write(firstFieldName);
+                    code.WriteLine(')');
+                    code.WriteBlockStart();
+                    code.WriteIndented("return ref pThis[index]");
+                    code.WriteSemicolon();
+                    code.WriteNewline();
+                    code.WriteBlockEnd();
+                    _outputBuilder.EndCSharpCode(code);
+
+                    _outputBuilder.EndGetter();
+                    _outputBuilder.EndBody();
+                    _outputBuilder.EndIndexer();
+                }
             }
             else if (totalSizeString is null)
             {
+                // This non-compatible path uses Unsafe.Add/AsSpan()[index], which only accept an int
+                // index, so it only emits the int indexer. Adding uint/nint/nuint overloads here is
+                // deferred -- it needs casts or different helpers -- see #450 which covered the
+                // compatible fixed (T* pThis...) path above.
                 _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: false, needsUnscopedRef: !_config.GenerateCompatibleCode);
                 _outputBuilder.WriteIndexer($"ref {arrayTypeName}");
                 _outputBuilder.BeginIndexerParameters();

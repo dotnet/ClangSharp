@@ -158,6 +158,7 @@ internal static partial class Program
         new TwoColumnHelpRow("generate-disable-runtime-marshalling", "[assembly: DisableRuntimeMarshalling] should be generated."),
         new TwoColumnHelpRow("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
         new TwoColumnHelpRow("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
+        new TwoColumnHelpRow("generate-fixed-buffer-indexer-overloads", "Fixed sized buffer helper types should generate additional uint, nint, and nuint indexer overloads."),
         new TwoColumnHelpRow("generate-guid-member", "Types with an associated GUID should have a corresponding member generated."),
         new TwoColumnHelpRow("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
         new TwoColumnHelpRow("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
