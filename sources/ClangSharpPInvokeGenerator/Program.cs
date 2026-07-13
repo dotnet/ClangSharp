@@ -73,6 +73,8 @@ internal static partial class Program
         var outputLocation = context.ParseResult.GetValueForOption(s_outputLocation) ?? "";
         var outputMode = context.ParseResult.GetValueForOption(s_outputMode);
         var remappedNameValuePairs = context.ParseResult.GetValueForOption(s_remappedNameValuePairs) ?? [];
+        var remappedTypeNameValuePairs = context.ParseResult.GetValueForOption(s_remappedTypeNameValuePairs) ?? [];
+        var remappedFieldNameValuePairs = context.ParseResult.GetValueForOption(s_remappedFieldNameValuePairs) ?? [];
         var std = context.ParseResult.GetValueForOption(s_std) ?? "";
         var testOutputLocation = context.ParseResult.GetValueForOption(s_testOutputLocation) ?? "";
         var traversalNames = context.ParseResult.GetValueForOption(s_traversalNames) ?? [];
@@ -122,6 +124,8 @@ internal static partial class Program
         }
 
         ParseKeyValuePairs(remappedNameValuePairs, errorList, out Dictionary<string, string> remappedNames);
+        ParseKeyValuePairs(remappedTypeNameValuePairs, errorList, out Dictionary<string, string> remappedTypeNames);
+        ParseKeyValuePairs(remappedFieldNameValuePairs, errorList, out Dictionary<string, string> remappedFieldNames);
         ParseKeyValuePairs(withAccessSpecifierNameValuePairs, errorList, out Dictionary<string, AccessSpecifier> withAccessSpecifiers);
         ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
         ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
@@ -549,6 +553,8 @@ internal static partial class Program
             MethodPrefixToStrip = methodPrefixToStrip,
             NativeTypeNamesToStrip = nativeTypeNamesToStrip,
             RemappedNames = remappedNames,
+            RemappedTypeNames = remappedTypeNames,
+            RemappedFieldNames = remappedFieldNames,
             TraversalNames = traversalNames,
             TestOutputLocation = testOutputLocation,
             WithAccessSpecifiers = withAccessSpecifiers,

@@ -38,6 +38,8 @@ public sealed class PInvokeGeneratorConfiguration
     internal readonly HashSet<string> _withSuppressGCTransitions;
 
     internal readonly Dictionary<string, string> _remappedNames;
+    internal readonly Dictionary<string, string> _remappedTypeNames;
+    internal readonly Dictionary<string, string> _remappedFieldNames;
     internal readonly Dictionary<string, AccessSpecifier> _withAccessSpecifiers;
     internal readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
     internal readonly Dictionary<string, string> _withCallConvs;
@@ -93,6 +95,8 @@ public sealed class PInvokeGeneratorConfiguration
         _withSuppressGCTransitions = new HashSet<string>(QualifiedNameComparer.Default);
 
         _remappedNames = new Dictionary<string, string>(QualifiedNameComparer.Default);
+        _remappedTypeNames = new Dictionary<string, string>(QualifiedNameComparer.Default);
+        _remappedFieldNames = new Dictionary<string, string>(QualifiedNameComparer.Default);
         _withAccessSpecifiers = new Dictionary<string, AccessSpecifier>(QualifiedNameComparer.Default);
         _withAttributes = new Dictionary<string, IReadOnlyList<string>>(QualifiedNameComparer.Default);
         _withCallConvs = new Dictionary<string, string>(QualifiedNameComparer.Default);
@@ -362,6 +366,34 @@ public sealed class PInvokeGeneratorConfiguration
     }
 
     public IReadOnlyCollection<string> ForceRemappedNames => _forceRemappedNames;
+
+    [AllowNull]
+    public IReadOnlyDictionary<string, string> RemappedTypeNames
+    {
+        get
+        {
+            return _remappedTypeNames;
+        }
+
+        init
+        {
+            AddRange(_remappedTypeNames, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyDictionary<string, string> RemappedFieldNames
+    {
+        get
+        {
+            return _remappedFieldNames;
+        }
+
+        init
+        {
+            AddRange(_remappedFieldNames, value);
+        }
+    }
 
     [AllowNull]
     public string TestOutputLocation

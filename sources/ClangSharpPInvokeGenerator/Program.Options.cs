@@ -27,6 +27,8 @@ internal static partial class Program
     private static readonly string[] s_outputOptionAliases = ["--output", "-o"];
     private static readonly string[] s_prefixStripOptionAliases = ["--prefixStrip", "-p"];
     private static readonly string[] s_remapOptionAliases = ["--remap", "-r"];
+    private static readonly string[] s_remapTypeOptionAliases = ["--remap-type", "-rt"];
+    private static readonly string[] s_remapFieldOptionAliases = ["--remap-field", "-rf"];
     private static readonly string[] s_stdOptionAliases = ["--std", "-std"];
     private static readonly string[] s_testOutputOptionAliases = ["--test-output", "-to"];
     private static readonly string[] s_traverseOptionAliases = ["--traverse", "-t"];
@@ -66,6 +68,8 @@ internal static partial class Program
     private static readonly Option<string> s_outputLocation = GetOutputOption();
     private static readonly Option<PInvokeGeneratorOutputMode> s_outputMode = GetOutputModeOption();
     private static readonly Option<string[]> s_remappedNameValuePairs = GetRemapOption();
+    private static readonly Option<string[]> s_remappedTypeNameValuePairs = GetRemapTypeOption();
+    private static readonly Option<string[]> s_remappedFieldNameValuePairs = GetRemapFieldOption();
     private static readonly Option<string> s_std = GetStdOption();
     private static readonly Option<string> s_testOutputLocation = GetTestOutputOption();
     private static readonly Option<string[]> s_traversalNames = GetTraverseOption();
@@ -361,6 +365,28 @@ internal static partial class Program
         };
     }
 
+    private static Option<string[]> GetRemapTypeOption()
+    {
+        return new Option<string[]>(
+            aliases: s_remapTypeOptionAliases,
+            description: "A type (record or enum) declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name.",
+            getDefaultValue: Array.Empty<string>
+        ) {
+            AllowMultipleArgumentsPerToken = true
+        };
+    }
+
+    private static Option<string[]> GetRemapFieldOption()
+    {
+        return new Option<string[]>(
+            aliases: s_remapFieldOptionAliases,
+            description: "A field declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name.",
+            getDefaultValue: Array.Empty<string>
+        ) {
+            AllowMultipleArgumentsPerToken = true
+        };
+    }
+
     private static RootCommand GetRootCommand()
     {
         var rootCommand = new RootCommand("ClangSharp P/Invoke Binding Generator")
@@ -383,6 +409,8 @@ internal static partial class Program
             s_methodPrefixToStrip,
             s_nativeTypeNamesToStrip,
             s_remappedNameValuePairs,
+            s_remappedTypeNameValuePairs,
+            s_remappedFieldNameValuePairs,
             s_std,
             s_testOutputLocation,
             s_traversalNames,

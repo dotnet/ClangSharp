@@ -439,6 +439,26 @@ public sealed partial class PInvokeGenerator
     {
         nativeTypeName = GetCursorQualifiedName(namedDecl);
 
+        // A `--remap-type` / `--remap-field` entry takes precedence over the general `--remap` so a
+        // type and a field that share a name (legal in C, but not C#) can be disambiguated. These
+        // are only consulted here, on the decl's own name, so that resolving the *type* referenced
+        // by a field (which reuses the field cursor) doesn't pick up a `--remap-field` entry.
+        var kindSpecificRemappedNames = namedDecl switch {
+            FieldDecl => _config._remappedFieldNames,
+            TypeDecl => _config._remappedTypeNames,
+            _ => null,
+        };
+
+        if ((kindSpecificRemappedNames is not null) && (kindSpecificRemappedNames.Count != 0))
+        {
+            var kindSpecificLookup = kindSpecificRemappedNames.GetAlternateLookup<ReadOnlySpan<char>>();
+
+            if (kindSpecificLookup.TryGetValue(GetCursorName(namedDecl), out var kindSpecificRemappedName))
+            {
+                return AddUsingDirectiveIfNeeded(_outputBuilder, kindSpecificRemappedName, skipUsing);
+            }
+        }
+
         var name = nativeTypeName;
         var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out var wasRemapped, skipUsing);
 
@@ -503,8 +523,79 @@ public sealed partial class PInvokeGenerator
         {
             remappedName = GetRemappedNameForAnonymousRecord(recordDecl);
         }
+        else if ((namedDecl is RecordDecl clashingRecordDecl) && TryDeclashRecordName(clashingRecordDecl, remappedName, out var declashedName))
+        {
+            remappedName = declashedName;
+        }
 
         return remappedName;
+    }
+
+    private string ApplyTagTypeNameOverrides(TagType tagType, string leafName)
+    {
+        // Keep a `--remap-type` override or a de-clashed nested record name (see
+        // GetRemappedCursorName) consistent between the type declaration and any reference to it,
+        // so both resolve to the same C# type.
+
+        if (_config._remappedTypeNames.Count != 0)
+        {
+            var remappedTypeNamesLookup = _config._remappedTypeNames.GetAlternateLookup<ReadOnlySpan<char>>();
+
+            if (remappedTypeNamesLookup.TryGetValue(leafName, out var remappedTypeName))
+            {
+                return remappedTypeName;
+            }
+        }
+
+        if ((tagType.Decl is RecordDecl recordDecl) && TryDeclashRecordName(recordDecl, leafName, out var declashedName))
+        {
+            return declashedName;
+        }
+
+        return leafName;
+    }
+
+    private bool TryDeclashRecordName(RecordDecl recordDecl, string name, out string declashedName)
+    {
+        declashedName = name;
+
+        // A named nested record is legal in C even when a sibling field shares its name, but the
+        // two would map to a nested type and a field of the same name in C#, which is a CS0102
+        // clash. Rename the type using the anonymous-record naming so both the declaration and any
+        // field type references resolve consistently through this method.
+        //
+        // The lexical parent is used (not the semantic one) since C promotes a nested record to the
+        // enclosing scope, yet it is still emitted nested based on where it lexically appears.
+
+        if (recordDecl.LexicalDeclContext is not RecordDecl parentRecordDecl)
+        {
+            return false;
+        }
+
+        var hasClash = false;
+
+        foreach (var fieldDecl in parentRecordDecl.Fields)
+        {
+            if (GetRemappedCursorName(fieldDecl) == name)
+            {
+                hasClash = true;
+                break;
+            }
+        }
+
+        if (!hasClash)
+        {
+            return false;
+        }
+
+        declashedName = $"_{name}{AnonymousTypeKindTag}{(recordDecl.IsUnion ? "Union" : "Struct")}";
+
+        if (_declashedRecordNames.Add(recordDecl))
+        {
+            AddDiagnostic(DiagnosticLevel.Warning, $"Renamed nested type '{name}' to '{declashedName}' to avoid a name clash with a field of the same name in '{GetRemappedCursorName(parentRecordDecl)}'. Use '--remap-type {name}=NewName' or '--remap-field {name}=NewName' to control the naming explicitly.", recordDecl);
+        }
+
+        return true;
     }
 
     private static int GetAnonymousRecordIndex(RecordDecl recordDecl, RecordDecl parentRecordDecl)
@@ -648,22 +739,22 @@ public sealed partial class PInvokeGenerator
 
         wasRemapped = false;
         return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsingIfNotRemapped);
+    }
 
-        string AddUsingDirectiveIfNeeded(IOutputBuilder? outputBuilder, string remappedName, bool skipUsing)
+    private string AddUsingDirectiveIfNeeded(IOutputBuilder? outputBuilder, string remappedName, bool skipUsing)
+    {
+        if (!skipUsing)
         {
-            if (!skipUsing)
+            if (NeedsSystemSupportRegex().IsMatch(remappedName))
             {
-                if (NeedsSystemSupportRegex().IsMatch(remappedName))
-                {
-                    outputBuilder?.EmitSystemSupport();
-                }
-
-                var namespaceName = GetNamespace(remappedName);
-                AddUsingDirective(outputBuilder, namespaceName);
+                outputBuilder?.EmitSystemSupport();
             }
 
-            return remappedName;
+            var namespaceName = GetNamespace(remappedName);
+            AddUsingDirective(outputBuilder, namespaceName);
         }
+
+        return remappedName;
     }
 
     private string GetRemappedTypeName(Cursor? cursor, Cursor? context, Type type, out string nativeTypeName, bool skipUsing = false, bool ignoreTransparentStructsWhereRequired = false, bool isTemplate = false)
