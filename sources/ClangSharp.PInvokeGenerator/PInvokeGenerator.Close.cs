@@ -286,7 +286,10 @@ public partial class PInvokeGenerator
 
             if (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp)
             {
-                sw.WriteLine('}');
+                if (!_config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine('}');
+                }
             }
             else if (_config.OutputMode == PInvokeGeneratorOutputMode.Xml)
             {
@@ -299,7 +302,7 @@ public partial class PInvokeGenerator
                 using var tsw = new StreamWriter(testStream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
                 tsw.NewLine = "\n";
 
-                if (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp)
+                if ((_config.OutputMode == PInvokeGeneratorOutputMode.CSharp) && !_config.GenerateFileScopedNamespaces)
                 {
                     tsw.WriteLine('}');
                 }
