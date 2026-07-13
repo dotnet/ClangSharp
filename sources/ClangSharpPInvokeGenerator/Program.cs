@@ -26,13 +26,16 @@ internal static partial class Program
     private const string WildcardsTitle = "Wildcards:";
     private const string Wildcards = "You can use * as catch-all rule for remapping procedures. For example if you want make all of your generated code internal you can use --with-access-specifier *=Internal.";
 
+    private const string MoreInfoTitle = "More information:";
+    private const string MoreInfo = "See https://github.com/dotnet/ClangSharp/blob/main/docs/generating-bindings-best-practices.md for a guide on structuring a generation project and using these options.";
+
     public static int Main(params string[] args)
     {
         s_parser.Parse(args);
 
         if (s_helpOption.IsPresent)
         {
-            s_parser.WriteHelp(Console.Out, Name, Description, WildcardsTitle, Wildcards);
+            s_parser.WriteHelp(Console.Out, Name, Description, WildcardsTitle, Wildcards, MoreInfoTitle, MoreInfo);
             return 0;
         }
 
@@ -511,7 +514,7 @@ internal static partial class Program
             }
             Console.Error.Write(Environment.NewLine);
 
-            s_parser.WriteHelp(Console.Out, Name, Description, WildcardsTitle, Wildcards);
+            s_parser.WriteHelp(Console.Out, Name, Description, WildcardsTitle, Wildcards, MoreInfoTitle, MoreInfo);
             return -1;
         }
 

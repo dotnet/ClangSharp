@@ -241,7 +241,7 @@ internal sealed class CommandLineParser
         }
     }
 
-    public void WriteHelp(TextWriter writer, string name, string description, string epilogTitle, string epilog)
+    public void WriteHelp(TextWriter writer, string name, string description, string epilogTitle, string epilog, string moreInfoTitle, string moreInfo)
     {
         writer.WriteLine(name);
         writer.WriteLine($"  {description}");
@@ -277,6 +277,9 @@ internal sealed class CommandLineParser
         writer.WriteLine();
         writer.WriteLine(epilogTitle);
         writer.WriteLine(epilog);
+        writer.WriteLine();
+        writer.WriteLine(moreInfoTitle);
+        writer.WriteLine(moreInfo);
     }
 
     public static void WriteOptionHelp(TextWriter writer, CommandLineOption option, IReadOnlyList<HelpRow> rows)
