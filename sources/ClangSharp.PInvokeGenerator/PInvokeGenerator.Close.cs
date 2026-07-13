@@ -1197,7 +1197,7 @@ public partial class PInvokeGenerator
                     {
                         sw.Write("((");
                         sw.Write(type);
-                        sw.WriteLine(")(value ? 1u : 0u);");
+                        sw.WriteLine(")(value ? 1u : 0u));");
                     }
 
                     sw.WriteLine();
