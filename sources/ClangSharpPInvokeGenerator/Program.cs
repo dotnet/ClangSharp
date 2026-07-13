@@ -100,7 +100,7 @@ internal static partial class Program
             context.Console.WriteLine($"{s_rootCommand.Description} version 21.1.8");
             context.Console.WriteLine($"  {clang.getClangVersion()}");
             context.Console.WriteLine($"  {clangsharp.getVersion()}");
-            context.ExitCode = -1;
+            context.ExitCode = 0;
             return;
         }
 
