@@ -39,31 +39,8 @@ public sealed partial class PInvokeGenerator
             nameString = namedDecl.Name.NormalizePath();
             var name = nameString.AsSpan();
 
-            // strip the prefix
-            if (name.StartsWith("enum ", StringComparison.Ordinal))
-            {
-                name = name[5..];
-                nameString = null;
-            }
-            else if (name.StartsWith("struct ", StringComparison.Ordinal))
-            {
-                name = name[7..];
-                nameString = null;
-            }
-            else if (name.StartsWith("union ", StringComparison.Ordinal))
-            {
-                name = name[6..];
-                nameString = null;
-            }
-
-            var anonymousNameStartIndex = name.IndexOf("::(", StringComparison.Ordinal);
-
-            if (anonymousNameStartIndex != -1)
-            {
-                anonymousNameStartIndex += 2;
-                name = name[anonymousNameStartIndex..];
-                nameString = null;
-            }
+            name = StripCursorNameTagPrefix(name, ref nameString);
+            name = StripCursorNameAnonymousQualifier(name, ref nameString);
 
             if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
             {
@@ -71,7 +48,6 @@ public sealed partial class PInvokeGenerator
                 Debug.Assert(parent is not null);
 
                 nameString = GetCursorName(parent);
-                name = nameString;
             }
             else if (namedDecl is CXXDestructorDecl cxxDestructorDecl)
             {
@@ -79,45 +55,10 @@ public sealed partial class PInvokeGenerator
                 Debug.Assert(parent is not null);
 
                 nameString = $"~{GetCursorName(parent)}";
-                name = nameString;
             }
             else if (name.IsWhiteSpace() || name.StartsWith('('))
             {
-#if DEBUG
-                if (name.StartsWith('('))
-                {
-                    Debug.Assert(name.StartsWith("(anonymous enum at ", StringComparison.Ordinal) ||
-                                 name.StartsWith("(anonymous struct at ", StringComparison.Ordinal) ||
-                                 name.StartsWith("(anonymous union at ", StringComparison.Ordinal) ||
-                                 name.StartsWith("(unnamed enum at ", StringComparison.Ordinal) ||
-                                 name.StartsWith("(unnamed struct at ", StringComparison.Ordinal) ||
-                                 name.StartsWith("(unnamed union at ", StringComparison.Ordinal) ||
-                                 name.StartsWith("(unnamed at ", StringComparison.Ordinal));
-                    Debug.Assert(name.EndsWith(')'));
-                }
-#endif
-
-                if (namedDecl is TypeDecl typeDecl)
-                {
-                    nameString = (typeDecl is TagDecl tagDecl) && tagDecl.Handle.IsAnonymous
-                               ? GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling)
-                               : GetTypeName(namedDecl, context: null, type: typeDecl.TypeForDecl, ignoreTransparentStructsWhereRequired: false, isTemplate: false, nativeTypeName: out _);
-                    name = nameString;
-                }
-                else if (namedDecl is ParmVarDecl)
-                {
-                    nameString = "param";
-                    name = nameString;
-                }
-                else if (namedDecl is FieldDecl fieldDecl)
-                {
-                    nameString = GetAnonymousName(fieldDecl, fieldDecl.CursorKindSpelling);
-                    name = nameString;
-                }
-                else
-                {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.DeclKindName}'.", namedDecl);
-                }
+                ResolveAnonymousCursorName(namedDecl, name, ref nameString);
             }
 
             nameString ??= name.ToString();
@@ -126,6 +67,77 @@ public sealed partial class PInvokeGenerator
 
         Debug.Assert(!string.IsNullOrWhiteSpace(nameString));
         return nameString;
+    }
+
+    private static ReadOnlySpan<char> StripCursorNameTagPrefix(ReadOnlySpan<char> name, scoped ref string? nameString)
+    {
+        if (name.StartsWith("enum ", StringComparison.Ordinal))
+        {
+            name = name[5..];
+            nameString = null;
+        }
+        else if (name.StartsWith("struct ", StringComparison.Ordinal))
+        {
+            name = name[7..];
+            nameString = null;
+        }
+        else if (name.StartsWith("union ", StringComparison.Ordinal))
+        {
+            name = name[6..];
+            nameString = null;
+        }
+
+        return name;
+    }
+
+    private static ReadOnlySpan<char> StripCursorNameAnonymousQualifier(ReadOnlySpan<char> name, scoped ref string? nameString)
+    {
+        var anonymousNameStartIndex = name.IndexOf("::(", StringComparison.Ordinal);
+
+        if (anonymousNameStartIndex != -1)
+        {
+            anonymousNameStartIndex += 2;
+            name = name[anonymousNameStartIndex..];
+            nameString = null;
+        }
+
+        return name;
+    }
+
+    private void ResolveAnonymousCursorName(NamedDecl namedDecl, ReadOnlySpan<char> name, ref string? nameString)
+    {
+#if DEBUG
+        if (name.StartsWith('('))
+        {
+            Debug.Assert(name.StartsWith("(anonymous enum at ", StringComparison.Ordinal) ||
+                         name.StartsWith("(anonymous struct at ", StringComparison.Ordinal) ||
+                         name.StartsWith("(anonymous union at ", StringComparison.Ordinal) ||
+                         name.StartsWith("(unnamed enum at ", StringComparison.Ordinal) ||
+                         name.StartsWith("(unnamed struct at ", StringComparison.Ordinal) ||
+                         name.StartsWith("(unnamed union at ", StringComparison.Ordinal) ||
+                         name.StartsWith("(unnamed at ", StringComparison.Ordinal));
+            Debug.Assert(name.EndsWith(')'));
+        }
+#endif
+
+        if (namedDecl is TypeDecl typeDecl)
+        {
+            nameString = (typeDecl is TagDecl tagDecl) && tagDecl.Handle.IsAnonymous
+                       ? GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling)
+                       : GetTypeName(namedDecl, context: null, type: typeDecl.TypeForDecl, ignoreTransparentStructsWhereRequired: false, isTemplate: false, nativeTypeName: out _);
+        }
+        else if (namedDecl is ParmVarDecl)
+        {
+            nameString = "param";
+        }
+        else if (namedDecl is FieldDecl fieldDecl)
+        {
+            nameString = GetAnonymousName(fieldDecl, fieldDecl.CursorKindSpelling);
+        }
+        else
+        {
+            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.DeclKindName}'.", namedDecl);
+        }
     }
 
     private string GetCursorQualifiedName(NamedDecl namedDecl, bool truncateParameters = false)
@@ -707,3 +719,4 @@ public sealed partial class PInvokeGenerator
         return remappedName;
     }
 }
+
