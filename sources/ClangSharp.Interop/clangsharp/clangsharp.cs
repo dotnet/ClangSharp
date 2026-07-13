@@ -931,6 +931,9 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getUsedContext", ExactSpelling = true)]
     public static extern CXCursor Cursor_getUsedContext(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getUsingEnumDeclEnumDecl", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getUsingEnumDeclEnumDecl(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getTypeParamHasExplicitBound", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getTypeParamHasExplicitBound(CXCursor C);

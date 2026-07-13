@@ -21,8 +21,5 @@ public sealed class UsingEnumDecl : BaseUsingDecl, IMergeable<UsingEnumDecl>
 
     public EnumDecl EnumDecl => _enumDecl.GetValue(this);
 
-    // TODO: `Handle.Definition` does not resolve to the referenced `EnumDecl` for a `using enum`
-    // (it surfaces as an empty `CXCursor_OverloadedDeclRef`); correctly resolving it requires a
-    // native libClangSharp shim wrapping `UsingEnumDecl::getEnumDecl()`. See dotnet/clangsharp #633.
-    private static unsafe EnumDecl EnumDeclFactory(UsingEnumDecl self) => self.TranslationUnit.GetOrCreate<EnumDecl>(self.Handle.Definition);
+    private static unsafe EnumDecl EnumDeclFactory(UsingEnumDecl self) => self.TranslationUnit.GetOrCreate<EnumDecl>(self.Handle.UsingEnumDeclEnumDecl);
 }

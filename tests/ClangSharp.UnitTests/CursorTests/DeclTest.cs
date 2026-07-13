@@ -165,10 +165,32 @@ struct S {
 
         Assert.That(usingEnumDecl.Handle.kind, Is.EqualTo(CXCursorKind.CXCursor_EnumDecl));
         Assert.That(usingEnumDecl.Handle.DeclKind, Is.EqualTo(CX_DeclKind.CX_DeclKind_UsingEnum));
+    }
 
-        // NOTE: usingEnumDecl.EnumDecl is not asserted here. Handle.Definition does not resolve to
-        // the referenced EnumDecl in the current native lib; a correct fix needs a native
-        // libClangSharp shim wrapping UsingEnumDecl::getEnumDecl(). See dotnet/clangsharp #633.
+    [Test]
+    public void UsingEnumDeclEnumDeclTest()
+    {
+        // Resolving UsingEnumDecl.EnumDecl relies on the native clangsharp_Cursor_getUsingEnumDeclEnumDecl
+        // shim, which the pinned 21.1 prebuilt package predates; skip until the native lib is rebuilt.
+        SkipUntilNativeRebuild();
+
+        var inputContents = """
+enum class E { A, B };
+
+struct S {
+    using enum E;
+};
+""";
+
+        string[] commandLineArgs = ["-std=c++20", "-Wno-pragma-once-outside-header"];
+        using var translationUnit = CreateTranslationUnit(inputContents, commandLineArgs: commandLineArgs);
+
+        var structDecl = translationUnit.TranslationUnitDecl.Decls.OfType<CXXRecordDecl>().Single((recordDecl) => recordDecl.Name.Equals("S", StringComparison.Ordinal));
+        var usingEnumDecl = structDecl.Decls.OfType<UsingEnumDecl>().Single();
+
+        var enumDecl = usingEnumDecl.EnumDecl;
+        Assert.That(enumDecl, Is.Not.Null);
+        Assert.That(enumDecl.Name, Is.EqualTo("E"));
     }
 
     [Test]
@@ -295,9 +317,10 @@ enum E {
         });
     }
 
-    // The fix for these lives in the native libClangSharp shim (clangsharp_Cursor_getNumTemplateArguments
-    // and clangsharp_Cursor_getTemplateArgument). The pinned 21.1 prebuilt native package predates it, so
-    // skip until the native lib is rebuilt for a newer libClang. Rebuilding off 21.1 auto-unskips these.
+    // Some tests depend on native libClangSharp shims that the pinned 21.1 prebuilt package predates
+    // (e.g. clangsharp_Cursor_getNumTemplateArguments / getTemplateArgument and
+    // clangsharp_Cursor_getUsingEnumDeclEnumDecl). Skip those until the native lib is rebuilt for a
+    // newer libClang. Rebuilding off 21.1 auto-unskips them.
     private static void SkipUntilNativeRebuild()
     {
         using var versionString = clang.getClangVersion();
