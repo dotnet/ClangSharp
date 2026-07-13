@@ -1429,32 +1429,72 @@ public sealed partial class PInvokeGenerator : IDisposable
         var hasVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual && (method.OverriddenMethods.Count == 0));
         hasBaseVtbl = false;
 
-        var indirectVtblCount = 0;
+        if (!hasVtbl)
+        {
+            hasBaseVtbl = GetPrimaryVtblBase(cxxRecordDecl) is not null;
+        }
+
+        return hasVtbl;
+    }
+
+    // The primary base is the first direct base that is polymorphic. In both the Itanium and MSVC ABIs it
+    // shares (and extends) the derived type's vtable pointer, so a vtbl-only primary base is flattened into
+    // the derived type's single `lpVtbl`. A primary base that also carries data fields cannot be flattened
+    // (the derived type would have to inline those fields), so it is emitted as a subobject instead and
+    // this returns null. Every non-primary polymorphic base always occupies its own subobject.
+    private CXXRecordDecl? GetPrimaryVtblBase(CXXRecordDecl cxxRecordDecl)
+    {
+        foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+        {
+            var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+
+            if (HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl)
+            {
+                return HasField(baseCxxRecordDecl) ? null : baseCxxRecordDecl;
+            }
+        }
+
+        return null;
+    }
+
+    // Flattening a vtbl-only primary base inlines its vtable into the derived type's `lpVtbl`. That is only
+    // loss-free when nothing has to be carried alongside it. A base along the flattened primary chain that
+    // itself has a non-primary polymorphic base (nested multiple inheritance) introduces a second vtable
+    // pointer at a distinct offset that would have to be carried onto the derived type as a subobject; that
+    // is not yet modeled, so such records fall back to the legacy run-on `lpVtbl`.
+    private bool VtblFlatteningNeedsCarry(CXXRecordDecl cxxRecordDecl)
+    {
+        for (var primaryVtblBase = GetPrimaryVtblBase(cxxRecordDecl); primaryVtblBase is not null; primaryVtblBase = GetPrimaryVtblBase(primaryVtblBase))
+        {
+            if (HasNonPrimaryVtblBase(primaryVtblBase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool HasNonPrimaryVtblBase(CXXRecordDecl cxxRecordDecl)
+    {
+        var seenVtblBase = false;
 
         foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
         {
             var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
-            if ((HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl) && !HasField(baseCxxRecordDecl))
+            if (HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl)
             {
-                indirectVtblCount++;
+                if (seenVtblBase)
+                {
+                    return true;
+                }
+
+                seenVtblBase = true;
             }
         }
 
-        // Multiple virtual bases require a distinct vtable pointer per base subobject, but the
-        // generated bindings only model a single, flattened `lpVtbl`. This is true even when the
-        // derived type introduces its own virtuals (`hasVtbl`), so the warning must fire regardless.
-        if (indirectVtblCount > 1)
-        {
-            AddDiagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'multiple virtual bases'. Generated bindings may be incomplete.", cxxRecordDecl);
-        }
-
-        if (!hasVtbl)
-        {
-            hasBaseVtbl = indirectVtblCount != 0;
-        }
-
-        return hasVtbl;
+        return false;
     }
 
     private bool NeedsReturnFixup(CXXMethodDecl cxxMethodDecl)
