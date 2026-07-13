@@ -18,6 +18,15 @@
     <None Include="ClangUnsavedFile.h" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- Checked-in baseline files are golden output, not project source. Keep their real .cs/.xml
+       extensions for syntax highlighting and clean diffs, but exclude them from compilation. They are
+       copied next to the test assembly (preserving the area folder structure) so the harness can resolve
+       them at runtime on CI, where deterministic builds remap the source path used for local runs. -->
+  <ItemGroup>
+    <Compile Remove="Baseline\Baselines\**\*.cs" />
+    <None Include="Baseline\Baselines\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\sources\ClangSharp.PInvokeGenerator\ClangSharp.PInvokeGenerator.csproj" />
   </ItemGroup>

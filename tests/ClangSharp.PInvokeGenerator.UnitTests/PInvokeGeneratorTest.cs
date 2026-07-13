@@ -89,6 +89,14 @@ public abstract class PInvokeGeneratorTest
 
     private static async Task ValidateGeneratedBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions configOptions, string[]? excludedNames, IReadOnlyDictionary<string, string>? remappedNames, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes, IReadOnlyDictionary<string, string>? withCallConvs, IReadOnlyDictionary<string, string>? withClasses, IReadOnlyDictionary<string, string>? withLibraryPaths, IReadOnlyDictionary<string, string>? withNamespaces, string[]? withSetLastErrors, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs, IReadOnlyDictionary<string, string>? withTypes, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings, IReadOnlyDictionary<string, string>? withPackings, IEnumerable<Diagnostic>? expectedDiagnostics, string libraryPath, string[]? commandLineArgs, string language, string languageStandard, IReadOnlyDictionary<string, string>? remappedTypeNames = null, IReadOnlyDictionary<string, string>? remappedFieldNames = null)
     {
+        var actualOutputContents = await GenerateBindingsAsync(inputContents, outputMode, configOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard, remappedTypeNames, remappedFieldNames).ConfigureAwait(false);
+        Assert.That(actualOutputContents, Is.EqualTo(expectedOutputContents));
+    }
+
+    // Shared generator core: produces the actual generated bindings text without asserting against an
+    // expected value, so both the inline-string harness and the checked-in baseline harness can reuse it.
+    internal static async Task<string> GenerateBindingsAsync(string inputContents, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions configOptions, string[]? excludedNames, IReadOnlyDictionary<string, string>? remappedNames, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes, IReadOnlyDictionary<string, string>? withCallConvs, IReadOnlyDictionary<string, string>? withClasses, IReadOnlyDictionary<string, string>? withLibraryPaths, IReadOnlyDictionary<string, string>? withNamespaces, string[]? withSetLastErrors, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs, IReadOnlyDictionary<string, string>? withTypes, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings, IReadOnlyDictionary<string, string>? withPackings, IEnumerable<Diagnostic>? expectedDiagnostics, string libraryPath, string[]? commandLineArgs, string language, string languageStandard, IReadOnlyDictionary<string, string>? remappedTypeNames = null, IReadOnlyDictionary<string, string>? remappedFieldNames = null)
+    {
         Assert.That(DefaultInputFileName, Does.Exist);
         commandLineArgs ??= DefaultCppClangCommandLineArgs;
 
@@ -146,6 +154,6 @@ public abstract class PInvokeGeneratorTest
 
         using var streamReader = new StreamReader(outputStream);
         var actualOutputContents = await streamReader.ReadToEndAsync().ConfigureAwait(false);
-        Assert.That(actualOutputContents, Is.EqualTo(expectedOutputContents));
+        return actualOutputContents;
     }
 }
