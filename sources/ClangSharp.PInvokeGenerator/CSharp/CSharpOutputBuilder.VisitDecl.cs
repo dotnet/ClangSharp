@@ -308,6 +308,11 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
             AddNativeTypeNameAttribute(desc.NativeTypeName);
         }
 
+        if (desc.CppAttributes is not null)
+        {
+            AddCppAttributes(desc.CppAttributes);
+        }
+
         if (desc.Location is { } location)
         {
             WriteSourceLocation(location, false);

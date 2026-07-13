@@ -449,6 +449,9 @@ public partial class PInvokeGenerator
         var desc = new FieldDesc {
             AccessSpecifier = accessSpecifier,
             NativeTypeName = nativeTypeName,
+            CppAttributes = _config.GenerateCppAttributes
+                ? fieldDecl.Attrs.Select(x => EscapeString(x.Spelling))
+                : null,
             EscapedName = escapedName,
             ParentName = GetRemappedCursorName(parent),
             Offset = offset,
