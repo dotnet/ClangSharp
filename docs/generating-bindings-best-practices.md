@@ -98,8 +98,8 @@ Two properties make them scale:
   ...
   ```
 
-* **Relative paths resolve from the invoking directory.** Because the driver `Push-Location`s into
-  each target folder before invoking the tool, every relative path (`--file`, `--output`,
+* **Relative paths resolve from the invoking directory.** Because the driver changes into each
+  target folder before invoking the tool, every relative path (`--file`, `--output`,
   `--include-directory`, and the `@`-includes) is written relative to that folder.
 
 For a minimal single-file example, see this repository's own
