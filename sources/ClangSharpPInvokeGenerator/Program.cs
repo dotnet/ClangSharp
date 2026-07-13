@@ -2,17 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.CommandLine;
-using System.CommandLine.Builder;
-using System.CommandLine.Help;
-using System.CommandLine.Invocation;
-using System.CommandLine.IO;
-using System.CommandLine.Parsing;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXDiagnosticSeverity;
 using static ClangSharp.Interop.CXErrorCode;
@@ -22,91 +15,81 @@ namespace ClangSharp;
 
 internal static partial class Program
 {
-    public static IEnumerable<HelpSectionDelegate> GetExtendedHelp(HelpContext context)
+    private const string Name = "ClangSharpPInvokeGenerator";
+    private const string Description = "ClangSharp P/Invoke Binding Generator";
+    private const string Version = "21.1.8";
+
+    private const string WildcardsTitle = "Wildcards:";
+    private const string Wildcards = "You can use * as catch-all rule for remapping procedures. For example if you want make all of your generated code internal you can use --with-access-specifier *=Internal.";
+
+    public static int Main(params string[] args)
     {
-        foreach (var sectionDelegate in HelpBuilder.Default.GetLayout())
+        s_parser.Parse(args);
+
+        if (s_helpOption.IsPresent)
         {
-            yield return sectionDelegate;
+            s_parser.WriteHelp(Console.Out, Name, Description, WildcardsTitle, Wildcards);
+            return 0;
         }
 
-        yield return _ => {
-            Console.WriteLine("Wildcards:");
-            Console.WriteLine("You can use * as catch-all rule for remapping procedures. For example if you want make all of your generated code internal you can use --with-access-specifier *=Internal.");
-        };
-    }
-
-    public static async Task<int> Main(params string[] args)
-    {
-        var parser = new CommandLineBuilder(s_rootCommand)
-            .UseHelp(context => context.HelpBuilder.CustomizeLayout(GetExtendedHelp))
-            .UseEnvironmentVariableDirective()
-            .UseParseDirective()
-            .UseSuggestDirective()
-            .RegisterWithDotnetSuggest()
-            .UseTypoCorrections()
-            .UseParseErrorReporting()
-            .UseExceptionHandler()
-            .CancelOnProcessTermination()
-            .Build();
-        return await parser.InvokeAsync(args).ConfigureAwait(false);
-    }
-
-    public static void Run(InvocationContext context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        var additionalArgs = context.ParseResult.GetValueForOption(s_additionalOption) ?? [];
-        var configSwitches = context.ParseResult.GetValueForOption(s_configOption) ?? [];
-        var defineMacros = context.ParseResult.GetValueForOption(s_defineMacros) ?? [];
-        var excludedNames = context.ParseResult.GetValueForOption(s_excludedNames) ?? [];
-        var files = context.ParseResult.GetValueForOption(s_files) ?? [];
-        var fileDirectory = context.ParseResult.GetValueForOption(s_fileDirectory) ?? "";
-        var headerFile = context.ParseResult.GetValueForOption(s_headerFile) ?? "";
-        var includedNames = context.ParseResult.GetValueForOption(s_includedNames) ?? [];
-        var includeDirectories = context.ParseResult.GetValueForOption(s_includeDirectories) ?? [];
-        var language = context.ParseResult.GetValueForOption(s_language) ?? "";
-        var libraryPath = context.ParseResult.GetValueForOption(s_libraryPath) ?? "";
-        var methodClassName = context.ParseResult.GetValueForOption(s_methodClassName) ?? "";
-        var methodPrefixToStrip = context.ParseResult.GetValueForOption(s_methodPrefixToStrip) ?? "";
-        var nativeTypeNamesToStrip = context.ParseResult.GetValueForOption(s_nativeTypeNamesToStrip) ?? [];
-        var namespaceName = context.ParseResult.GetValueForOption(s_namespaceName) ?? "";
-        var outputLocation = context.ParseResult.GetValueForOption(s_outputLocation) ?? "";
-        var outputMode = context.ParseResult.GetValueForOption(s_outputMode);
-        var remappedNameValuePairs = context.ParseResult.GetValueForOption(s_remappedNameValuePairs) ?? [];
-        var remappedTypeNameValuePairs = context.ParseResult.GetValueForOption(s_remappedTypeNameValuePairs) ?? [];
-        var remappedFieldNameValuePairs = context.ParseResult.GetValueForOption(s_remappedFieldNameValuePairs) ?? [];
-        var std = context.ParseResult.GetValueForOption(s_std) ?? "";
-        var testOutputLocation = context.ParseResult.GetValueForOption(s_testOutputLocation) ?? "";
-        var traversalNames = context.ParseResult.GetValueForOption(s_traversalNames) ?? [];
-        var withAccessSpecifierNameValuePairs = context.ParseResult.GetValueForOption(s_withAccessSpecifierNameValuePairs) ?? [];
-        var withAttributeNameValuePairs = context.ParseResult.GetValueForOption(s_withAttributeNameValuePairs) ?? [];
-        var withCallConvNameValuePairs = context.ParseResult.GetValueForOption(s_withCallConvNameValuePairs) ?? [];
-        var withClassNameValuePairs = context.ParseResult.GetValueForOption(s_withClassNameValuePairs) ?? [];
-        var withGuidNameValuePairs = context.ParseResult.GetValueForOption(s_withGuidNameValuePairs) ?? [];
-        var withLengthNameValuePairs = context.ParseResult.GetValueForOption(s_withLengthNameValuePairs) ?? [];
-        var withLibraryPathNameValuePairs = context.ParseResult.GetValueForOption(s_withLibraryPathNameValuePairs) ?? [];
-        var withManualImports = context.ParseResult.GetValueForOption(s_withManualImports) ?? [];
-        var withNamespaceNameValuePairs = context.ParseResult.GetValueForOption(s_withNamespaceNameValuePairs) ?? [];
-        var withReadonlys = context.ParseResult.GetValueForOption(s_withReadonlys) ?? [];
-        var withSetLastErrors = context.ParseResult.GetValueForOption(s_withSetLastErrors) ?? [];
-        var withSuppressGCTransitions = context.ParseResult.GetValueForOption(s_withSuppressGCTransitions) ?? [];
-        var withTransparentStructNameValuePairs = context.ParseResult.GetValueForOption(s_withTransparentStructNameValuePairs) ?? [];
-        var withTypeNameValuePairs = context.ParseResult.GetValueForOption(s_withTypeNameValuePairs) ?? [];
-        var withUsingNameValuePairs = context.ParseResult.GetValueForOption(s_withUsingNameValuePairs) ?? [];
-        var withPackingNameValuePairs = context.ParseResult.GetValueForOption(s_withPackingNameValuePairs) ?? [];
-
-        var versionResult = context.ParseResult.FindResultFor(s_versionOption);
-
-        if (versionResult is not null)
+        if (s_versionOption.IsPresent)
         {
-            context.Console.WriteLine($"{s_rootCommand.Description} version 21.1.8");
-            context.Console.WriteLine($"  {clang.getClangVersion()}");
-            context.Console.WriteLine($"  {clangsharp.getVersion()}");
-            context.ExitCode = 0;
-            return;
+            Console.WriteLine($"{Description} version {Version}");
+            Console.WriteLine($"  {clang.getClangVersion()}");
+            Console.WriteLine($"  {clangsharp.getVersion()}");
+            return 0;
         }
 
-        var errorList = new List<string>();
+        return Run();
+    }
+
+    public static int Run()
+    {
+        var errorList = new List<string>(s_parser.Errors);
+
+        var additionalArgs = s_additionalOption.GetValues();
+        var configSwitches = s_configOption.GetValues();
+        var defineMacros = s_defineMacros.GetValues();
+        var excludedNames = s_excludedNames.GetValues();
+        var files = s_files.GetValues();
+        var fileDirectory = s_fileDirectory.SingleValue;
+        var headerFile = s_headerFile.SingleValue;
+        var includedNames = s_includedNames.GetValues();
+        var includeDirectories = s_includeDirectories.GetValues();
+        var language = s_language.SingleValue;
+        var libraryPath = s_libraryPath.SingleValue;
+        var methodClassName = s_methodClassName.SingleValue;
+        var methodPrefixToStrip = s_methodPrefixToStrip.SingleValue;
+        var nativeTypeNamesToStrip = s_nativeTypeNamesToStrip.GetValues();
+        var namespaceName = s_namespaceName.SingleValue;
+        var outputLocation = s_outputLocation.SingleValue;
+        var remappedNameValuePairs = s_remappedNameValuePairs.GetValues();
+        var remappedTypeNameValuePairs = s_remappedTypeNameValuePairs.GetValues();
+        var remappedFieldNameValuePairs = s_remappedFieldNameValuePairs.GetValues();
+        var std = s_std.SingleValue;
+        var testOutputLocation = s_testOutputLocation.SingleValue;
+        var traversalNames = s_traversalNames.GetValues();
+        var withAccessSpecifierNameValuePairs = s_withAccessSpecifierNameValuePairs.GetValues();
+        var withAttributeNameValuePairs = s_withAttributeNameValuePairs.GetValues();
+        var withCallConvNameValuePairs = s_withCallConvNameValuePairs.GetValues();
+        var withClassNameValuePairs = s_withClassNameValuePairs.GetValues();
+        var withGuidNameValuePairs = s_withGuidNameValuePairs.GetValues();
+        var withLengthNameValuePairs = s_withLengthNameValuePairs.GetValues();
+        var withLibraryPathNameValuePairs = s_withLibraryPathNameValuePairs.GetValues();
+        var withManualImports = s_withManualImports.GetValues();
+        var withNamespaceNameValuePairs = s_withNamespaceNameValuePairs.GetValues();
+        var withReadonlys = s_withReadonlys.GetValues();
+        var withSetLastErrors = s_withSetLastErrors.GetValues();
+        var withSuppressGCTransitions = s_withSuppressGCTransitions.GetValues();
+        var withTransparentStructNameValuePairs = s_withTransparentStructNameValuePairs.GetValues();
+        var withTypeNameValuePairs = s_withTypeNameValuePairs.GetValues();
+        var withUsingNameValuePairs = s_withUsingNameValuePairs.GetValues();
+        var withPackingNameValuePairs = s_withPackingNameValuePairs.GetValues();
+
+        if (!Enum.TryParse<PInvokeGeneratorOutputMode>(s_outputMode.SingleValue, ignoreCase: true, out var outputMode))
+        {
+            errorList.Add($"Error: Unrecognized output mode: {s_outputMode.SingleValue}. Must be one of CSharp or Xml");
+        }
 
         if (files.Length == 0)
         {
@@ -502,34 +485,24 @@ internal static partial class Program
 
         if (printConfigHelp)
         {
-            var helpBuilder = new CustomHelpBuilder(context.Console, context.LocalizationResources);
-
-            helpBuilder.Write(s_configOption);
-            helpBuilder.WriteLine();
-            helpBuilder.Write(s_configOptions);
-
-            context.ExitCode = -1;
-            return;
+            CommandLineParser.WriteOptionHelp(Console.Out, s_configOption, s_configOptions);
+            return -1;
         }
 
         if (errorList.Count != 0)
         {
-            context.Console.Error.Write($"Error in args for '{files.FirstOrDefault()}'");
-            context.Console.Error.Write(Environment.NewLine);
+            Console.Error.Write($"Error in args for '{files.FirstOrDefault()}'");
+            Console.Error.Write(Environment.NewLine);
 
             foreach (var error in errorList)
             {
-                context.Console.Error.Write(error);
-                context.Console.Error.Write(Environment.NewLine);
+                Console.Error.Write(error);
+                Console.Error.Write(Environment.NewLine);
             }
-            context.Console.Error.Write(Environment.NewLine);
+            Console.Error.Write(Environment.NewLine);
 
-            using var textWriter = context.Console.Out.CreateTextWriter();
-            var customHelpBuilder = new CustomHelpBuilder(context.Console, context.LocalizationResources);
-            customHelpBuilder.Write(s_rootCommand, textWriter);
-
-            context.ExitCode = -1;
-            return;
+            s_parser.WriteHelp(Console.Out, Name, Description, WildcardsTitle, Wildcards);
+            return -1;
         }
 
         var clangCommandLineArgs = string.IsNullOrWhiteSpace(std)
@@ -599,19 +572,19 @@ internal static partial class Program
 
                 if (translationUnitError != CXError_Success)
                 {
-                    context.Console.WriteLine($"Error: Parsing failed for '{filePath}' due to '{translationUnitError}'.");
+                    Console.WriteLine($"Error: Parsing failed for '{filePath}' due to '{translationUnitError}'.");
                     skipProcessing = true;
                 }
                 else if (handle.NumDiagnostics != 0)
                 {
-                    context.Console.WriteLine($"Diagnostics for '{filePath}':");
+                    Console.WriteLine($"Diagnostics for '{filePath}':");
 
                     for (uint i = 0; i < handle.NumDiagnostics; ++i)
                     {
                         using var diagnostic = handle.GetDiagnostic(i);
 
-                        context.Console.Write("    ");
-                        context.Console.WriteLine(diagnostic.Format(CXDiagnostic.DefaultDisplayOptions).ToString());
+                        Console.Write("    ");
+                        Console.WriteLine(diagnostic.Format(CXDiagnostic.DefaultDisplayOptions).ToString());
 
                         skipProcessing |= diagnostic.Severity == CXDiagnostic_Error;
                         skipProcessing |= diagnostic.Severity == CXDiagnostic_Fatal;
@@ -620,8 +593,8 @@ internal static partial class Program
 
                 if (skipProcessing)
                 {
-                    context.Console.WriteLine($"Skipping '{filePath}' due to one or more errors listed above.");
-                    context.Console.WriteLine("");
+                    Console.WriteLine($"Skipping '{filePath}' due to one or more errors listed above.");
+                    Console.WriteLine("");
 
                     exitCode = -1;
                     continue;
@@ -634,12 +607,12 @@ internal static partial class Program
                     using var translationUnit = TranslationUnit.GetOrCreate(handle);
                     Debug.Assert(translationUnit is not null);
 
-                    context.Console.WriteLine($"Processing '{filePath}'");
+                    Console.WriteLine($"Processing '{filePath}'");
                     pinvokeGenerator.GenerateBindings(translationUnit, filePath, clangCommandLineArgs, translationFlags);
                 }
                 catch (Exception e)
                 {
-                    context.Console.WriteLine(e.ToString());
+                    Console.WriteLine(e.ToString());
                 }
 
 #pragma warning restore CA1031 // Do not catch general exception types
@@ -647,12 +620,12 @@ internal static partial class Program
 
             if (pinvokeGenerator.Diagnostics.Count != 0)
             {
-                context.Console.WriteLine($"Diagnostics for binding generation of {pinvokeGenerator.FilePath}:");
+                Console.WriteLine($"Diagnostics for binding generation of {pinvokeGenerator.FilePath}:");
 
                 foreach (var diagnostic in pinvokeGenerator.Diagnostics)
                 {
-                    context.Console.Write("    ");
-                    context.Console.WriteLine(diagnostic.ToString());
+                    Console.Write("    ");
+                    Console.WriteLine(diagnostic.ToString());
 
                     if (diagnostic.Level == DiagnosticLevel.Warning)
                     {
@@ -676,7 +649,7 @@ internal static partial class Program
             }
         }
 
-        context.ExitCode = exitCode;
+        return exitCode;
     }
 
     private static void ParseKeyValuePairs(IEnumerable<string> keyValuePairs, List<string> errorList, out Dictionary<string, string> result)

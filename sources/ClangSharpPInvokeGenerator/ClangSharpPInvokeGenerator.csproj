@@ -8,6 +8,8 @@
     <PublishAot>true</PublishAot>
     <RuntimeIdentifiers>linux-arm64;linux-x64;osx-arm64;win-arm64;win-x64</RuntimeIdentifiers>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- This tool is not localized; CA1303 (pass literal strings via a resource table) is noise here. -->
+    <NoWarn>$(NoWarn);CA1303</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
@@ -21,10 +23,6 @@
     <None Include="Properties/GenerateClangSharp.rsp" />
     <None Include="Properties/GenerateClangSharp-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Properties/launchsettings.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.CommandLine" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
