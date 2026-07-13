@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
+using ClangSharp.UnitTests.Baseline;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
@@ -16,8 +17,10 @@ namespace ClangSharp.UnitTests;
 /// class, rather than in the middle of the generated output.
 /// </summary>
 [Platform("win")]
-public sealed class HelperTypesTest : PInvokeGeneratorTest
+public sealed class HelperTypesTest : StandaloneBaselineTest
 {
+    protected override string Area => "HelperTypes";
+
     [Test]
     public Task HelperTypesEmittedInSharedNamespace()
     {
@@ -28,59 +31,7 @@ public sealed class HelperTypesTest : PInvokeGeneratorTest
 };
 ";
 
-        var expectedOutputContents = @"using System;
-using System.Diagnostics;
-
-namespace ClangSharp.Test
-{
-    public unsafe partial struct SRC_DATA
-    {
-        [NativeTypeName(""const float *"")]
-        public float* data_in;
-
-        [NativeTypeName(""long"")]
-        public int input_frames;
-    }
-
-    /// <summary>Defines the type of a member as it was used in the native signature.</summary>
-    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = false, Inherited = true)]
-    [Conditional(""DEBUG"")]
-    internal sealed partial class NativeTypeNameAttribute : Attribute
-    {
-        private readonly string _name;
-
-        /// <summary>Initializes a new instance of the <see cref=""NativeTypeNameAttribute"" /> class.</summary>
-        /// <param name=""name"">The name of the type that was used in the native signature.</param>
-        public NativeTypeNameAttribute(string name)
-        {
-            _name = name;
-        }
-
-        /// <summary>Gets the name of the type that was used in the native signature.</summary>
-        public string Name => _name;
-    }
-
-    /// <summary>Defines the annotation found in a native declaration.</summary>
-    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
-    [Conditional(""DEBUG"")]
-    internal sealed partial class NativeAnnotationAttribute : Attribute
-    {
-        private readonly string _annotation;
-
-        /// <summary>Initializes a new instance of the <see cref=""NativeAnnotationAttribute"" /> class.</summary>
-        /// <param name=""annotation"">The annotation that was used in the native declaration.</param>
-        public NativeAnnotationAttribute(string annotation)
-        {
-            _annotation = annotation;
-        }
-
-        /// <summary>Gets the annotation that was used in the native declaration.</summary>
-        public string Annotation => _annotation;
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateHelperTypes);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateHelperTypes);
     }
 
     [Test]
@@ -93,58 +44,7 @@ namespace ClangSharp.Test
 };
 ";
 
-        var expectedOutputContents = @"using System;
-using System.Diagnostics;
-
-namespace ClangSharp.Test;
-
-public unsafe partial struct SRC_DATA
-{
-    [NativeTypeName(""const float *"")]
-    public float* data_in;
-
-    [NativeTypeName(""long"")]
-    public int input_frames;
-}
-
-/// <summary>Defines the type of a member as it was used in the native signature.</summary>
-[AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = false, Inherited = true)]
-[Conditional(""DEBUG"")]
-internal sealed partial class NativeTypeNameAttribute : Attribute
-{
-    private readonly string _name;
-
-    /// <summary>Initializes a new instance of the <see cref=""NativeTypeNameAttribute"" /> class.</summary>
-    /// <param name=""name"">The name of the type that was used in the native signature.</param>
-    public NativeTypeNameAttribute(string name)
-    {
-        _name = name;
-    }
-
-    /// <summary>Gets the name of the type that was used in the native signature.</summary>
-    public string Name => _name;
-}
-
-/// <summary>Defines the annotation found in a native declaration.</summary>
-[AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
-[Conditional(""DEBUG"")]
-internal sealed partial class NativeAnnotationAttribute : Attribute
-{
-    private readonly string _annotation;
-
-    /// <summary>Initializes a new instance of the <see cref=""NativeAnnotationAttribute"" /> class.</summary>
-    /// <param name=""annotation"">The annotation that was used in the native declaration.</param>
-    public NativeAnnotationAttribute(string annotation)
-    {
-        _annotation = annotation;
-    }
-
-    /// <summary>Gets the annotation that was used in the native declaration.</summary>
-    public string Annotation => _annotation;
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateHelperTypes | PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateHelperTypes | PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces);
     }
 
     [Test]
@@ -159,66 +59,7 @@ internal sealed partial class NativeAnnotationAttribute : Attribute
 extern ""C"" void MyFunction();
 ";
 
-        var expectedOutputContents = @"using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{
-    public unsafe partial struct SRC_DATA
-    {
-        [NativeTypeName(""const float *"")]
-        public float* data_in;
-
-        [NativeTypeName(""long"")]
-        public int input_frames;
-    }
-
-    public static partial class Methods
-    {
-        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void MyFunction();
-    }
-
-    /// <summary>Defines the type of a member as it was used in the native signature.</summary>
-    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = false, Inherited = true)]
-    [Conditional(""DEBUG"")]
-    internal sealed partial class NativeTypeNameAttribute : Attribute
-    {
-        private readonly string _name;
-
-        /// <summary>Initializes a new instance of the <see cref=""NativeTypeNameAttribute"" /> class.</summary>
-        /// <param name=""name"">The name of the type that was used in the native signature.</param>
-        public NativeTypeNameAttribute(string name)
-        {
-            _name = name;
-        }
-
-        /// <summary>Gets the name of the type that was used in the native signature.</summary>
-        public string Name => _name;
-    }
-
-    /// <summary>Defines the annotation found in a native declaration.</summary>
-    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
-    [Conditional(""DEBUG"")]
-    internal sealed partial class NativeAnnotationAttribute : Attribute
-    {
-        private readonly string _annotation;
-
-        /// <summary>Initializes a new instance of the <see cref=""NativeAnnotationAttribute"" /> class.</summary>
-        /// <param name=""annotation"">The annotation that was used in the native declaration.</param>
-        public NativeAnnotationAttribute(string annotation)
-        {
-            _annotation = annotation;
-        }
-
-        /// <summary>Gets the annotation that was used in the native declaration.</summary>
-        public string Annotation => _annotation;
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateHelperTypes);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateHelperTypes);
     }
 
     [Test]
@@ -233,64 +74,6 @@ namespace ClangSharp.Test
 extern ""C"" void MyFunction();
 ";
 
-        var expectedOutputContents = @"using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test;
-
-public unsafe partial struct SRC_DATA
-{
-    [NativeTypeName(""const float *"")]
-    public float* data_in;
-
-    [NativeTypeName(""long"")]
-    public int input_frames;
-}
-
-public static partial class Methods
-{
-    [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-    public static extern void MyFunction();
-}
-
-/// <summary>Defines the type of a member as it was used in the native signature.</summary>
-[AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = false, Inherited = true)]
-[Conditional(""DEBUG"")]
-internal sealed partial class NativeTypeNameAttribute : Attribute
-{
-    private readonly string _name;
-
-    /// <summary>Initializes a new instance of the <see cref=""NativeTypeNameAttribute"" /> class.</summary>
-    /// <param name=""name"">The name of the type that was used in the native signature.</param>
-    public NativeTypeNameAttribute(string name)
-    {
-        _name = name;
-    }
-
-    /// <summary>Gets the name of the type that was used in the native signature.</summary>
-    public string Name => _name;
-}
-
-/// <summary>Defines the annotation found in a native declaration.</summary>
-[AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
-[Conditional(""DEBUG"")]
-internal sealed partial class NativeAnnotationAttribute : Attribute
-{
-    private readonly string _annotation;
-
-    /// <summary>Initializes a new instance of the <see cref=""NativeAnnotationAttribute"" /> class.</summary>
-    /// <param name=""annotation"">The annotation that was used in the native declaration.</param>
-    public NativeAnnotationAttribute(string annotation)
-    {
-        _annotation = annotation;
-    }
-
-    /// <summary>Gets the annotation that was used in the native declaration.</summary>
-    public string Annotation => _annotation;
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateHelperTypes | PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateHelperTypes | PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces);
     }
 }

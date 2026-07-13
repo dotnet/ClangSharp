@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ClangSharp.UnitTests.Baseline;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
@@ -13,8 +14,10 @@ namespace ClangSharp.UnitTests;
 /// invalid and produces CS8500). Remapping the typedef must not change that: only the delegate name
 /// is renamed while the field stays <c>IntPtr</c> and the containing struct stays non-<c>unsafe</c>.
 /// </summary>
-public sealed class FunctionPointerRemapTest : PInvokeGeneratorTest
+public sealed class FunctionPointerRemapTest : StandaloneBaselineTest
 {
+    protected override string Area => "FunctionPointerRemap";
+
     private const string InputContents = @"typedef void (ApiPFoo)(int);
 struct ApiCallbacks { ApiPFoo* Foo; };
 ";
@@ -25,31 +28,15 @@ struct ApiCallbacks { ApiPFoo* Foo; };
         ["ApiPFoo"] = "PFoo"
     };
 
-    private const string ExpectedOutputContents = @"using System;
-using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void PFoo(int param0);
-
-    public partial struct Callbacks
-    {
-        [NativeTypeName(""ApiPFoo *"")]
-        public IntPtr Foo;
-    }
-}
-";
-
     [Test]
     public Task RemappedFnptrTypedefFieldStaysIntPtrWindows()
     {
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(InputContents, ExpectedOutputContents, remappedNames: RemappedNames, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpCompatibleWindowsBaselineAsync(InputContents, remappedNames: RemappedNames, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
     public Task RemappedFnptrTypedefFieldStaysIntPtrUnix()
     {
-        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(InputContents, ExpectedOutputContents, remappedNames: RemappedNames, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpCompatibleUnixBaselineAsync(InputContents, remappedNames: RemappedNames, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 }

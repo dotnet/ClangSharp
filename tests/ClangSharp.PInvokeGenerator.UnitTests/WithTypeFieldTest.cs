@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ClangSharp.UnitTests.Baseline;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
@@ -13,8 +14,10 @@ namespace ClangSharp.UnitTests;
 /// preserved as a <c>[NativeTypeName]</c> attribute and unrelated fields are left untouched.
 /// </summary>
 [Platform("win")]
-public sealed class WithTypeFieldTest : PInvokeGeneratorTest
+public sealed class WithTypeFieldTest : StandaloneBaselineTest
 {
+    protected override string Area => "WithTypeField";
+
     [Test]
     public Task OverridesFieldType()
     {
@@ -25,23 +28,11 @@ public sealed class WithTypeFieldTest : PInvokeGeneratorTest
 };
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public partial struct Something
-    {
-        [NativeTypeName(""int"")]
-        public SomethingType type;
-
-        public int other;
-    }
-}
-";
-
         var withTypes = new Dictionary<string, string>
         {
             ["Something.type"] = "SomethingType",
         };
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withTypes: withTypes);
     }
 }

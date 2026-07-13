@@ -2,12 +2,15 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ClangSharp.UnitTests.Baseline;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
-public sealed class OptionsTest : PInvokeGeneratorTest
+public sealed class OptionsTest : StandaloneBaselineTest
 {
+    protected override string Area => "Options";
+
     [Test]
     public Task WithUsings()
     {
@@ -19,31 +22,6 @@ namespace NS
 }
 struct StructD {};
 ";
-        var expectedOutputContents = @"using ForStar;
-using ForStructA1;
-using ForStructA2;
-using ForStructBWithDoubleColon;
-using ForStructCWithDot;
-
-namespace ClangSharp.Test
-{
-    public partial struct StructA
-    {
-    }
-
-    public partial struct StructB
-    {
-    }
-
-    public partial struct StructC
-    {
-    }
-
-    public partial struct StructD
-    {
-    }
-}
-";
         var withUsings = new Dictionary<string, IReadOnlyList<string>> {
             ["StructA"] = ["ForStructA1", "ForStructA2"],
             ["*"] = ["ForStar"],
@@ -52,43 +30,19 @@ namespace ClangSharp.Test
             ["DoesNotExist"] = ["ErrorShouldNotBeInOutput"],
         };
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, withUsings: withUsings);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withUsings: withUsings);
     }
 
     [Test]
     public Task WithAttributes()
     {
         var inputContents = @"struct StructA {}; struct StructB {}; struct StructC {}; struct StructD {};";
-        var expectedOutputContents =
-@"namespace ClangSharp.Test
-{
-    [A]
-    public partial struct StructA
-    {
-    }
-
-    [B]
-    public partial struct StructB
-    {
-    }
-
-    [Star]
-    public partial struct StructC
-    {
-    }
-
-    [Star]
-    public partial struct StructD
-    {
-    }
-}
-";
         var withAttributes = new Dictionary<string, IReadOnlyList<string>> {
             ["StructA"] = [@"A"],
             ["StructB"] = [@"B"],
             ["*"] = [@"Star"],
         };
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withAttributes: withAttributes);
     }
 }

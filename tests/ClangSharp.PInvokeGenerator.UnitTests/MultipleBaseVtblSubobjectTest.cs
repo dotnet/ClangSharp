@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
+using ClangSharp.UnitTests.Baseline;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
@@ -16,8 +17,10 @@ namespace ClangSharp.UnitTests;
 /// secondary base's methods through the primary vtable.
 /// </summary>
 [Platform("win")]
-public sealed class MultipleBaseVtblSubobjectTest : PInvokeGeneratorTest
+public sealed class MultipleBaseVtblSubobjectTest : StandaloneBaselineTest
 {
+    protected override string Area => "MultipleBaseVtblSubobject";
+
     private const string InputContents = @"struct Foo
 {
     virtual ~Foo() = default;
@@ -36,109 +39,13 @@ struct Baz : Foo, Bar
     [Test]
     public Task EmitsSecondaryBaseAsSubobject()
     {
-        var expectedOutputContents = @"using System.Runtime.CompilerServices;
-
-namespace ClangSharp.Test
-{
-    public unsafe partial struct Foo
-    {
-        public void** lpVtbl;
-
-        public void Dispose()
-        {
-            ((delegate* unmanaged[Thiscall]<Foo*, void>)(lpVtbl[0]))((Foo*)Unsafe.AsPointer(ref this));
-        }
-    }
-
-    public unsafe partial struct Bar
-    {
-        public void** lpVtbl;
-
-        public void Dispose()
-        {
-            ((delegate* unmanaged[Thiscall]<Bar*, void>)(lpVtbl[0]))((Bar*)Unsafe.AsPointer(ref this));
-        }
-    }
-
-    [NativeTypeName(""struct Baz : Foo, Bar"")]
-    public unsafe partial struct Baz
-    {
-        public void** lpVtbl;
-
-        public Bar Base2;
-
-        public void Dispose()
-        {
-            ((delegate* unmanaged[Thiscall]<Baz*, void>)(lpVtbl[0]))((Baz*)Unsafe.AsPointer(ref this));
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(InputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(InputContents);
     }
 
     [Test]
     public Task EmitsSecondaryBaseAsSubobjectWithExplicitVtbls()
     {
-        var expectedOutputContents = @"using System.Runtime.CompilerServices;
-
-namespace ClangSharp.Test
-{
-    public unsafe partial struct Foo
-    {
-        public Vtbl* lpVtbl;
-
-        public void Dispose()
-        {
-            lpVtbl->Dispose((Foo*)Unsafe.AsPointer(ref this));
-        }
-
-        public partial struct Vtbl
-        {
-            [NativeTypeName(""void () noexcept"")]
-            public delegate* unmanaged[Thiscall]<Foo*, void> Dispose;
-        }
-    }
-
-    public unsafe partial struct Bar
-    {
-        public Vtbl* lpVtbl;
-
-        public void Dispose()
-        {
-            lpVtbl->Dispose((Bar*)Unsafe.AsPointer(ref this));
-        }
-
-        public partial struct Vtbl
-        {
-            [NativeTypeName(""void () noexcept"")]
-            public delegate* unmanaged[Thiscall]<Bar*, void> Dispose;
-        }
-    }
-
-    [NativeTypeName(""struct Baz : Foo, Bar"")]
-    public unsafe partial struct Baz
-    {
-        public Vtbl* lpVtbl;
-
-        public Bar Base2;
-
-        public void Dispose()
-        {
-            lpVtbl->Dispose((Baz*)Unsafe.AsPointer(ref this));
-        }
-
-        public partial struct Vtbl
-        {
-            [NativeTypeName(""void () noexcept"")]
-            public delegate* unmanaged[Thiscall]<Baz*, void> Dispose;
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(InputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(InputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
     }
 
     // The non-unifying case: two bases contribute distinctly named virtual methods and the derived type
@@ -164,140 +71,13 @@ struct Baz : Foo, Bar
     [Test]
     public Task DispatchesNonPrimaryBaseThroughSubobject()
     {
-        var expectedOutputContents = @"using System.Runtime.CompilerServices;
-
-namespace ClangSharp.Test
-{
-    public unsafe partial struct Foo
-    {
-        public void** lpVtbl;
-
-        public void FooMethod()
-        {
-            ((delegate* unmanaged[Thiscall]<Foo*, void>)(lpVtbl[0]))((Foo*)Unsafe.AsPointer(ref this));
-        }
-    }
-
-    public unsafe partial struct Bar
-    {
-        public void** lpVtbl;
-
-        public void BarMethod()
-        {
-            ((delegate* unmanaged[Thiscall]<Bar*, void>)(lpVtbl[0]))((Bar*)Unsafe.AsPointer(ref this));
-        }
-    }
-
-    [NativeTypeName(""struct Baz : Foo, Bar"")]
-    public unsafe partial struct Baz
-    {
-        public void** lpVtbl;
-
-        public Bar Base2;
-
-        public void FooMethod()
-        {
-            ((delegate* unmanaged[Thiscall]<Baz*, void>)(lpVtbl[0]))((Baz*)Unsafe.AsPointer(ref this));
-        }
-
-        public void BazMethod()
-        {
-            ((delegate* unmanaged[Thiscall]<Baz*, void>)(lpVtbl[1]))((Baz*)Unsafe.AsPointer(ref this));
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(NonUnifyingInputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(NonUnifyingInputContents);
     }
 
     [Test]
     public Task InheritsPrimaryBaseMarkerInterfaceOnly()
     {
-        var expectedOutputContents = @"using System.Runtime.CompilerServices;
-
-namespace ClangSharp.Test
-{
-    public unsafe partial struct Foo : Foo.Interface
-    {
-        public Vtbl<Foo>* lpVtbl;
-
-        public void FooMethod()
-        {
-            lpVtbl->FooMethod((Foo*)Unsafe.AsPointer(ref this));
-        }
-
-        public interface Interface
-        {
-            void FooMethod();
-        }
-
-        public partial struct Vtbl<TSelf>
-            where TSelf : unmanaged, Interface
-        {
-            [NativeTypeName(""void ()"")]
-            public delegate* unmanaged[Thiscall]<TSelf*, void> FooMethod;
-        }
-    }
-
-    public unsafe partial struct Bar : Bar.Interface
-    {
-        public Vtbl<Bar>* lpVtbl;
-
-        public void BarMethod()
-        {
-            lpVtbl->BarMethod((Bar*)Unsafe.AsPointer(ref this));
-        }
-
-        public interface Interface
-        {
-            void BarMethod();
-        }
-
-        public partial struct Vtbl<TSelf>
-            where TSelf : unmanaged, Interface
-        {
-            [NativeTypeName(""void ()"")]
-            public delegate* unmanaged[Thiscall]<TSelf*, void> BarMethod;
-        }
-    }
-
-    [NativeTypeName(""struct Baz : Foo, Bar"")]
-    public unsafe partial struct Baz : Baz.Interface
-    {
-        public Vtbl<Baz>* lpVtbl;
-
-        public Bar Base2;
-
-        public void FooMethod()
-        {
-            lpVtbl->FooMethod((Baz*)Unsafe.AsPointer(ref this));
-        }
-
-        public void BazMethod()
-        {
-            lpVtbl->BazMethod((Baz*)Unsafe.AsPointer(ref this));
-        }
-
-        public interface Interface : Foo.Interface
-        {
-            void BazMethod();
-        }
-
-        public partial struct Vtbl<TSelf>
-            where TSelf : unmanaged, Interface
-        {
-            [NativeTypeName(""void ()"")]
-            public delegate* unmanaged[Thiscall]<TSelf*, void> FooMethod;
-
-            [NativeTypeName(""void ()"")]
-            public delegate* unmanaged[Thiscall]<TSelf*, void> BazMethod;
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(NonUnifyingInputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls | PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(NonUnifyingInputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls | PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
     }
 
     // A field-bearing polymorphic primary base cannot be flattened into the derived type's `lpVtbl` (the
@@ -323,43 +103,7 @@ struct Baz : Foo, Bar
     [Test]
     public Task EmitsFieldBearingPrimaryBaseAsSubobject()
     {
-        var expectedOutputContents = @"using System.Runtime.CompilerServices;
-
-namespace ClangSharp.Test
-{
-    public unsafe partial struct Foo
-    {
-        public void** lpVtbl;
-
-        public int x;
-
-        public void A()
-        {
-            ((delegate* unmanaged[Thiscall]<Foo*, void>)(lpVtbl[0]))((Foo*)Unsafe.AsPointer(ref this));
-        }
-    }
-
-    public unsafe partial struct Bar
-    {
-        public void** lpVtbl;
-
-        public void B()
-        {
-            ((delegate* unmanaged[Thiscall]<Bar*, void>)(lpVtbl[0]))((Bar*)Unsafe.AsPointer(ref this));
-        }
-    }
-
-    [NativeTypeName(""struct Baz : Foo, Bar"")]
-    public partial struct Baz
-    {
-        public Foo Base1;
-
-        public Bar Base2;
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(FieldBearingPrimaryInputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(FieldBearingPrimaryInputContents);
     }
 
     // Nested multiple inheritance: `C` derives from two polymorphic bases and `D` derives from `C`.
@@ -392,80 +136,10 @@ struct D : C
     [Test]
     public Task FallsBackToFlattenedVtblForNestedMultipleInheritance()
     {
-        var expectedOutputContents = @"using System.Runtime.CompilerServices;
-
-namespace ClangSharp.Test
-{
-    public unsafe partial struct A
-    {
-        public void** lpVtbl;
-
-        public void a()
-        {
-            ((delegate* unmanaged[Thiscall]<A*, void>)(lpVtbl[0]))((A*)Unsafe.AsPointer(ref this));
-        }
-    }
-
-    public unsafe partial struct B
-    {
-        public void** lpVtbl;
-
-        public void b()
-        {
-            ((delegate* unmanaged[Thiscall]<B*, void>)(lpVtbl[0]))((B*)Unsafe.AsPointer(ref this));
-        }
-    }
-
-    [NativeTypeName(""struct C : A, B"")]
-    public unsafe partial struct C
-    {
-        public void** lpVtbl;
-
-        public B Base2;
-
-        public void a()
-        {
-            ((delegate* unmanaged[Thiscall]<C*, void>)(lpVtbl[0]))((C*)Unsafe.AsPointer(ref this));
-        }
-
-        public void c()
-        {
-            ((delegate* unmanaged[Thiscall]<C*, void>)(lpVtbl[1]))((C*)Unsafe.AsPointer(ref this));
-        }
-    }
-
-    [NativeTypeName(""struct D : C"")]
-    public unsafe partial struct D
-    {
-        public void** lpVtbl;
-
-        public void a()
-        {
-            ((delegate* unmanaged[Thiscall]<D*, void>)(lpVtbl[0]))((D*)Unsafe.AsPointer(ref this));
-        }
-
-        public void b()
-        {
-            ((delegate* unmanaged[Thiscall]<D*, void>)(lpVtbl[0]))((D*)Unsafe.AsPointer(ref this));
-        }
-
-        public void c()
-        {
-            ((delegate* unmanaged[Thiscall]<D*, void>)(lpVtbl[1]))((D*)Unsafe.AsPointer(ref this));
-        }
-
-        public void d()
-        {
-            ((delegate* unmanaged[Thiscall]<D*, void>)(lpVtbl[2]))((D*)Unsafe.AsPointer(ref this));
-        }
-    }
-}
-";
-
         var expectedDiagnostics = new[] {
             new Diagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'nested multiple virtual bases'. Generated bindings for D may be incomplete.", "Line 16, Column 8 in ClangUnsavedFile.h")
         };
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(NestedMultipleInheritanceInputContents, expectedOutputContents, expectedDiagnostics: expectedDiagnostics);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(NestedMultipleInheritanceInputContents, expectedDiagnostics: expectedDiagnostics);
     }
 }

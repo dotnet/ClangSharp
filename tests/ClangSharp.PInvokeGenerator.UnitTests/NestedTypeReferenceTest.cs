@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
+using ClangSharp.UnitTests.Baseline;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
@@ -11,8 +12,10 @@ namespace ClangSharp.UnitTests;
 /// (e.g. <c>A::Inner</c> -&gt; <c>A.Inner</c>) so it resolves in the generated C#.
 /// </summary>
 [Platform("win")]
-public sealed class NestedTypeReferenceTest : PInvokeGeneratorTest
+public sealed class NestedTypeReferenceTest : StandaloneBaselineTest
 {
+    protected override string Area => "NestedTypeReference";
+
     [Test]
     public Task NestedTypeIsQualified()
     {
@@ -30,25 +33,6 @@ struct B
 };
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public partial struct A
-    {
-
-        public partial struct Inner
-        {
-            public int value;
-        }
-    }
-
-    public partial struct B
-    {
-        [NativeTypeName(""A::Inner"")]
-        public A.Inner inner;
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents);
     }
 }

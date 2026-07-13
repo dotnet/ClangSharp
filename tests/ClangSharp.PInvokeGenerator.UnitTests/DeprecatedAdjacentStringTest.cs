@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
+using ClangSharp.UnitTests.Baseline;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
@@ -11,8 +12,10 @@ namespace ClangSharp.UnitTests;
 /// C# string literal, otherwise the emitted <c>[Obsolete(...)]</c> attribute is invalid C#.
 /// </summary>
 [Platform("win")]
-public sealed class DeprecatedAdjacentStringTest : PInvokeGeneratorTest
+public sealed class DeprecatedAdjacentStringTest : StandaloneBaselineTest
 {
+    protected override string Area => "DeprecatedAdjacentString";
+
     [Test]
     public Task AdjacentStringLiteralsAreConcatenated()
     {
@@ -21,20 +24,6 @@ public sealed class DeprecatedAdjacentStringTest : PInvokeGeneratorTest
 void MyFunction();
 ";
 
-        var expectedOutputContents = @"using System;
-using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{
-    public static partial class Methods
-    {
-        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [Obsolete(""Use Bar() or Baz() instead"")]
-        public static extern void MyFunction();
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents);
     }
 }

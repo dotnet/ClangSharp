@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ClangSharp.UnitTests.Baseline;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
@@ -13,8 +14,10 @@ namespace ClangSharp.UnitTests;
 /// (with a warning) and can be controlled explicitly via <c>--remap-type</c> / <c>--remap-field</c>.
 /// </summary>
 [Platform("win")]
-public sealed class UnionFieldTypeNameClashTest : PInvokeGeneratorTest
+public sealed class UnionFieldTypeNameClashTest : StandaloneBaselineTest
 {
+    protected override string Area => "UnionFieldTypeNameClash";
+
     private const string InputContents = @"union GpuCaptureUnion
 {
     struct GpuCaptureParameters
@@ -29,102 +32,30 @@ public sealed class UnionFieldTypeNameClashTest : PInvokeGeneratorTest
     [Test]
     public Task AutoRenamesClashingTypeAndWarns()
     {
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{
-    [StructLayout(LayoutKind.Explicit)]
-    public partial struct GpuCaptureUnion
-    {
-        [FieldOffset(0)]
-        [NativeTypeName(""struct GpuCaptureParameters"")]
-        public _GpuCaptureParameters_e__Struct GpuCaptureParameters;
-
-        [FieldOffset(0)]
-        public int other;
-
-        public partial struct _GpuCaptureParameters_e__Struct
-        {
-            public int a;
-
-            public int b;
-        }
-    }
-}
-";
-
         var expectedDiagnostics = new[] {
             new Diagnostic(DiagnosticLevel.Warning, "Renamed nested type 'GpuCaptureParameters' to '_GpuCaptureParameters_e__Struct' to avoid a name clash with a field of the same name in 'GpuCaptureUnion'. Use '--remap-type GpuCaptureParameters=NewName' or '--remap-field GpuCaptureParameters=NewName' to control the naming explicitly.", "Line 3, Column 12 in ClangUnsavedFile.h")
         };
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(InputContents, expectedOutputContents, expectedDiagnostics: expectedDiagnostics, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(InputContents, expectedDiagnostics: expectedDiagnostics, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
     public Task RemapTypeControlsClashingTypeName()
     {
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{
-    [StructLayout(LayoutKind.Explicit)]
-    public partial struct GpuCaptureUnion
-    {
-        [FieldOffset(0)]
-        [NativeTypeName(""struct GpuCaptureParameters"")]
-        public GpuCaptureParametersData GpuCaptureParameters;
-
-        [FieldOffset(0)]
-        public int other;
-
-        public partial struct GpuCaptureParametersData
-        {
-            public int a;
-
-            public int b;
-        }
-    }
-}
-";
-
         var remappedTypeNames = new Dictionary<string, string> {
             ["GpuCaptureParameters"] = "GpuCaptureParametersData"
         };
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(InputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard, remappedTypeNames: remappedTypeNames);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(InputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard, remappedTypeNames: remappedTypeNames);
     }
 
     [Test]
     public Task RemapFieldControlsClashingFieldName()
     {
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{
-    [StructLayout(LayoutKind.Explicit)]
-    public partial struct GpuCaptureUnion
-    {
-        [FieldOffset(0)]
-        [NativeTypeName(""struct GpuCaptureParameters"")]
-        public GpuCaptureParameters GpuCaptureParametersField;
-
-        [FieldOffset(0)]
-        public int other;
-
-        public partial struct GpuCaptureParameters
-        {
-            public int a;
-
-            public int b;
-        }
-    }
-}
-";
-
         var remappedFieldNames = new Dictionary<string, string> {
             ["GpuCaptureParameters"] = "GpuCaptureParametersField"
         };
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(InputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard, remappedFieldNames: remappedFieldNames);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(InputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard, remappedFieldNames: remappedFieldNames);
     }
 }
