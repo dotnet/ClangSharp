@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyUnion" access="public" unsafe="true" layout="Explicit">
+      <field name="c" access="public" offset="0">
+        <type native="MyBuffer" count="3" fixed="_c_e__FixedBuffer">short</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

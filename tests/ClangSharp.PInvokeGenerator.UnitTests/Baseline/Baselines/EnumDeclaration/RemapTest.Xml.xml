@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <enumeration name="MyEnum1" access="public">
+      <type>int</type>
+      <enumerator name="MyEnum1_Value1" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+      <enumerator name="MyEnum1_Value2" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+      <enumerator name="MyEnum1_Value3" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+    </enumeration>
+    <enumeration name="MyEnum2" access="public">
+      <type>int</type>
+      <enumerator name="MyEnum2_Value1" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+      <enumerator name="MyEnum2_Value2" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+      <enumerator name="MyEnum2_Value3" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+    </enumeration>
+    <enumeration name="MyEnum3" access="public">
+      <type>int</type>
+      <enumerator name="MyEnum3_Value1" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+      <enumerator name="MyEnum3_Value2" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+      <enumerator name="MyEnum3_Value3" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+    </enumeration>
+    <enumeration name="MyEnum4" access="public">
+      <type>int</type>
+      <enumerator name="MyEnum4_Value1" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+      <enumerator name="MyEnum4_Value2" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+      <enumerator name="MyEnum4_Value3" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+    </enumeration>
+  </namespace>
+</bindings>

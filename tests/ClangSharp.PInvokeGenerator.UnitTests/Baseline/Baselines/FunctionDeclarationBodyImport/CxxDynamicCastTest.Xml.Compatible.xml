@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStructA" access="public" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <delegate name="_MyMethod" access="public" convention="ThisCall">
+        <type>void</type>
+        <param name="pThis">
+          <type>MyStructA*</type>
+        </param>
+      </delegate>
+      <function name="MyMethod" access="public" unsafe="true">
+        <type>void</type>
+        <body>
+          <code>fixed (MyStructA* pThis = &amp;this)
+    {
+        Marshal.GetDelegateForFunctionPointer&lt;<delegate>_MyMethod</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+    </struct>
+    <struct name="MyStructB" access="public" native="struct MyStructB : MyStructA" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <delegate name="_MyMethod" access="public" convention="ThisCall">
+        <type>void</type>
+        <param name="pThis">
+          <type>MyStructB*</type>
+        </param>
+      </delegate>
+      <function name="MyMethod" access="public" unsafe="true">
+        <type>void</type>
+        <body>
+          <code>fixed (MyStructB* pThis = &amp;this)
+    {
+        Marshal.GetDelegateForFunctionPointer&lt;<delegate>_MyMethod</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true" unsafe="true">
+        <type>MyStructB*</type>
+        <param name="input">
+          <type>MyStructA*</type>
+        </param>
+        <code>return (MyStructB*)(<value>input</value>);</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

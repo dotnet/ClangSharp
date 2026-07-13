@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public" unsafe="true">
+      <function name="MyVoidStarMethod" access="public" unsafe="true">
+        <type>void*</type>
+        <code>return null;</code>
+      </function>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" lib="ClangSharpPInvokeGenerator" convention="Cdecl" static="true">
+        <type>void</type>
+      </function>
+    </class>
+  </namespace>
+</bindings>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="x" access="public">
+        <type native="int[]" count="1" fixed="_x_e__FixedBuffer">int</type>
+      </field>
+      <struct name="_x_e__FixedBuffer" access="public">
+        <field name="e0" access="public">
+          <type>int</type>
+        </field>
+        <indexer access="public">
+          <type>ref int</type>
+          <param name="index">
+            <type>int</type>
+          </param>
+          <get>
+            <code>return ref Unsafe.Add(ref e0, index);</code>
+          </get>
+        </indexer>
+        <function name="AsSpan" access="public">
+          <type>Span&lt;int&gt;</type>
+          <param name="length">
+            <type>int</type>
+          </param>
+          <code>MemoryMarshal.CreateSpan(ref e0, length);</code>
+        </function>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

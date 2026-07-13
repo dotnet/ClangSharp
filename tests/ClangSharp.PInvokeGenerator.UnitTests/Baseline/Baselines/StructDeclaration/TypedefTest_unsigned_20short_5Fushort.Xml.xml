@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="r" access="public">
+        <type native="MyTypedefAlias">ushort</type>
+      </field>
+      <field name="g" access="public">
+        <type native="MyTypedefAlias">ushort</type>
+      </field>
+      <field name="b" access="public">
+        <type native="MyTypedefAlias">ushort</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

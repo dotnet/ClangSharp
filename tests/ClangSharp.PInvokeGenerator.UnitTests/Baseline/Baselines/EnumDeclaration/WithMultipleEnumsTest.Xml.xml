@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <enumeration name="MyEnum1" access="public">
+      <type>int</type>
+      <enumerator name="MyEnum1_Value0" access="public">
+        <type primitive="False">int</type>
+        <value>
+          <code>10</code>
+        </value>
+      </enumerator>
+    </enumeration>
+    <enumeration name="MyEnum2" access="public">
+      <type>int</type>
+      <enumerator name="MyEnum2_Value0" access="public">
+        <type primitive="False">int</type>
+        <value>
+          <code>MyEnum1_Value0</code>
+        </value>
+      </enumerator>
+      <enumerator name="MyEnum2_Value1" access="public">
+        <type primitive="False">int</type>
+        <value>
+          <code>MyEnum1_Value0 + (int)(MyEnum1)(<value>10</value>)</code>
+        </value>
+      </enumerator>
+    </enumeration>
+  </namespace>
+</bindings>

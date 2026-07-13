@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <delegate name="Callback" access="public" convention="Cdecl" static="true">
+      <type>void</type>
+    </delegate>
+    <struct name="MyStruct" access="public">
+      <field name="_callback" access="public">
+        <type native="Callback">IntPtr</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

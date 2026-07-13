@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="value" access="public">
+        <type>int</type>
+      </field>
+      <function name="MyFunction" access="public">
+        <type>int</type>
+        <code>return value;</code>
+      </function>
+    </struct>
+  </namespace>
+</bindings>

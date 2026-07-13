@@ -33,7 +33,7 @@ public abstract class BaselineTest : PInvokeGeneratorTest
             var data = new TestFixtureData(variant);
             _ = data.SetArgDisplayNames(variant.ToString());
 
-            if (!variant.MatchesHost)
+            if (!variant.MatchesHost && !BaselineHarness.RunAllVariants)
             {
                 _ = data.Ignore($"{variant.Os} variant only runs on matching hosts");
             }
@@ -50,7 +50,8 @@ public abstract class BaselineTest : PInvokeGeneratorTest
 
     private async Task ValidateCoreAsync(string caseName, string inputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions, string[]? excludedNames, IReadOnlyDictionary<string, string>? remappedNames, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes, IReadOnlyDictionary<string, string>? withCallConvs, IReadOnlyDictionary<string, string>? withClasses, IReadOnlyDictionary<string, string>? withLibraryPaths, IReadOnlyDictionary<string, string>? withNamespaces, string[]? withSetLastErrors, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs, IReadOnlyDictionary<string, string>? withTypes, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings, IReadOnlyDictionary<string, string>? withPackings, IEnumerable<Diagnostic>? expectedDiagnostics, string libraryPath, string[]? commandLineArgs, string language, string languageStandard, IReadOnlyDictionary<string, string>? remappedTypeNames, IReadOnlyDictionary<string, string>? remappedFieldNames)
     {
-        var actual = await GenerateBindingsAsync(inputContents, _variant.Mode, _variant.ConfigOptions | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard, remappedTypeNames, remappedFieldNames).ConfigureAwait(false);
+        var effectiveCommandLineArgs = BaselineHarness.WithUnixTarget(commandLineArgs, DefaultCppClangCommandLineArgs, _variant.Os);
+        var actual = await GenerateBindingsAsync(inputContents, _variant.Mode, _variant.ConfigOptions | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, effectiveCommandLineArgs, language, languageStandard, remappedTypeNames, remappedFieldNames).ConfigureAwait(false);
         await BaselineAssertions.AssertOrUpdateAsync(Area, caseName, _variant, actual).ConfigureAwait(false);
     }
 }

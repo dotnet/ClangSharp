@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <constant name="MyMacro1" access="public">
+        <type primitive="True">int</type>
+        <value>
+          <code>0</code>
+        </value>
+      </constant>
+      <constant name="MyMacro2" access="public">
+        <type primitive="True">int</type>
+        <value>
+          <code>0</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
