@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXDiagnosticSeverity;
@@ -17,7 +18,10 @@ internal static partial class Program
 {
     private const string Name = "ClangSharpPInvokeGenerator";
     private const string Description = "ClangSharp P/Invoke Binding Generator";
-    private const string Version = "21.1.8";
+
+    // The clang release the tool targets, tracked via the assembly version (major.minor.build)
+    // so it stays in sync with VersionPrefix and matches the clang/clangsharp lines below it.
+    private static readonly string Version = GetVersion();
 
     private const string WildcardsTitle = "Wildcards:";
     private const string Wildcards = "You can use * as catch-all rule for remapping procedures. For example if you want make all of your generated code internal you can use --with-access-specifier *=Internal.";
@@ -41,6 +45,12 @@ internal static partial class Program
         }
 
         return Run();
+    }
+
+    private static string GetVersion()
+    {
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        return (version is not null) ? $"{version.Major}.{version.Minor}.{version.Build}" : "";
     }
 
     public static int Run()
