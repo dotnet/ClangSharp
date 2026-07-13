@@ -395,4 +395,14 @@ namespace ClangSharp.Test
 
         return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
     }
+
+    protected override Task UndefinedFunctionLikeMacroTestImpl()
+    {
+        var inputContents = @"#define ADDRESS_IN_USE TESTRESULT_FROM_WIN32(10048)";
+
+        var expectedOutputContents = "";
+        var diagnostics = new Diagnostic[] { new Diagnostic(DiagnosticLevel.Warning, "Macro definition 'ADDRESS_IN_USE' could not be resolved to a supported expression. Generated bindings may be incomplete.", "Line 2, Column 12 in ClangUnsavedFile.h") };
+
+        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
+    }
 }

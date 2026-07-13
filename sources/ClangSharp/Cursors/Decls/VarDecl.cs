@@ -59,7 +59,7 @@ public class VarDecl : DeclaratorDecl, IRedeclarable<VarDecl>
 
     private static unsafe VarDecl InstantiatedFromStaticDataMemberFactory(VarDecl self) => self.TranslationUnit.GetOrCreate<VarDecl>(self.Handle.InstantiatedFromMember);
 
-    private static unsafe Expr InitFactory(VarDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.InitExpr);
+    private static unsafe Expr InitFactory(VarDecl self) => (self.TranslationUnit.GetOrCreate<Stmt>(self.Handle.InitExpr) as Expr)!;
 
     private static unsafe VarDecl DefinitionFactory(VarDecl self) => self.TranslationUnit.GetOrCreate<VarDecl>(self.Handle.Definition);
 }

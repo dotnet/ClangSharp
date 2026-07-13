@@ -43,9 +43,16 @@ public partial class PInvokeGenerator
             var nativeName = GetCursorName(varDecl);
             if (nativeName.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
             {
-                type = varDecl.Init.Type;
                 nativeName = nativeName["ClangSharpMacro_".Length..];
                 isMacroDefinitionRecord = true;
+
+                if (varDecl.Init is null)
+                {
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Macro definition '{nativeName}' could not be resolved to a supported expression. Generated bindings may be incomplete.", varDecl);
+                    return;
+                }
+
+                type = varDecl.Init.Type;
             }
 
             var accessSpecifier = GetAccessSpecifier(varDecl, matchStar: false);
@@ -61,8 +68,9 @@ public partial class PInvokeGenerator
                         return;
                     }
                 }
-                else if (IsStmtAsWritten<RecoveryExpr>(varDecl.Init, out var recoveryExpr, removeParens: true))
+                else if (IsStmtAsWritten<RecoveryExpr>(varDecl.Init, out _, removeParens: true))
                 {
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Macro definition '{nativeName}' could not be resolved to a supported expression. Generated bindings may be incomplete.", varDecl);
                     return;
                 }
             }
