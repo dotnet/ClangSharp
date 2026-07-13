@@ -90,4 +90,6 @@ public enum PInvokeGeneratorConfigurationOptions : long
     StripEnumMemberTypeName = 1L << 39,
 
     DontUseUsingStaticsForGuidMember = 1L << 40,
+
+    GenerateFixedBufferIndexerOverloads = 1L << 41,
 }
