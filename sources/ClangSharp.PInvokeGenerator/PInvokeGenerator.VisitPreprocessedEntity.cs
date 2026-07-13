@@ -24,6 +24,12 @@ public partial class PInvokeGenerator
         var translationUnitHandle = macroDefinitionRecord.TranslationUnit.Handle;
         var tokens = translationUnitHandle.Tokenize(macroDefinitionRecord.Extent).ToArray();
 
+        if (tokens.Length == 0)
+        {
+            // Nothing to do for macro definitions with no tokens (e.g. command-line or builtin macros)
+            return;
+        }
+
         if ((tokens[0].Kind == CXToken_Identifier) && (tokens[0].GetSpelling(translationUnitHandle).CString == macroDefinitionRecord.Spelling))
         {
             if (tokens.Length == 1)
