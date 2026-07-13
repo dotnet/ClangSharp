@@ -35,6 +35,12 @@ public sealed partial class PInvokeGenerator : IDisposable
 {
     private const int DefaultStreamWriterBufferSize = 1024;
 
+    private const string AnonymousNamePrefix = "__Anonymous";
+    private const string AnonymousBasePrefix = $"{AnonymousNamePrefix}Base_";
+    private const string AnonymousEnumPrefix = $"{AnonymousNamePrefix}Enum_";
+    private const string AnonymousFieldDeclPrefix = $"{AnonymousNamePrefix}FieldDecl_";
+    private const string AnonymousRecordPrefix = $"{AnonymousNamePrefix}Record_";
+
     private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
     private static readonly string[] s_doubleColonSeparator = ["::"];
     private static readonly char[] s_doubleQuoteSeparator = ['"'];
@@ -1076,8 +1082,12 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         cursor.Location.GetFileLocation(out var file, out var line, out var column, out _);
         var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
-        return $"__Anonymous{kind}_{fileName}_L{line}_C{column}";
+        return $"{AnonymousNamePrefix}{kind}_{fileName}_L{line}_C{column}";
     }
+
+    private static bool IsAnonymousEnum(string name) => name.StartsWith(AnonymousEnumPrefix, StringComparison.Ordinal);
+
+    private static bool IsAnonymousRecord(string name) => name.StartsWith(AnonymousRecordPrefix, StringComparison.Ordinal);
 
     private string GetArtificialFixedSizedBufferName(FieldDecl fieldDecl)
     {

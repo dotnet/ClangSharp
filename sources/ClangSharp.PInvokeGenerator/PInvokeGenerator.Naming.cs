@@ -456,7 +456,7 @@ public sealed partial class PInvokeGenerator
         {
             remappedName = "Dispose";
         }
-        else if ((namedDecl is FieldDecl fieldDecl) && name.StartsWith("__AnonymousFieldDecl_", StringComparison.Ordinal))
+        else if ((namedDecl is FieldDecl fieldDecl) && name.StartsWith(AnonymousFieldDeclPrefix, StringComparison.Ordinal))
         {
             if (fieldDecl.Type.AsCXXRecordDecl?.IsAnonymousStructOrUnion == true)
             {
@@ -482,7 +482,7 @@ public sealed partial class PInvokeGenerator
                 }
             }
         }
-        else if ((namedDecl is RecordDecl recordDecl) && name.StartsWith("__AnonymousRecord_", StringComparison.Ordinal))
+        else if ((namedDecl is RecordDecl recordDecl) && IsAnonymousRecord(name))
         {
             remappedName = GetRemappedNameForAnonymousRecord(recordDecl);
         }
@@ -614,7 +614,7 @@ public sealed partial class PInvokeGenerator
             return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
         }
 
-        if ((cursor is CXXBaseSpecifier cxxBaseSpecifier) && remappedName.StartsWith("__AnonymousBase_", StringComparison.Ordinal))
+        if ((cursor is CXXBaseSpecifier cxxBaseSpecifier) && remappedName.StartsWith(AnonymousBasePrefix, StringComparison.Ordinal))
         {
             Debug.Assert(_cxxRecordDeclContext is not null);
             remappedName = "Base";
@@ -668,12 +668,12 @@ public sealed partial class PInvokeGenerator
                     type = arrayType.ElementType;
                 }
 
-                if (IsType<RecordType>(cursor, type, out var recordType) && remappedName.StartsWith("__AnonymousRecord_", StringComparison.Ordinal))
+                if (IsType<RecordType>(cursor, type, out var recordType) && IsAnonymousRecord(remappedName))
                 {
                     var recordDecl = recordType.Decl;
                     remappedName = GetRemappedNameForAnonymousRecord(recordDecl);
                 }
-                else if (IsType<EnumType>(cursor, type, out var enumType) && remappedName.StartsWith("__AnonymousEnum_", StringComparison.Ordinal))
+                else if (IsType<EnumType>(cursor, type, out var enumType) && IsAnonymousEnum(remappedName))
                 {
                     remappedName = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _, skipUsing);
                 }

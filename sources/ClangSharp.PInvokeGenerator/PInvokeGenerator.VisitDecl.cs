@@ -296,7 +296,7 @@ public partial class PInvokeGenerator
         {
             parentName = GetRemappedCursorName(enumDecl);
 
-            if (parentName.StartsWith("__AnonymousEnum_", StringComparison.Ordinal))
+            if (IsAnonymousEnum(parentName))
             {
                 parentName = "";
                 isAnonymousEnum = true;
@@ -365,7 +365,7 @@ public partial class PInvokeGenerator
         var escapedName = EscapeName(name);
         var isAnonymousEnum = false;
 
-        if (name.StartsWith("__AnonymousEnum_", StringComparison.Ordinal))
+        if (IsAnonymousEnum(name))
         {
             isAnonymousEnum = true;
 

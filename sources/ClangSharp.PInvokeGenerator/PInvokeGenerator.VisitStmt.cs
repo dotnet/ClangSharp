@@ -1026,7 +1026,7 @@ public partial class PInvokeGenerator
 
                 if (!_config.DontUseUsingStaticsForEnums)
                 {
-                    if (enumName.StartsWith("__AnonymousEnum_", StringComparison.Ordinal))
+                    if (IsAnonymousEnum(enumName))
                     {
                         var className = GetClass(enumName);
 
