@@ -27,6 +27,7 @@ Source browsing is available via: https://source.clangsharp.dev/
 * [Building Managed](#building-managed)
 * [Building Native](#building-native)
 * [Generating Bindings](#generating-bindings)
+  * [Best practices](docs/generating-bindings-best-practices.md)
 * [Using locally built versions](#using-locally-built-versions)
 * [Spotlight](#spotlight)
 
@@ -139,6 +140,8 @@ ClangSharpPInvokeGenerator @generate.rsp
 
 A response file allows you to specify and checkin the command line arguments in a text file, with one argument per line. For example: https://github.com/dotnet/ClangSharp/blob/main/sources/ClangSharpPInvokeGenerator/Properties/GenerateClang.rsp
 At a minimum, the command line expects one or more input files (`-f`), an output namespace (`-n`), and an output location (`-o`). A typical response file may also specify explicit files to traverse, configuration options, name remappings, and other fixups.
+
+For an opinionated walkthrough of how to structure a real generation project — response-file composition, the key options and when to use them, incremental regeneration, and common pitfalls — see [Generating bindings: best practices](docs/generating-bindings-best-practices.md).
 
 The full set of available switches:
 ```
