@@ -388,6 +388,20 @@ public sealed partial class PInvokeGenerator
                 {
                     result.typeName = result.typeName.Split(s_doubleColonSeparator, StringSplitOptions.RemoveEmptyEntries).Last();
                     result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _, skipUsing: true);
+
+                    // A nested type needs to be qualified by its containing type(s) so it resolves
+                    // when referenced from another scope (e.g. `A::Inner` -> `A.Inner`). Namespaces
+                    // are flattened away, so only walk the enclosing record decls.
+
+                    var qualificationBuilder = new StringBuilder();
+
+                    for (var declContext = tagType.Decl.DeclContext; declContext is RecordDecl parentRecordDecl; declContext = parentRecordDecl.DeclContext)
+                    {
+                        var parentRecordDeclName = GetRemappedCursorName(parentRecordDecl, out _, skipUsing: true);
+                        _ = qualificationBuilder.Insert(0, '.').Insert(0, EscapeName(parentRecordDeclName));
+                    }
+
+                    result.typeName = qualificationBuilder.Append(result.typeName).ToString();
                 }
             }
             else if (type is TemplateSpecializationType templateSpecializationType)
