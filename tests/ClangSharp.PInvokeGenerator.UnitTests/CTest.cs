@@ -1214,4 +1214,29 @@ typedef long int intptr_t;
             return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
         }
     }
+
+    [Test]
+    public Task VoidPointerArithmeticTest()
+    {
+        // C/C++ allow pointer arithmetic on `void*` (treating it as byte-sized), but C# does not,
+        // so the generator must insert an explicit `(byte*)` cast on the `void*` operand.
+        var inputContents = @"void* MyFunction(void *buf, unsigned long long size) {
+    return buf + size;
+}
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static unsafe partial class Methods
+    {
+        public static void* MyFunction(void* buf, [NativeTypeName(""unsigned long long"")] ulong size)
+        {
+            return (byte*)buf + size;
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
 }
