@@ -249,7 +249,12 @@ public sealed partial class PInvokeGenerator
             {
                 case CXTemplateArgumentKind_Type:
                 {
-                    _ = qualifiedName.Append(templateArgument.AsType.AsString);
+                    // AsType is null when the argument's type maps to an invalid CXType
+                    // (an unsupported type the shim can't represent). Fall back to the
+                    // same '?' placeholder used for other unsupported argument kinds
+                    // rather than dereferencing null.
+                    var argType = templateArgument.AsType;
+                    _ = qualifiedName.Append((argType is not null) ? argType.AsString : "?");
                     break;
                 }
 
