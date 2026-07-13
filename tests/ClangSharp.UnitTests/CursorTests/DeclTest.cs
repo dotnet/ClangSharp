@@ -145,6 +145,33 @@ constexpr int MyVar<int, float> = 1;
     }
 
     [Test]
+    public void UsingEnumDeclTest()
+    {
+        // `using enum` requires C++20 and previously threw because UsingEnumDecl passed the wrong
+        // expectedCursorKind to the base Cursor ctor (libClang surfaces it as CXCursor_EnumDecl).
+        var inputContents = """
+enum class E { A, B };
+
+struct S {
+    using enum E;
+};
+""";
+
+        string[] commandLineArgs = ["-std=c++20", "-Wno-pragma-once-outside-header"];
+        using var translationUnit = CreateTranslationUnit(inputContents, commandLineArgs: commandLineArgs);
+
+        var structDecl = translationUnit.TranslationUnitDecl.Decls.OfType<CXXRecordDecl>().Single((recordDecl) => recordDecl.Name.Equals("S", StringComparison.Ordinal));
+        var usingEnumDecl = structDecl.Decls.OfType<UsingEnumDecl>().Single();
+
+        Assert.That(usingEnumDecl.Handle.kind, Is.EqualTo(CXCursorKind.CXCursor_EnumDecl));
+        Assert.That(usingEnumDecl.Handle.DeclKind, Is.EqualTo(CX_DeclKind.CX_DeclKind_UsingEnum));
+
+        // NOTE: usingEnumDecl.EnumDecl is not asserted here. Handle.Definition does not resolve to
+        // the referenced EnumDecl in the current native lib; a correct fix needs a native
+        // libClangSharp shim wrapping UsingEnumDecl::getEnumDecl(). See dotnet/clangsharp #633.
+    }
+
+    [Test]
     public void IsPodTest()
     {
         var inputContents = $$"""
