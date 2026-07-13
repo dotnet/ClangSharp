@@ -40,6 +40,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private const string AnonymousEnumPrefix = $"{AnonymousNamePrefix}Enum_";
     private const string AnonymousFieldDeclPrefix = $"{AnonymousNamePrefix}FieldDecl_";
     private const string AnonymousRecordPrefix = $"{AnonymousNamePrefix}Record_";
+    private const string AnonymousTypeKindTag = "_e__";
 
     private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
     private static readonly string[] s_doubleColonSeparator = ["::"];
@@ -1092,7 +1093,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private string GetArtificialFixedSizedBufferName(FieldDecl fieldDecl)
     {
         var name = GetRemappedCursorName(fieldDecl);
-        return $"_{name}_e__FixedBuffer";
+        return $"_{name}{AnonymousTypeKindTag}FixedBuffer";
     }
 
     private BitfieldDesc[] GetBitfieldDescs(RecordDecl recordDecl)
