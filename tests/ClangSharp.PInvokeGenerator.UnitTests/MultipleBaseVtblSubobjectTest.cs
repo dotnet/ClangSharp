@@ -108,10 +108,9 @@ struct Baz : Foo, Bar
 
     // Nested multiple inheritance: `C` derives from two polymorphic bases and `D` derives from `C`.
     // `C` is a single level of multiple inheritance and is modeled exactly (`A` flattened, `B` a subobject).
-    // Flattening `C` into `D`, however, would require carrying `C`'s own non-primary polymorphic base (`B`,
-    // at its own vtable pointer offset) onto `D`, which is not yet modeled. `D` therefore falls back to the
-    // legacy run-on `lpVtbl` -- every inherited method stays reachable (so the bindings still compile), but
-    // a secondary base's methods dispatch through the primary vtable, so the record is flagged incomplete.
+    // `D` flattens `C`'s primary chain (`A`, plus `C`'s and `D`'s own methods) into its single `lpVtbl` and
+    // carries `C`'s non-primary polymorphic base `B` onto itself as a subobject, exactly mirroring the
+    // single-level layout. `b()` is reached through the `B` subobject and is not re-exposed on `D`.
     private const string NestedMultipleInheritanceInputContents = @"struct A
 {
     virtual void a();
@@ -134,12 +133,76 @@ struct D : C
 ";
 
     [Test]
-    public Task FallsBackToFlattenedVtblForNestedMultipleInheritance()
+    public Task CarriesNestedNonPrimaryBaseAsSubobject()
     {
-        var expectedDiagnostics = new[] {
-            new Diagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'nested multiple virtual bases'. Generated bindings for D may be incomplete.", "Line 16, Column 8 in ClangUnsavedFile.h")
-        };
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(NestedMultipleInheritanceInputContents);
+    }
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(NestedMultipleInheritanceInputContents, expectedDiagnostics: expectedDiagnostics);
+    // Double carry: `C` derives from three polymorphic bases, so it flattens `A` and carries both `B` and
+    // `E` as subobjects. `D : C` must carry both onto itself with the same, non-colliding names (`Base2`,
+    // `Base3`) it uses on `C` -- numbering the carried bases by their owning record (`C`) rather than by
+    // `D`'s direct bases is what keeps them distinct.
+    private const string DoubleCarryInputContents = @"struct A
+{
+    virtual void AMethod();
+};
+
+struct B
+{
+    virtual void BMethod();
+};
+
+struct E
+{
+    virtual void EMethod();
+};
+
+struct C : A, B, E
+{
+};
+
+struct D : C
+{
+};
+";
+
+    [Test]
+    public Task CarriesMultipleNestedNonPrimaryBasesWithStableNames()
+    {
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(DoubleCarryInputContents);
+    }
+
+    // The carried subobject propagates through an arbitrary depth of single-inheritance chaining: `F : D`
+    // flattens the whole primary chain (`a`, `c`, `d`, `f`) into its `lpVtbl` and still carries `B`.
+    private const string DeeplyNestedInputContents = @"struct A
+{
+    virtual void a();
+};
+
+struct B
+{
+    virtual void b();
+};
+
+struct C : A, B
+{
+    virtual void c();
+};
+
+struct D : C
+{
+    virtual void d();
+};
+
+struct F : D
+{
+    virtual void f();
+};
+";
+
+    [Test]
+    public Task CarriesNestedNonPrimaryBaseThroughDeepChain()
+    {
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(DeeplyNestedInputContents);
     }
 }

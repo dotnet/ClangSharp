@@ -1457,45 +1457,50 @@ public sealed partial class PInvokeGenerator : IDisposable
         return null;
     }
 
-    // Flattening a vtbl-only primary base inlines its vtable into the derived type's `lpVtbl`. That is only
-    // loss-free when nothing has to be carried alongside it. A base along the flattened primary chain that
-    // itself has a non-primary polymorphic base (nested multiple inheritance) introduces a second vtable
-    // pointer at a distinct offset that would have to be carried onto the derived type as a subobject; that
-    // is not yet modeled, so such records fall back to the legacy run-on `lpVtbl`.
-    private bool VtblFlatteningNeedsCarry(CXXRecordDecl cxxRecordDecl)
+    // Enumerates the base subobjects a record materializes as fields, in native layout order, together with
+    // the record that directly declares each base specifier (its owner). A base is a subobject when it
+    // carries its own fields or when it is a non-primary polymorphic base (its distinct vtable pointer
+    // cannot be flattened into the derived type's single `lpVtbl`). The vtbl-only primary polymorphic base
+    // is instead flattened into `lpVtbl`; its own non-primary polymorphic subobjects are carried onto the
+    // derived type (nested multiple inheritance), so we recurse into it in declaration order -- this keeps
+    // every carried subobject at the correct position relative to the derived type's later direct bases.
+    private IEnumerable<(CXXBaseSpecifier Specifier, CXXRecordDecl Owner)> EnumerateBaseSubobjects(CXXRecordDecl cxxRecordDecl)
     {
-        for (var primaryVtblBase = GetPrimaryVtblBase(cxxRecordDecl); primaryVtblBase is not null; primaryVtblBase = GetPrimaryVtblBase(primaryVtblBase))
-        {
-            if (HasNonPrimaryVtblBase(primaryVtblBase))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private bool HasNonPrimaryVtblBase(CXXRecordDecl cxxRecordDecl)
-    {
-        var seenVtblBase = false;
+        var seenPrimaryVtblBase = false;
 
         foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
         {
             var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
-            if (HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl)
-            {
-                if (seenVtblBase)
-                {
-                    return true;
-                }
+            var isPolymorphic = HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl;
+            var isPrimaryVtblBase = isPolymorphic && !seenPrimaryVtblBase;
+            seenPrimaryVtblBase |= isPolymorphic;
 
-                seenVtblBase = true;
+            var hasField = HasField(baseCxxRecordDecl);
+
+            if (isPrimaryVtblBase && !hasField)
+            {
+                foreach (var carried in EnumerateBaseSubobjects(baseCxxRecordDecl))
+                {
+                    yield return carried;
+                }
+            }
+            else if (hasField || (isPolymorphic && !isPrimaryVtblBase))
+            {
+                yield return (cxxBaseSpecifier, cxxRecordDecl);
             }
         }
-
-        return false;
     }
+
+    // Resolves the base subobject specifier through which a member declared on `parentRecordDecl` is reached
+    // from `emittingRecordDecl`, considering carried subobjects (nested multiple inheritance) and not just
+    // direct bases. Returns null when the member is reached through the flattened primary chain (i.e. not
+    // through a distinct subobject field).
+    private CXXBaseSpecifier? GetBaseSubobjectSpecifier(CXXRecordDecl emittingRecordDecl, RecordDecl parentRecordDecl)
+        => EnumerateBaseSubobjects(emittingRecordDecl)
+            .Where((entry) => entry.Specifier.Referenced == parentRecordDecl)
+            .Select((entry) => entry.Specifier)
+            .SingleOrDefault();
 
     private bool NeedsReturnFixup(CXXMethodDecl cxxMethodDecl)
     {

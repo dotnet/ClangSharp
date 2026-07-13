@@ -45,12 +45,9 @@ namespace ClangSharp.Test
     {
         public void** lpVtbl;
 
-        public void a()
-        {
-            ((delegate* unmanaged[Thiscall]<D*, void>)(lpVtbl[0]))((D*)Unsafe.AsPointer(ref this));
-        }
+        public B Base2;
 
-        public void b()
+        public void a()
         {
             ((delegate* unmanaged[Thiscall]<D*, void>)(lpVtbl[0]))((D*)Unsafe.AsPointer(ref this));
         }
@@ -63,6 +60,34 @@ namespace ClangSharp.Test
         public void d()
         {
             ((delegate* unmanaged[Thiscall]<D*, void>)(lpVtbl[2]))((D*)Unsafe.AsPointer(ref this));
+        }
+    }
+
+    [NativeTypeName("struct F : D")]
+    public unsafe partial struct F
+    {
+        public void** lpVtbl;
+
+        public B Base2;
+
+        public void a()
+        {
+            ((delegate* unmanaged[Thiscall]<F*, void>)(lpVtbl[0]))((F*)Unsafe.AsPointer(ref this));
+        }
+
+        public void c()
+        {
+            ((delegate* unmanaged[Thiscall]<F*, void>)(lpVtbl[1]))((F*)Unsafe.AsPointer(ref this));
+        }
+
+        public void d()
+        {
+            ((delegate* unmanaged[Thiscall]<F*, void>)(lpVtbl[2]))((F*)Unsafe.AsPointer(ref this));
+        }
+
+        public void f()
+        {
+            ((delegate* unmanaged[Thiscall]<F*, void>)(lpVtbl[3]))((F*)Unsafe.AsPointer(ref this));
         }
     }
 }

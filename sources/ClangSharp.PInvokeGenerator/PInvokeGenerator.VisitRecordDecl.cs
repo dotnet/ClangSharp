@@ -35,8 +35,6 @@ public partial class PInvokeGenerator
         var name = GetRemappedCursorName(recordDecl);
         var escapedName = EscapeName(name);
 
-        var vtblFlatteningNeedsCarry = (recordDecl is CXXRecordDecl cxxRecordDeclForCarry) && VtblFlatteningNeedsCarry(cxxRecordDeclForCarry);
-
         StartUsingOutputBuilder(name, includeTestOutput: true);
         {
             var cxxRecordDecl = recordDecl as CXXRecordDecl;
@@ -48,16 +46,6 @@ public partial class PInvokeGenerator
             if (cxxRecordDecl is not null)
             {
                 hasVtbl = HasVtbl(cxxRecordDecl, out hasBaseVtbl);
-
-                if (vtblFlatteningNeedsCarry)
-                {
-                    // Nested multiple inheritance would require carrying a flattened base's own non-primary
-                    // polymorphic subobjects (each with its own vtable pointer at a distinct offset) onto the
-                    // derived type. That is not yet modeled, so we fall back to the legacy flattened `lpVtbl`
-                    // (which preserves reachability of every inherited method, though not their true offsets)
-                    // and flag the record as incomplete.
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported cxx record declaration: 'nested multiple virtual bases'. Generated bindings for {name} may be incomplete.", cxxRecordDecl);
-                }
             }
 
             var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
@@ -397,26 +385,11 @@ public partial class PInvokeGenerator
 
             if (cxxRecordDecl is not null)
             {
-                var seenPrimaryVtblBase = false;
-
-                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                foreach (var (cxxBaseSpecifier, _) in EnumerateBaseSubobjects(cxxRecordDecl))
                 {
                     var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
-                    var isPolymorphic = HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl;
-                    var isPrimaryVtblBase = isPolymorphic && !seenPrimaryVtblBase;
-                    seenPrimaryVtblBase |= isPolymorphic;
-
-                    // A base is emitted as a nested subobject when it carries its own fields or when it is a
-                    // non-primary polymorphic base (its distinct vtable pointer cannot be flattened into the
-                    // derived type's single `lpVtbl`). The vtbl-only primary polymorphic base is instead
-                    // flattened, so it is not repeated as a field here. Records whose primary base chain has
-                    // its own non-primary polymorphic base (nested multiple inheritance) cannot be modeled
-                    // this way and fall back to the legacy flattened layout, which only ever nested bases
-                    // that carry fields.
-                    var emitAsSubobject = HasField(baseCxxRecordDecl) || (!vtblFlatteningNeedsCarry && isPolymorphic && !isPrimaryVtblBase);
-
-                    if (emitAsSubobject && !IsBaseExcluded(cxxRecordDecl, baseCxxRecordDecl, cxxBaseSpecifier, out var baseFieldName))
+                    if (!IsBaseExcluded(cxxRecordDecl, baseCxxRecordDecl, cxxBaseSpecifier, out var baseFieldName))
                     {
                         var parent = GetRemappedCursorName(baseCxxRecordDecl);
 
@@ -656,26 +629,12 @@ public partial class PInvokeGenerator
             return remappedName;
         }
 
-        // The vtbl emission passes flatten a base's vtable into the derived type's `lpVtbl`. Normally only
-        // the primary polymorphic base is flattened (every other polymorphic base becomes a subobject with
-        // its own vtable pointer). For nested multiple inheritance we cannot model the carried subobjects, so
-        // we fall back to the legacy behavior of flattening every polymorphic base into a single run-on
-        // vtable -- this keeps all inherited methods reachable, at the cost of exact offsets.
+        // The vtbl emission passes flatten a base's vtable into the derived type's `lpVtbl`. Only the primary
+        // polymorphic base is flattened (it shares the derived type's vtable pointer); every other
+        // polymorphic base becomes a subobject with its own vtable pointer and is not flattened here.
         IEnumerable<CXXRecordDecl> EnumerateFlattenedVtblBases(CXXRecordDecl cxxRecordDecl)
         {
-            if (vtblFlatteningNeedsCarry)
-            {
-                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
-                {
-                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
-
-                    if (HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl)
-                    {
-                        yield return baseCxxRecordDecl;
-                    }
-                }
-            }
-            else if (GetPrimaryVtblBase(cxxRecordDecl) is CXXRecordDecl primaryVtblBase)
+            if (GetPrimaryVtblBase(cxxRecordDecl) is CXXRecordDecl primaryVtblBase)
             {
                 yield return primaryVtblBase;
             }

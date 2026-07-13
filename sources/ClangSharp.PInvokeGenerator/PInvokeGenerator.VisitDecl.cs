@@ -707,7 +707,7 @@ public partial class PInvokeGenerator
                 var parent = cxxMethodDecl.Parent;
                 Debug.Assert(parent is not null);
 
-                var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == parent).SingleOrDefault();
+                var cxxBaseSpecifier = GetBaseSubobjectSpecifier(_cxxRecordDeclContext, parent);
 
                 if (cxxBaseSpecifier is not null)
                 {
