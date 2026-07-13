@@ -4,6 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PublishAot>true</PublishAot>
     <RuntimeIdentifiers>linux-arm64;linux-x64;osx-arm64;win-arm64;win-x64</RuntimeIdentifiers>
     <TargetFramework>net10.0</TargetFramework>
@@ -14,6 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="Properties/GenerateClang.rsp" />
     <None Include="Properties/GenerateClang-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Properties/GenerateClangSharp.rsp" />
