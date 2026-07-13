@@ -58,14 +58,14 @@ public partial class PInvokeGenerator
                     var value = sign * literal.Value;
                     if (value is > int.MaxValue or < int.MinValue)
                     {
-                        // Literal is in int32 range
+                        // Literal is not in int32 range
                         outputBuilder.Write("(int)(");
                         outputBuilder.Write(sign * literal.Value);
                         outputBuilder.Write(")");
                     }
                     else
                     {
-                        // Literal is not in int32 range
+                        // Literal is in int32 range
                         outputBuilder.Write(sign * literal.Value);
                     }
 
@@ -550,7 +550,7 @@ public partial class PInvokeGenerator
                     else if (IsPrevContextStmt<BinaryOperator>(out var binaryOperator, out _))
                     {
                         var targetType = binaryOperator.Type;
-                        targetTypeName = GetRemappedTypeName(implicitCastExpr, context: null, targetType, out _, skipUsing: true);
+                        targetTypeName = GetRemappedTypeName(binaryOperator, context: null, targetType, out _, skipUsing: true);
                         targetTypeNumBits = targetType.Handle.NumBits;
                     }
                     else if (PreviousContext.Cursor is VarDecl varDecl)

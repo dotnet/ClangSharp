@@ -1684,7 +1684,16 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         var uuidAttr = uuidAttrs[0];
         var uuidAttrText = GetSourceRangeContents(recordDecl.TranslationUnit.Handle, uuidAttr.Extent);
-        var uuidText = uuidAttrText.Split(s_doubleQuoteSeparator, StringSplitOptions.RemoveEmptyEntries)[1];
+        var uuidTextParts = uuidAttrText.Split(s_doubleQuoteSeparator, StringSplitOptions.RemoveEmptyEntries);
+
+        if (uuidTextParts.Length < 2)
+        {
+            AddDiagnostic(DiagnosticLevel.Warning, $"Failed to parse uuid attr text '{uuidAttrText}'.", recordDecl);
+            uuid = Guid.Empty;
+            return false;
+        }
+
+        var uuidText = uuidTextParts[1];
 
         if (!Guid.TryParse(uuidText, out uuid))
         {
