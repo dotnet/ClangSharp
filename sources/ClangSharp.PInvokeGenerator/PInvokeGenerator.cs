@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -37,6 +38,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
     private static readonly string[] s_doubleColonSeparator = ["::"];
     private static readonly char[] s_doubleQuoteSeparator = ['"'];
+    private static readonly SearchValues<char> s_qualifiedNameSeparatorChars = SearchValues.Create(".:");
 
     private static string ExpectedClangVersion => $"version {clang.MajorVersion}.{clang.MinorVersion}";
     private static string ExpectedClangSharpVersion => ExpectedClangVersion; // change if necessary
@@ -1773,15 +1775,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                         var addDiag = true;
 
                         var smlName = name;
-                        var lastSeparatorIndex = smlName.LastIndexOf("::", StringComparison.Ordinal);
-
-                        if (lastSeparatorIndex != -1)
-                        {
-                            smlName = smlName[(lastSeparatorIndex + 2)..];
-                            addDiag = false;
-                        }
-
-                        lastSeparatorIndex = smlName.LastIndexOf('.');
+                        var lastSeparatorIndex = smlName.LastIndexOfAny(s_qualifiedNameSeparatorChars);
 
                         if (lastSeparatorIndex != -1)
                         {
@@ -1818,15 +1812,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                         var addDiag = true;
 
                         var smlName = name;
-                        var lastSeparatorIndex = smlName.LastIndexOf("::", StringComparison.Ordinal);
-
-                        if (lastSeparatorIndex != -1)
-                        {
-                            smlName = smlName[(lastSeparatorIndex + 2)..];
-                            addDiag = false;
-                        }
-
-                        lastSeparatorIndex = smlName.LastIndexOf('.');
+                        var lastSeparatorIndex = smlName.AsSpan().LastIndexOfAny(s_qualifiedNameSeparatorChars);
 
                         if (lastSeparatorIndex != -1)
                         {
@@ -1857,15 +1843,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                         var addDiag = true;
 
                         var smlName = name;
-                        var lastSeparatorIndex = smlName.LastIndexOf("::", StringComparison.Ordinal);
-
-                        if (lastSeparatorIndex != -1)
-                        {
-                            smlName = smlName[(lastSeparatorIndex + 2)..];
-                            addDiag = false;
-                        }
-
-                        lastSeparatorIndex = smlName.LastIndexOf('.');
+                        var lastSeparatorIndex = smlName.AsSpan().LastIndexOfAny(s_qualifiedNameSeparatorChars);
 
                         if (lastSeparatorIndex != -1)
                         {
