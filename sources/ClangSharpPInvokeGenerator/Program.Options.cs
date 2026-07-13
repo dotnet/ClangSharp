@@ -84,7 +84,7 @@ internal static partial class Program
     private static readonly CommandLineOption s_withSetLastErrors = Multi(s_withSetLastErrorOptionAliases, "Add the SetLastError=true modifier or SetsSystemLastError attribute to a given DllImport or UnmanagedFunctionPointer. Supports wildcards.");
     private static readonly CommandLineOption s_withSuppressGCTransitions = Multi(s_withSuppressGCTransitionOptionAliases, "Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer. Supports wildcards.");
     private static readonly CommandLineOption s_withTransparentStructNameValuePairs = Multi(s_withTransparentStructOptionAliases, "A remapped type name to be treated as a transparent wrapper during binding generation. Supports wildcards.");
-    private static readonly CommandLineOption s_withTypeNameValuePairs = Multi(s_withTypeOptionAliases, "A type to be used for the given enum declaration during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withTypeNameValuePairs = Multi(s_withTypeOptionAliases, "A type to be used for the given enum declaration, macro constant, or struct field (using the qualified `Type.field`) during binding generation. Supports wildcards.");
     private static readonly CommandLineOption s_withUsingNameValuePairs = Multi(s_withUsingOptionAliases, "A using directive to be included for the given remapped declaration name during binding generation. Supports wildcards.");
     private static readonly CommandLineOption s_helpOption = Flag(s_helpOptionAliases, "Show help and usage information");
 
