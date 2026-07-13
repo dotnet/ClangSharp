@@ -290,6 +290,33 @@ public partial class PInvokeGenerator
             }
         }
 
+        // The method class output builders are emitted here, before the helper types, so that in
+        // single-file mode the helper types are appended at the bottom of the shared namespace
+        // rather than in the middle of the generated output. In multi-file mode the method classes
+        // were already written directly above, so both dictionaries are empty and these loops are a
+        // no-op.
+
+        if (leaveStreamOpen)
+        {
+            Debug.Assert(stream is not null);
+
+            foreach (var entry in methodClassOutputBuilders)
+            {
+                CloseOutputBuilder(stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
+                emitNamespaceDeclaration = false;
+            }
+
+            foreach (var entry in methodClassTestOutputBuilders)
+            {
+                CloseOutputBuilder(testStream ?? stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
+            }
+        }
+        else
+        {
+            Debug.Assert(methodClassOutputBuilders.Count == 0);
+            Debug.Assert(methodClassTestOutputBuilders.Count == 0);
+        }
+
         if (generateHelperTypes)
         {
             // In single-file mode the helper types are emitted inside the shared namespace and are
@@ -348,16 +375,6 @@ public partial class PInvokeGenerator
         if (leaveStreamOpen && (_outputBuilderFactory.OutputBuilders.Any() || generateHelperTypes))
         {
             Debug.Assert(stream is not null);
-
-            foreach (var entry in methodClassOutputBuilders)
-            {
-                CloseOutputBuilder(stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
-            }
-
-            foreach (var entry in methodClassTestOutputBuilders)
-            {
-                CloseOutputBuilder(testStream ?? stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
-            }
 
             using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
