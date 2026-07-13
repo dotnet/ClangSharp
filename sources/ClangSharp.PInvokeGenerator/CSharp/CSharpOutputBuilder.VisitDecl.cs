@@ -224,6 +224,10 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
                         WriteLine(';');
                     }
                 }
+                else
+                {
+                    WriteLine(';');
+                }
                 break;
             }
 
