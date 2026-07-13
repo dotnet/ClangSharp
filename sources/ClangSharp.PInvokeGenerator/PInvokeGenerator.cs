@@ -2439,9 +2439,9 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
-    private void WithType(NamedDecl namedDecl, ref string integerTypeName, ref string nativeTypeName)
+    private void WithType(NamedDecl namedDecl, ref string integerTypeName, ref string nativeTypeName, bool matchStar = true)
     {
-        if (TryGetRemappedValue(namedDecl, _config._withTypes, out var type, matchStar: true))
+        if (TryGetRemappedValue(namedDecl, _config._withTypes, out var type, matchStar))
         {
             if (string.IsNullOrWhiteSpace(nativeTypeName))
             {

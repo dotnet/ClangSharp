@@ -793,6 +793,14 @@ public sealed partial class PInvokeGenerator
 
                     WithType(enumDecl, ref remappedName, ref nativeTypeName);
                 }
+                else if (cursor is FieldDecl fieldDecl)
+                {
+                    // A field can have its emitted type overridden via `--with-type Struct.field=Type`.
+                    // The `*` catch-all is intentionally not honored here, as rewriting every field to
+                    // a single type is meaningless; the qualified `Struct.field` key must be explicit.
+
+                    WithType(fieldDecl, ref remappedName, ref nativeTypeName, matchStar: false);
+                }
             }
         }
 
