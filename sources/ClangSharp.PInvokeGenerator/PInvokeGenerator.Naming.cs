@@ -475,10 +475,10 @@ public sealed partial class PInvokeGenerator
                 // For fields of anonymous types, use the name of the type but clean off the type
                 // kind tag at the end.
                 var typeName = GetRemappedNameForAnonymousRecord(fieldDecl.Type.AsCXXRecordDecl);
-                var tagIndex = typeName.LastIndexOf("_e__", StringComparison.Ordinal);
+                var tagIndex = typeName.LastIndexOf(AnonymousTypeKindTag, StringComparison.Ordinal);
                 Debug.Assert(typeName[0] == '_');
                 Debug.Assert(tagIndex >= 0);
-                remappedName = typeName.Substring(1, tagIndex - 1);
+                remappedName = typeName[1..tagIndex];
             }
             else
             {
@@ -580,13 +580,13 @@ public sealed partial class PInvokeGenerator
             }
 
             // Add the type kind tag.
-            _ = remappedNameBuilder.Append("_e__");
+            _ = remappedNameBuilder.Append(AnonymousTypeKindTag);
             _ = remappedNameBuilder.Append(recordDecl.IsUnion ? "Union" : "Struct");
             return remappedNameBuilder.ToString();
         }
         else
         {
-            return $"_Anonymous_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
+            return $"_Anonymous{AnonymousTypeKindTag}{(recordDecl.IsUnion ? "Union" : "Struct")}";
         }
     }
 

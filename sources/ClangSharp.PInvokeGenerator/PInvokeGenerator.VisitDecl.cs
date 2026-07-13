@@ -884,10 +884,10 @@ public partial class PInvokeGenerator
             // The name of a field of an anonymous type should be same as the type's name minus the
             // type kind tag at the end and the leading `_`.
             var contextNamePart = GetRemappedCursorName(rootRecordDecl);
-            var tagIndex = contextNamePart.LastIndexOf("_e__", StringComparison.Ordinal);
+            var tagIndex = contextNamePart.LastIndexOf(AnonymousTypeKindTag, StringComparison.Ordinal);
             Debug.Assert(contextNamePart[0] == '_');
             Debug.Assert(tagIndex >= 0);
-            contextNamePart = contextNamePart.Substring(1, tagIndex - 1);
+            contextNamePart = contextNamePart[1..tagIndex];
 
             contextNameParts.Push(EscapeName(contextNamePart));
 
