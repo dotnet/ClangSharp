@@ -23,7 +23,7 @@ in the **generator** instead — change the generator, then regenerate.
 Requires the **.NET 10 SDK** (`global.json` pins `10.0.100-preview`, `allowPrerelease`). `dotnet` resolves it.
 
 - Build: `dotnet build -c Release` (root, builds `ClangSharp.slnx`). ~20s incremental, clean.
-- Test: `dotnet test -c Release --no-build` (~1 min; ~3760 tests: 3706 generator + interop on `net8.0`+`net10.0`).
+- Test: `dotnet test -c Release --no-build` (~1 min; ~3760 tests: 3706 generator + interop on `net10.0`).
 - `--no-build` requires a prior successful build; drop it if you changed code since the last build.
 
 `TreatWarningsAsErrors=true`, `Nullable=enable`, `AnalysisLevel=latest-all`, and `EnforceCodeStyleInBuild=true`
