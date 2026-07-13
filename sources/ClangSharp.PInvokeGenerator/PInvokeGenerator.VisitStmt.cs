@@ -1020,6 +1020,16 @@ public partial class PInvokeGenerator
 
         if (declRefExpr.Decl is EnumConstantDecl enumConstantDecl)
         {
+            if (enumConstantDecl.DeclContext is NamedDecl enumTypeDecl)
+            {
+                var enumTypeName = GetRemappedCursorName(enumTypeDecl, out _, skipUsing: true);
+
+                if (!IsAnonymousEnum(enumTypeName))
+                {
+                    escapedName = EscapeAndStripEnumMemberName(name, enumTypeName);
+                }
+            }
+
             if ((declRefExpr.DeclContext != enumConstantDecl.DeclContext) && (enumConstantDecl.DeclContext is NamedDecl namedDecl))
             {
                 var enumName = GetRemappedCursorName(namedDecl, out _, skipUsing: true);
