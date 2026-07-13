@@ -672,7 +672,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         void ForCSharp(CSharpOutputBuilder outputBuilder)
         {
-            var indentationString = outputBuilder.IndentationString;
+            var indentationString = Config.GenerateFileScopedNamespaces ? "" : outputBuilder.IndentationString;
             var nonTestName = outputBuilder.IsTestOutput ? outputBuilder.Name.AsSpan()[..^5] : outputBuilder.Name;
 
             if (emitNamespaceDeclaration)
@@ -689,7 +689,6 @@ public sealed partial class PInvokeGenerator : IDisposable
                 {
                     sw.WriteLine(';');
                     sw.WriteLine();
-                    indentationString = "";
                 }
                 else
                 {

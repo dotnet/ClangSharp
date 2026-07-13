@@ -8,7 +8,8 @@ namespace ClangSharp.UnitTests;
 /// <summary>
 /// Regression test for https://github.com/dotnet/ClangSharp/issues/555.
 /// When <c>generate-file-scoped-namespaces</c> is used with a single output file, no namespace
-/// opening brace is emitted, so no closing brace must be emitted either.
+/// opening brace is emitted, so no closing brace must be emitted either. Members after the first
+/// must also not be indented as if they were nested inside a namespace block.
 /// </summary>
 [Platform("win")]
 public sealed class FileScopedNamespaceTest : PInvokeGeneratorTest
@@ -50,6 +51,51 @@ public partial struct Point
     public int x;
 
     public int y;
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces);
+    }
+
+    [Test]
+    public Task MembersAfterFirstAreNotOverIndented()
+    {
+        var inputContents = @"struct Point
+{
+    int x;
+    int y;
+};
+
+enum Color
+{
+    Red,
+    Green,
+};
+
+extern ""C"" void MyFunction();
+";
+
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test;
+
+public partial struct Point
+{
+    public int x;
+
+    public int y;
+}
+
+public enum Color
+{
+    Red,
+    Green,
+}
+
+public static partial class Methods
+{
+    [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    public static extern void MyFunction();
 }
 ";
 
