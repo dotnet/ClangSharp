@@ -84,6 +84,9 @@ public abstract class VarDeclarationTest : PInvokeGeneratorTest
     [Test]
     public Task ConditionalDefineConstTest() => ConditionalDefineConstTestImpl();
 
+    [Test]
+    public Task UndefinedFunctionLikeMacroTest() => UndefinedFunctionLikeMacroTestImpl();
+
     protected abstract Task BasicTestImpl(string nativeType, string expectedManagedType);
 
     protected abstract Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType);
@@ -121,4 +124,6 @@ public abstract class VarDeclarationTest : PInvokeGeneratorTest
     protected abstract Task MultidimensionlArrayTestImpl();
 
     protected abstract Task ConditionalDefineConstTestImpl();
+
+    protected abstract Task UndefinedFunctionLikeMacroTestImpl();
 }

@@ -379,6 +379,12 @@ internal static partial class Program
                     break;
                 }
 
+                case "generate-fixed-buffer-indexer-overloads":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateFixedBufferIndexerOverloads;
+                    break;
+                }
+
                 case "generate-guid-member":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateGuidMember;

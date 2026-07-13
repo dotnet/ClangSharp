@@ -37,7 +37,14 @@ public partial class PInvokeGenerator
     private void VisitBinaryOperator(BinaryOperator binaryOperator)
     {
         var outputBuilder = StartCSharpCode();
-        Visit(binaryOperator.LHS);
+
+        // C/C++ allow pointer arithmetic on `void*` (treating it as byte-sized), but C# does
+        // not. Insert an explicit `(byte*)` cast on any `void*` operand of an additive operator
+        // so the arithmetic is well-defined; `byte*` implicitly converts back to `void*` where
+        // the surrounding context requires it.
+        var isAdditive = binaryOperator.Opcode is CXBinaryOperator_Add or CXBinaryOperator_Sub;
+
+        VisitBinaryOperatorOperand(binaryOperator.LHS, isAdditive);
         outputBuilder.Write(' ');
         outputBuilder.Write(binaryOperator.OpcodeStr);
         outputBuilder.Write(' ');
@@ -92,10 +99,21 @@ public partial class PInvokeGenerator
         }
         else
         {
-            Visit(binaryOperator.RHS);
+            VisitBinaryOperatorOperand(binaryOperator.RHS, isAdditive);
         }
 
         StopCSharpCode();
+    }
+
+    private void VisitBinaryOperatorOperand(Expr operand, bool isAdditive)
+    {
+        if (isAdditive && IsTypeVoidPointer(operand, operand.Type))
+        {
+            StartCSharpCode().Write("(byte*)");
+            StopCSharpCode();
+        }
+
+        Visit(operand);
     }
 
     private void VisitBreakStmt(BreakStmt breakStmt)

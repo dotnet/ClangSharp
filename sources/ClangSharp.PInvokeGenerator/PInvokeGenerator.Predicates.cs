@@ -892,6 +892,10 @@ public sealed partial class PInvokeGenerator
          => IsType<BuiltinType>(cursor, type, out var builtinType)
          && (builtinType.Kind == CXType_Void);
 
+    private static bool IsTypeVoidPointer(Cursor? cursor, Type type)
+         => IsType<PointerType>(cursor, type, out var pointerType)
+         && IsTypeVoid(cursor, pointerType.PointeeType);
+
     internal bool IsSupportedFixedSizedBufferType(string typeName)
     {
         switch (typeName)

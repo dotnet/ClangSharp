@@ -233,6 +233,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool GenerateFileScopedNamespaces => (_options & PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces) != 0;
 
+    public bool GenerateFixedBufferIndexerOverloads => (_options & PInvokeGeneratorConfigurationOptions.GenerateFixedBufferIndexerOverloads) != 0;
+
     public bool GenerateGenericPointerWrapper => (_options & PInvokeGeneratorConfigurationOptions.GenerateGenericPointerWrapper) != 0;
 
     public bool GenerateGuidMember => (_options & PInvokeGeneratorConfigurationOptions.GenerateGuidMember) != 0;
