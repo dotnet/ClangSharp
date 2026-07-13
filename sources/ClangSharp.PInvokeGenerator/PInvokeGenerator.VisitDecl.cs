@@ -27,6 +27,23 @@ public partial class PInvokeGenerator
 
     private void VisitClassTemplateSpecializationDecl(ClassTemplateSpecializationDecl classTemplateSpecializationDecl) => AddDiagnostic(DiagnosticLevel.Warning, $"Class template specializations are not supported: '{GetCursorQualifiedName(classTemplateSpecializationDecl)}'. Generated bindings may be incomplete.", classTemplateSpecializationDecl);
 
+    private void TransformBoolType(ref string typeName, ref string nativeTypeName)
+    {
+        if (!_config.GenerateDisableRuntimeMarshalling && typeName.Equals("bool", StringComparison.Ordinal))
+        {
+            // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for structs that may be in P/Invoke signatures
+            typeName = "byte";
+            nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
+        }
+
+        if (_config.GenerateCompatibleCode && typeName.StartsWith("bool*", StringComparison.Ordinal))
+        {
+            // bool* is not blittable in compat mode, so we shouldn't use it for structs that may be in P/Invoke signatures
+            typeName = typeName.Replace("bool*", "byte*", StringComparison.Ordinal);
+            nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? typeName.Replace("byte*", "bool*", StringComparison.Ordinal) : nativeTypeName;
+        }
+    }
+
     private void VisitDecl(Decl decl)
     {
         if (IsExcluded(decl))
@@ -418,19 +435,7 @@ public partial class PInvokeGenerator
         var type = fieldDecl.Type;
         var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
 
-        if (!_config.GenerateDisableRuntimeMarshalling && typeName.Equals("bool", StringComparison.Ordinal))
-        {
-            // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for structs that may be in P/Invoke signatures
-            typeName = "byte";
-            nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
-        }
-
-        if (_config.GenerateCompatibleCode && typeName.StartsWith("bool*", StringComparison.Ordinal))
-        {
-            // bool* is not blittable in compat mode, so we shouldn't use it for structs that may be in P/Invoke signatures
-            typeName = typeName.Replace("bool*", "byte*", StringComparison.Ordinal);
-            nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? typeName.Replace("byte*", "bool*", StringComparison.Ordinal) : nativeTypeName;
-        }
+        TransformBoolType(ref typeName, ref nativeTypeName);
 
         var parent = fieldDecl.Parent;
         Debug.Assert(parent is not null);
@@ -561,19 +566,7 @@ public partial class PInvokeGenerator
 
         if (isVirtual || (body is null))
         {
-            if (!_config.GenerateDisableRuntimeMarshalling && returnTypeName.Equals("bool", StringComparison.Ordinal))
-            {
-                // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for P/Invoke signatures
-                returnTypeName = "byte";
-                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
-            }
-
-            if (_config.GenerateCompatibleCode && returnTypeName.StartsWith("bool*", StringComparison.Ordinal))
-            {
-                // bool* is not blittable in compat mode, so we shouldn't use it for P/Invoke signatures
-                returnTypeName = returnTypeName.Replace("bool*", "byte*", StringComparison.Ordinal);
-                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? returnTypeName.Replace("byte*", "bool*", StringComparison.Ordinal) : nativeTypeName;
-            }
+            TransformBoolType(ref returnTypeName, ref nativeTypeName);
         }
 
         var type = functionDecl.Type;
@@ -922,19 +915,9 @@ public partial class PInvokeGenerator
 
         var accessSpecifier = GetAccessSpecifier(anonymousRecordDecl, matchStar: true);
 
-        var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out _);
+        var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
 
-        if (!_config.GenerateDisableRuntimeMarshalling && typeName.Equals("bool", StringComparison.Ordinal))
-        {
-            // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for structs that may be in P/Invoke signatures
-            typeName = "byte";
-        }
-
-        if (_config.GenerateCompatibleCode && typeName.StartsWith("bool*", StringComparison.Ordinal))
-        {
-            // bool* is not blittable in compat mode, so we shouldn't use it for structs that may be in P/Invoke signatures
-            typeName = typeName.Replace("bool*", "byte*", StringComparison.Ordinal);
-        }
+        TransformBoolType(ref typeName, ref nativeTypeName);
 
         var name = GetRemappedCursorName(fieldDecl);
         var escapedName = EscapeName(name);
