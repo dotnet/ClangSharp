@@ -205,4 +205,60 @@ struct F : D
     {
         return ValidateGeneratedCSharpLatestWindowsBaselineAsync(DeeplyNestedInputContents);
     }
+
+    // A field-bearing polymorphic primary base shares (and physically holds) the derived type's vtable
+    // pointer, so the derived type must NOT declare a second `lpVtbl` -- that would corrupt its layout and
+    // dispatch through an uninitialized pointer. Instead the base is emitted as a subobject and every
+    // virtual method dispatches through the pointer that lives inside it (`Base.lpVtbl`), keeping native
+    // vtable indices (`A` at `0`, `c` at `1`).
+    private const string FieldBearingPrimaryWithMethodsInputContents = @"struct Foo
+{
+    int x;
+
+    virtual void A();
+};
+
+struct C : Foo
+{
+    virtual void c();
+};
+";
+
+    [Test]
+    public Task SharesFieldBearingPrimaryBaseVtblPointer()
+    {
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(FieldBearingPrimaryWithMethodsInputContents);
+    }
+
+    [Test]
+    public Task SharesFieldBearingPrimaryBaseVtblPointerWithExplicitVtbls()
+    {
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(FieldBearingPrimaryWithMethodsInputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
+    }
+
+    // The shared pointer is reached through as many field-bearing primary subobjects as the chain is deep:
+    // `D : C : Foo` dispatches through `Base.Base.lpVtbl`, still at native indices.
+    private const string FieldBearingPrimaryDeepChainInputContents = @"struct Foo
+{
+    int x;
+
+    virtual void A();
+};
+
+struct C : Foo
+{
+    virtual void c();
+};
+
+struct D : C
+{
+    virtual void d();
+};
+";
+
+    [Test]
+    public Task SharesFieldBearingPrimaryBaseVtblPointerThroughDeepChain()
+    {
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(FieldBearingPrimaryDeepChainInputContents);
+    }
 }

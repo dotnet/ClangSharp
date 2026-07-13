@@ -1502,6 +1502,33 @@ public sealed partial class PInvokeGenerator : IDisposable
             .Select((entry) => entry.Specifier)
             .SingleOrDefault();
 
+    // A record shares (and extends) the vtable pointer of its primary polymorphic base. When that base is
+    // vtbl-only it is flattened into the record's own `lpVtbl`; when it also carries data fields it cannot be
+    // flattened and is emitted as a subobject instead, so the shared vtable pointer physically lives inside
+    // that subobject. This returns the access prefix used to reach the shared pointer in the latter case (for
+    // example `Base.`, or `Base.Base.` for a deeper chain of field-bearing primary bases) and an empty string
+    // when the record declares its own `lpVtbl` (no polymorphic base, or a flattened vtbl-only primary base).
+    private string GetVtblPtrAccessPrefix(CXXRecordDecl cxxRecordDecl)
+    {
+        foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+        {
+            var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+
+            if (HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl)
+            {
+                if (!HasField(baseCxxRecordDecl))
+                {
+                    return "";
+                }
+
+                var baseFieldName = GetBaseSubobjectFieldName(cxxRecordDecl, cxxBaseSpecifier);
+                return $"{baseFieldName}.{GetVtblPtrAccessPrefix(baseCxxRecordDecl)}";
+            }
+        }
+
+        return "";
+    }
+
     private bool NeedsReturnFixup(CXXMethodDecl cxxMethodDecl)
     {
         Debug.Assert(cxxMethodDecl != null);
