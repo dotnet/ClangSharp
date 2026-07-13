@@ -45,6 +45,14 @@ Treat generation as a first-class, checked-in part of your repository, not a one
   }
   ```
 
+  The equivalent on Linux/macOS, using `find` to discover the targets and `xargs` to run them
+  in parallel:
+
+  ```bash
+  find "$generationDir" -name generate.rsp -print0 |
+      xargs -0 -P "$(nproc)" -I{} sh -c 'cd "$(dirname "$1")" && ClangSharpPInvokeGenerator "@generate.rsp"' _ {}
+  ```
+
   The driver has no per-target knowledge — adding a new binding is just a new folder with a
   `generate.rsp`. Because each target is independent, they parallelize cleanly.
 
