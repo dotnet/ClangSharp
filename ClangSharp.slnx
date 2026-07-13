@@ -113,5 +113,6 @@
     <File Path="tests/Directory.Build.targets" />
     <Project Path="tests/ClangSharp.PInvokeGenerator.UnitTests/ClangSharp.PInvokeGenerator.UnitTests.csproj" />
     <Project Path="tests/ClangSharp.UnitTests/ClangSharp.UnitTests.csproj" />
+    <Project Path="tests/ClangSharpPInvokeGenerator.UnitTests/ClangSharpPInvokeGenerator.UnitTests.csproj" />
   </Folder>
 </Solution>
