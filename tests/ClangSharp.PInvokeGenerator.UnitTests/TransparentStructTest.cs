@@ -35,12 +35,7 @@ namespace ClangSharp.Test
         /// <summary>Gets the name of the type that was used in the native signature.</summary>
         public string Name => _name;
     }
-}
-using System;
-using System.Diagnostics;
 
-namespace ClangSharp.Test
-{
     /// <summary>Defines the annotation found in a native declaration.</summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
     [Conditional(""DEBUG"")]
@@ -58,11 +53,7 @@ namespace ClangSharp.Test
         /// <summary>Gets the annotation that was used in the native declaration.</summary>
         public string Annotation => _annotation;
     }
-}
-using System;
 
-namespace ClangSharp.Test
-{
     public readonly partial struct MyBoolean : IComparable, IComparable<MyBoolean>, IEquatable<MyBoolean>, IFormattable
     {
         public readonly byte Value;

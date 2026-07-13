@@ -42,6 +42,7 @@ public partial class PInvokeGenerator
         var methodClassTestOutputBuilders = new Dictionary<string, IOutputBuilder>(StringComparer.Ordinal);
         var emitNamespaceDeclaration = true;
         var leaveStreamOpen = false;
+        var generateHelperTypes = _config.GenerateHelperTypes && (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp);
 
         foreach (var foundUuid in _uuidsToGenerate)
         {
@@ -107,7 +108,42 @@ public partial class PInvokeGenerator
                 _ = usingDirectives.Add(staticUsingDirective);
             }
 
-            if (hasAnyContents)
+            if (generateHelperTypes)
+            {
+                // In single-file mode the helper types are emitted inside the shared namespace, so
+                // their required using directives are hoisted to the top of the file. The
+                // NativeTypeNameAttribute helper is always emitted, so System and System.Diagnostics
+                // are always required; the remaining usings are added based on the same config
+                // predicates the individual Generate* helpers use.
+
+                _ = usingDirectives.Add("System");
+                _ = usingDirectives.Add("System.Diagnostics");
+
+                if (_config.GenerateSetsLastSystemErrorAttribute)
+                {
+                    _ = usingDirectives.Add("System.Runtime.InteropServices");
+                }
+
+                if (_config.GenerateDisableRuntimeMarshalling)
+                {
+                    _ = usingDirectives.Add("System.Runtime.CompilerServices");
+                }
+
+                foreach (var transparentStruct in _config.WithTransparentStructs)
+                {
+                    if (transparentStruct.Value.Kind == PInvokeGeneratorTransparentStructKind.HandleWin32)
+                    {
+                        var handleNamespace = GetNamespace("HANDLE");
+
+                        if (GetNamespace(transparentStruct.Key) != handleNamespace)
+                        {
+                            _ = usingDirectives.Add(handleNamespace);
+                        }
+                    }
+                }
+            }
+
+            if (hasAnyContents || generateHelperTypes)
             {
                 using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
                 sw.NewLine = "\n";
@@ -128,6 +164,16 @@ public partial class PInvokeGenerator
                             sw.WriteLine(';');
                         }
 
+                        sw.WriteLine();
+                    }
+
+                    if (generateHelperTypes && _config.GenerateDisableRuntimeMarshalling)
+                    {
+                        // Assembly attributes must precede the namespace declaration, so the
+                        // [assembly: DisableRuntimeMarshalling] attribute is emitted here rather
+                        // than alongside the other helper types.
+
+                        sw.WriteLine("[assembly: DisableRuntimeMarshalling]");
                         sw.WriteLine();
                     }
                 }
@@ -244,8 +290,14 @@ public partial class PInvokeGenerator
             }
         }
 
-        if (_config.GenerateHelperTypes && (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp))
+        if (generateHelperTypes)
         {
+            // In single-file mode the helper types are emitted inside the shared namespace and are
+            // separated from any preceding content by a blank line. The namespace already has
+            // content when an output builder was written into it (emitNamespaceDeclaration is then
+            // false), so the first helper type only needs a leading blank line in that case.
+            var hasNamespaceContent = !_config.GenerateMultipleFiles && !emitNamespaceDeclaration;
+
             if (_config.GenerateMultipleFiles)
             {
                 Debug.Assert(stream is null);
@@ -255,19 +307,45 @@ public partial class PInvokeGenerator
             {
                 Debug.Assert(stream is not null);
                 Debug.Assert(leaveStreamOpen is true);
+
+                if (emitNamespaceDeclaration)
+                {
+                    // No output builder opened the shared namespace (for example when only helper
+                    // types are being generated), so it is opened here so the helper types are
+                    // emitted inside it.
+
+                    using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
+                    sw.NewLine = "\n";
+
+                    sw.Write("namespace ");
+                    sw.Write(GetNamespace("NativeTypeNameAttribute"));
+
+                    if (_config.GenerateFileScopedNamespaces)
+                    {
+                        sw.WriteLine(';');
+                        sw.WriteLine();
+                    }
+                    else
+                    {
+                        sw.WriteLine();
+                        sw.WriteLine('{');
+                    }
+
+                    emitNamespaceDeclaration = false;
+                }
             }
 
             GenerateDisableRuntimeMarshallingAttribute(this, stream, leaveStreamOpen);
-            GenerateNativeBitfieldAttribute(this, stream, leaveStreamOpen);
-            GenerateNativeInheritanceAttribute(this, stream, leaveStreamOpen);
-            GenerateNativeTypeNameAttribute(this, stream, leaveStreamOpen);
-            GenerateNativeAnnotationAttribute(this, stream, leaveStreamOpen);
-            GenerateSetsLastSystemErrorAttribute(this, stream, leaveStreamOpen);
-            GenerateVtblIndexAttribute(this, stream, leaveStreamOpen);
-            GenerateTransparentStructs(this, stream, leaveStreamOpen);
+            hasNamespaceContent = GenerateNativeBitfieldAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
+            hasNamespaceContent = GenerateNativeInheritanceAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
+            hasNamespaceContent = GenerateNativeTypeNameAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
+            hasNamespaceContent = GenerateNativeAnnotationAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
+            hasNamespaceContent = GenerateSetsLastSystemErrorAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
+            hasNamespaceContent = GenerateVtblIndexAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
+            GenerateTransparentStructs(this, stream, leaveStreamOpen, hasNamespaceContent);
         }
 
-        if (leaveStreamOpen && _outputBuilderFactory.OutputBuilders.Any())
+        if (leaveStreamOpen && (_outputBuilderFactory.OutputBuilders.Any() || generateHelperTypes))
         {
             Debug.Assert(stream is not null);
 
@@ -326,6 +404,14 @@ public partial class PInvokeGenerator
                 return;
             }
 
+            if (!config.GenerateMultipleFiles)
+            {
+                // In single-file mode the [assembly: DisableRuntimeMarshalling] attribute is
+                // emitted at the top of the file, before the namespace declaration, since
+                // assembly attributes cannot appear after a namespace.
+                return;
+            }
+
             if (stream is null)
             {
                 var outputPath = Path.Combine(config.OutputLocation, "DisableRuntimeMarshalling.cs");
@@ -350,13 +436,13 @@ public partial class PInvokeGenerator
             }
         }
 
-        static void GenerateNativeBitfieldAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
+        static bool GenerateNativeBitfieldAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen, bool hasNamespaceContent)
         {
             var config = generator.Config;
 
             if (!config.GenerateNativeBitfieldAttribute)
             {
-                return;
+                return hasNamespaceContent;
             }
 
             if (stream is null)
@@ -368,30 +454,48 @@ public partial class PInvokeGenerator
             using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
-            if (!string.IsNullOrEmpty(config.HeaderText))
-            {
-                sw.WriteLine(config.HeaderText);
-            }
-
             var indentString = "    ";
 
-            sw.WriteLine("using System;");
-            sw.WriteLine("using System.Diagnostics;");
-            sw.WriteLine();
-
-            sw.Write("namespace ");
-            sw.Write(generator.GetNamespace("NativeBitfieldAttribute"));
-
-            if (generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles)
             {
-                sw.WriteLine(';');
+                if (!string.IsNullOrEmpty(config.HeaderText))
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
                 sw.WriteLine();
-                indentString = "";
+
+                sw.Write("namespace ");
+                sw.Write(generator.GetNamespace("NativeBitfieldAttribute"));
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
             }
             else
             {
-                sw.WriteLine();
-                sw.WriteLine('{');
+                // The shared namespace is already open; emit only the type body, separated from
+                // the preceding content by a blank line.
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    indentString = "";
+                }
+
+                if (hasNamespaceContent)
+                {
+                    sw.WriteLine();
+                }
             }
 
             sw.Write(indentString);
@@ -443,7 +547,7 @@ public partial class PInvokeGenerator
             sw.Write(indentString);
             sw.WriteLine('}');
 
-            if (!generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles && !generator.Config.GenerateFileScopedNamespaces)
             {
                 sw.WriteLine('}');
             }
@@ -452,15 +556,17 @@ public partial class PInvokeGenerator
             {
                 stream = null;
             }
+
+            return true;
         }
 
-        static void GenerateNativeInheritanceAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
+        static bool GenerateNativeInheritanceAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen, bool hasNamespaceContent)
         {
             var config = generator.Config;
 
             if (!config.GenerateNativeInheritanceAttribute)
             {
-                return;
+                return hasNamespaceContent;
             }
 
             if (stream is null)
@@ -472,30 +578,48 @@ public partial class PInvokeGenerator
             using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
-            if (!string.IsNullOrEmpty(config.HeaderText))
-            {
-                sw.WriteLine(config.HeaderText);
-            }
-
             var indentString = "    ";
 
-            sw.WriteLine("using System;");
-            sw.WriteLine("using System.Diagnostics;");
-            sw.WriteLine();
-
-            sw.Write("namespace ");
-            sw.Write(generator.GetNamespace("NativeInheritanceAttribute"));
-
-            if (generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles)
             {
-                sw.WriteLine(';');
+                if (!string.IsNullOrEmpty(config.HeaderText))
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
                 sw.WriteLine();
-                indentString = "";
+
+                sw.Write("namespace ");
+                sw.Write(generator.GetNamespace("NativeInheritanceAttribute"));
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
             }
             else
             {
-                sw.WriteLine();
-                sw.WriteLine('{');
+                // The shared namespace is already open; emit only the type body, separated from
+                // the preceding content by a blank line.
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    indentString = "";
+                }
+
+                if (hasNamespaceContent)
+                {
+                    sw.WriteLine();
+                }
             }
 
             sw.Write(indentString);
@@ -531,7 +655,7 @@ public partial class PInvokeGenerator
             sw.Write(indentString);
             sw.WriteLine('}');
 
-            if (!generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles && !generator.Config.GenerateFileScopedNamespaces)
             {
                 sw.WriteLine('}');
             }
@@ -540,9 +664,11 @@ public partial class PInvokeGenerator
             {
                 stream = null;
             }
+
+            return true;
         }
 
-        static void GenerateNativeTypeNameAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
+        static bool GenerateNativeTypeNameAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen, bool hasNamespaceContent)
         {
             var config = generator.Config;
 
@@ -555,30 +681,48 @@ public partial class PInvokeGenerator
             using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
-            if (!string.IsNullOrEmpty(config.HeaderText))
-            {
-                sw.WriteLine(config.HeaderText);
-            }
-
             var indentString = "    ";
 
-            sw.WriteLine("using System;");
-            sw.WriteLine("using System.Diagnostics;");
-            sw.WriteLine();
-
-            sw.Write("namespace ");
-            sw.Write(generator.GetNamespace("NativeTypeNameAttribute"));
-
-            if (generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles)
             {
-                sw.WriteLine(';');
+                if (!string.IsNullOrEmpty(config.HeaderText))
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
                 sw.WriteLine();
-                indentString = "";
+
+                sw.Write("namespace ");
+                sw.Write(generator.GetNamespace("NativeTypeNameAttribute"));
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
             }
             else
             {
-                sw.WriteLine();
-                sw.WriteLine('{');
+                // The shared namespace is already open; emit only the type body, separated from
+                // the preceding content by a blank line.
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    indentString = "";
+                }
+
+                if (hasNamespaceContent)
+                {
+                    sw.WriteLine();
+                }
             }
 
             sw.Write(indentString);
@@ -614,7 +758,7 @@ public partial class PInvokeGenerator
             sw.Write(indentString);
             sw.WriteLine('}');
 
-            if (!generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles && !generator.Config.GenerateFileScopedNamespaces)
             {
                 sw.WriteLine('}');
             }
@@ -623,9 +767,11 @@ public partial class PInvokeGenerator
             {
                 stream = null;
             }
+
+            return true;
         }
 
-        static void GenerateNativeAnnotationAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
+        static bool GenerateNativeAnnotationAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen, bool hasNamespaceContent)
         {
             const string AttributeName = "NativeAnnotationAttribute";
             var config = generator.Config;
@@ -633,7 +779,7 @@ public partial class PInvokeGenerator
             var ns = generator.GetNamespace(AttributeName);
             if (config.ExcludedNames.Contains(AttributeName) || config.ExcludedNames.Contains($"{ns}.{AttributeName}"))
             {
-                return;
+                return hasNamespaceContent;
             }
 
             if (stream is null)
@@ -645,30 +791,48 @@ public partial class PInvokeGenerator
             using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
-            if (!string.IsNullOrEmpty(config.HeaderText))
-            {
-                sw.WriteLine(config.HeaderText);
-            }
-
             var indentString = "    ";
 
-            sw.WriteLine("using System;");
-            sw.WriteLine("using System.Diagnostics;");
-            sw.WriteLine();
-
-            sw.Write("namespace ");
-            sw.Write(ns);
-
-            if (generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles)
             {
-                sw.WriteLine(';');
+                if (!string.IsNullOrEmpty(config.HeaderText))
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
                 sw.WriteLine();
-                indentString = "";
+
+                sw.Write("namespace ");
+                sw.Write(ns);
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
             }
             else
             {
-                sw.WriteLine();
-                sw.WriteLine('{');
+                // The shared namespace is already open; emit only the type body, separated from
+                // the preceding content by a blank line.
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    indentString = "";
+                }
+
+                if (hasNamespaceContent)
+                {
+                    sw.WriteLine();
+                }
             }
 
             sw.Write(indentString);
@@ -704,7 +868,7 @@ public partial class PInvokeGenerator
             sw.Write(indentString);
             sw.WriteLine('}');
 
-            if (!generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles && !generator.Config.GenerateFileScopedNamespaces)
             {
                 sw.WriteLine('}');
             }
@@ -713,15 +877,17 @@ public partial class PInvokeGenerator
             {
                 stream = null;
             }
+
+            return true;
         }
 
-        static void GenerateSetsLastSystemErrorAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
+        static bool GenerateSetsLastSystemErrorAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen, bool hasNamespaceContent)
         {
             var config = generator.Config;
 
             if (!config.GenerateSetsLastSystemErrorAttribute)
             {
-                return;
+                return hasNamespaceContent;
             }
 
             if (stream is null)
@@ -734,31 +900,49 @@ public partial class PInvokeGenerator
             using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
-            if (!string.IsNullOrEmpty(config.HeaderText))
-            {
-                sw.WriteLine(config.HeaderText);
-            }
-
             var indentString = "    ";
 
-            sw.WriteLine("using System;");
-            sw.WriteLine("using System.Diagnostics;");
-            sw.WriteLine("using System.Runtime.InteropServices;");
-            sw.WriteLine();
-
-            sw.Write("namespace ");
-            sw.Write(generator.GetNamespace("SetsLastSystemErrorAttribute"));
-
-            if (generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles)
             {
-                sw.WriteLine(';');
+                if (!string.IsNullOrEmpty(config.HeaderText))
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
+                sw.WriteLine("using System.Runtime.InteropServices;");
                 sw.WriteLine();
-                indentString = "";
+
+                sw.Write("namespace ");
+                sw.Write(generator.GetNamespace("SetsLastSystemErrorAttribute"));
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
             }
             else
             {
-                sw.WriteLine();
-                sw.WriteLine('{');
+                // The shared namespace is already open; emit only the type body, separated from
+                // the preceding content by a blank line.
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    indentString = "";
+                }
+
+                if (hasNamespaceContent)
+                {
+                    sw.WriteLine();
+                }
             }
 
             sw.Write(indentString);
@@ -782,7 +966,7 @@ public partial class PInvokeGenerator
             sw.Write(indentString);
             sw.WriteLine('}');
 
-            if (!generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles && !generator.Config.GenerateFileScopedNamespaces)
             {
                 sw.WriteLine('}');
             }
@@ -791,15 +975,17 @@ public partial class PInvokeGenerator
             {
                 stream = null;
             }
+
+            return true;
         }
 
-        static void GenerateVtblIndexAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
+        static bool GenerateVtblIndexAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen, bool hasNamespaceContent)
         {
             var config = generator.Config;
 
             if (!config.GenerateVtblIndexAttribute)
             {
-                return;
+                return hasNamespaceContent;
             }
 
             if (stream is null)
@@ -812,30 +998,48 @@ public partial class PInvokeGenerator
             using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
-            if (!string.IsNullOrEmpty(config.HeaderText))
-            {
-                sw.WriteLine(config.HeaderText);
-            }
-
             var indentString = "    ";
 
-            sw.WriteLine("using System;");
-            sw.WriteLine("using System.Diagnostics;");
-            sw.WriteLine();
-
-            sw.Write("namespace ");
-            sw.Write(generator.GetNamespace("VtblIndexAttribute"));
-
-            if (generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles)
             {
-                sw.WriteLine(';');
+                if (!string.IsNullOrEmpty(config.HeaderText))
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
                 sw.WriteLine();
-                indentString = "";
+
+                sw.Write("namespace ");
+                sw.Write(generator.GetNamespace("VtblIndexAttribute"));
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
             }
             else
             {
-                sw.WriteLine();
-                sw.WriteLine('{');
+                // The shared namespace is already open; emit only the type body, separated from
+                // the preceding content by a blank line.
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    indentString = "";
+                }
+
+                if (hasNamespaceContent)
+                {
+                    sw.WriteLine();
+                }
             }
 
             sw.Write(indentString);
@@ -871,7 +1075,7 @@ public partial class PInvokeGenerator
             sw.Write(indentString);
             sw.WriteLine('}');
 
-            if (!generator.Config.GenerateFileScopedNamespaces)
+            if (generator.Config.GenerateMultipleFiles && !generator.Config.GenerateFileScopedNamespaces)
             {
                 sw.WriteLine('}');
             }
@@ -880,9 +1084,11 @@ public partial class PInvokeGenerator
             {
                 stream = null;
             }
+
+            return true;
         }
 
-        static void GenerateTransparentStructs(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
+        static void GenerateTransparentStructs(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen, bool hasNamespaceContent)
         {
             var config = generator.Config;
 
@@ -903,43 +1109,63 @@ public partial class PInvokeGenerator
                 using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
                 sw.NewLine = "\n";
 
-                if (!string.IsNullOrEmpty(config.HeaderText))
-                {
-                    sw.WriteLine(config.HeaderText);
-                }
-
                 var indentString = "    ";
                 var targetNamespace = generator.GetNamespace(name);
 
-                sw.WriteLine("using System;");
-
-                if (kind == PInvokeGeneratorTransparentStructKind.HandleWin32)
+                if (generator.Config.GenerateMultipleFiles)
                 {
-                    var handleNamespace = generator.GetNamespace("HANDLE");
-
-                    if (targetNamespace != handleNamespace)
+                    if (!string.IsNullOrEmpty(config.HeaderText))
                     {
-                        sw.Write("using ");
-                        sw.Write(handleNamespace);
-                        sw.WriteLine(';');
+                        sw.WriteLine(config.HeaderText);
                     }
-                }
 
-                sw.WriteLine();
+                    sw.WriteLine("using System;");
 
-                sw.Write("namespace ");
-                sw.Write(targetNamespace);
+                    if (kind == PInvokeGeneratorTransparentStructKind.HandleWin32)
+                    {
+                        var handleNamespace = generator.GetNamespace("HANDLE");
 
-                if (generator.Config.GenerateFileScopedNamespaces)
-                {
-                    sw.WriteLine(';');
+                        if (targetNamespace != handleNamespace)
+                        {
+                            sw.Write("using ");
+                            sw.Write(handleNamespace);
+                            sw.WriteLine(';');
+                        }
+                    }
+
                     sw.WriteLine();
-                    indentString = "";
+
+                    sw.Write("namespace ");
+                    sw.Write(targetNamespace);
+
+                    if (generator.Config.GenerateFileScopedNamespaces)
+                    {
+                        sw.WriteLine(';');
+                        sw.WriteLine();
+                        indentString = "";
+                    }
+                    else
+                    {
+                        sw.WriteLine();
+                        sw.WriteLine('{');
+                    }
                 }
                 else
                 {
-                    sw.WriteLine();
-                    sw.WriteLine('{');
+                    // The shared namespace is already open; emit only the type body, separated
+                    // from the preceding content by a blank line.
+
+                    if (generator.Config.GenerateFileScopedNamespaces)
+                    {
+                        indentString = "";
+                    }
+
+                    if (hasNamespaceContent)
+                    {
+                        sw.WriteLine();
+                    }
+
+                    hasNamespaceContent = true;
                 }
 
                 sw.Write(indentString);
@@ -1358,7 +1584,7 @@ public partial class PInvokeGenerator
                 sw.Write(indentString);
                 sw.WriteLine('}');
 
-                if (!generator.Config.GenerateFileScopedNamespaces)
+                if (generator.Config.GenerateMultipleFiles && !generator.Config.GenerateFileScopedNamespaces)
                 {
                     sw.WriteLine('}');
                 }
