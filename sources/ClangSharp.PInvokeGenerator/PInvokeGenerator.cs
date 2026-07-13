@@ -1430,25 +1430,28 @@ public sealed partial class PInvokeGenerator : IDisposable
         var hasVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual && (method.OverriddenMethods.Count == 0));
         hasBaseVtbl = false;
 
+        var indirectVtblCount = 0;
+
+        foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+        {
+            var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+
+            if ((HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl) && !HasField(baseCxxRecordDecl))
+            {
+                indirectVtblCount++;
+            }
+        }
+
+        // Multiple virtual bases require a distinct vtable pointer per base subobject, but the
+        // generated bindings only model a single, flattened `lpVtbl`. This is true even when the
+        // derived type introduces its own virtuals (`hasVtbl`), so the warning must fire regardless.
+        if (indirectVtblCount > 1)
+        {
+            AddDiagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'multiple virtual bases'. Generated bindings may be incomplete.", cxxRecordDecl);
+        }
+
         if (!hasVtbl)
         {
-            var indirectVtblCount = 0;
-
-            foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
-            {
-                var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
-
-                if ((HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl) && !HasField(baseCxxRecordDecl))
-                {
-                    indirectVtblCount++;
-                }
-            }
-
-            if (indirectVtblCount > 1)
-            {
-                AddDiagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'multiple virtual bases'. Generated bindings may be incomplete.", cxxRecordDecl);
-            }
-
             hasBaseVtbl = indirectVtblCount != 0;
         }
 
