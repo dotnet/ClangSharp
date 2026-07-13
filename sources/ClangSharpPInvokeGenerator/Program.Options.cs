@@ -182,6 +182,7 @@ internal static partial class Program
         new TwoColumnHelpRow("", ""),
 
         new TwoColumnHelpRow("log-exclusions", "A list of excluded declaration types should be generated. This will also log if the exclusion was due to an exact or partial match."),
+        new TwoColumnHelpRow("log-invalid-remappings", "A diagnostic should be generated for each remapping whose value is not directly expressible in an unmanaged signature, such as a fixed-size-buffer shape that was lowered to a pointer."),
         new TwoColumnHelpRow("log-potential-typedef-remappings", "A list of potential typedef remappings should be generated. This can help identify missing remappings."),
         new TwoColumnHelpRow("log-visited-files", "A list of the visited files should be generated. This can help identify traversal issues."),
     ];

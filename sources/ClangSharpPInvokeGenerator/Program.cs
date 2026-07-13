@@ -459,6 +459,12 @@ internal static partial class Program
                     break;
                 }
 
+                case "log-invalid-remappings":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.LogInvalidRemappings;
+                    break;
+                }
+
                 case "log-potential-typedef-remappings":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.LogPotentialTypedefRemappings;

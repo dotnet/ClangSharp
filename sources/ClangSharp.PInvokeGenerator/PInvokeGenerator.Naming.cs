@@ -812,6 +812,16 @@ public sealed partial class PInvokeGenerator
             nativeTypeName = string.Empty;
         }
 
+        if (TryLowerFixedSizeBufferRemapping(remappedName, out var loweredName))
+        {
+            remappedName = loweredName;
+        }
+
+        return remappedName;
+    }
+
+    private static bool TryLowerFixedSizeBufferRemapping(string remappedName, out string loweredName)
+    {
         if (remappedName.IndexOf('[', StringComparison.Ordinal) is int bracketIndex and >= 0 &&
             (bracketIndex + 1) < remappedName.Length && char.IsAsciiDigit(remappedName[bracketIndex + 1]))
         {
@@ -822,10 +832,12 @@ public sealed partial class PInvokeGenerator
             // A managed array such as `int[]` has an empty subscript and is left untouched.
 
             var rank = remappedName.AsSpan().Count('[');
-            remappedName = string.Concat(remappedName.AsSpan(0, bracketIndex), new string('*', rank));
+            loweredName = string.Concat(remappedName.AsSpan(0, bracketIndex), new string('*', rank));
+            return true;
         }
 
-        return remappedName;
+        loweredName = remappedName;
+        return false;
     }
 }
 

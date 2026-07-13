@@ -523,6 +523,20 @@ public sealed partial class PInvokeGenerator : IDisposable
                     return result;
                 }
             }
+
+            if (_config.LogInvalidRemappings)
+            {
+                foreach (var kvp in _config._remappedNames)
+                {
+                    var name = kvp.Key;
+                    var remappedName = kvp.Value;
+
+                    if (TryLowerFixedSizeBufferRemapping(remappedName, out var loweredName))
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Potential invalid remapping '{name}={remappedName}'. A fixed-size-buffer type is not directly expressible in an unmanaged signature; it was lowered to the pointer '{loweredName}'.");
+                    }
+                }
+            }
         }
         catch (Exception e)
         {

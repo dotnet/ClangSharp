@@ -92,4 +92,6 @@ public enum PInvokeGeneratorConfigurationOptions : long
     DontUseUsingStaticsForGuidMember = 1L << 40,
 
     GenerateFixedBufferIndexerOverloads = 1L << 41,
+
+    LogInvalidRemappings = 1L << 42,
 }

@@ -311,6 +311,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool LogPotentialTypedefRemappings => (_options & PInvokeGeneratorConfigurationOptions.LogPotentialTypedefRemappings) != 0;
 
+    public bool LogInvalidRemappings => (_options & PInvokeGeneratorConfigurationOptions.LogInvalidRemappings) != 0;
+
     public bool LogVisitedFiles => (_options & PInvokeGeneratorConfigurationOptions.LogVisitedFiles) != 0;
 
     [AllowNull]
