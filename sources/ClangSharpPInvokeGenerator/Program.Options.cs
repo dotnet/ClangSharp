@@ -61,7 +61,7 @@ internal static partial class Program
     private static readonly CommandLineOption s_headerFile = Single(s_headerOptionAliases, "A file which contains the header to prefix every generated file with.");
     private static readonly CommandLineOption s_includedNames = Multi(s_includeOptionAliases, "A declaration name to include in binding generation.");
     private static readonly CommandLineOption s_includeDirectories = Multi(s_includeDirectoryOptionAliases, "Add directory to include search path.");
-    private static readonly CommandLineOption s_language = Single(s_languageOptionAliases, "Treat subsequent input files as having type <language>.", defaultValue: "c++", valueName: "c|c++", allowedValues: ["c", "c++"]);
+    private static readonly CommandLineOption s_language = Single(s_languageOptionAliases, "Treat subsequent input files as having type <language>.", defaultValue: "c++", valueName: "c|c++|objective-c|objective-c++", allowedValues: ["c", "c++", "objective-c", "objective-c++"]);
     private static readonly CommandLineOption s_libraryPath = Single(s_libraryOptionAliases, "The string to use in the DllImport attribute used when generating bindings.");
     private static readonly CommandLineOption s_methodClassName = Single(s_methodClassNameOptionAliases, "The name of the static class that will contain the generated method bindings.", defaultValue: "Methods");
     private static readonly CommandLineOption s_namespaceName = Single(s_namespaceOptionAliases, "The namespace in which to place the generated bindings.");
@@ -227,6 +227,7 @@ internal static partial class Program
         new HelpRow("generate-marker-interfaces", "Bindings for marker interfaces representing native inheritance hierarchies should be generated."),
         new HelpRow("generate-native-bitfield-attribute", "[NativeBitfield(\"\", offset: #, length: #)] attribute should be generated to document the encountered bitfield layout."),
         new HelpRow("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
+        new HelpRow("generate-objective-c-bindings", "Bindings for Objective-C declarations (currently @protocol types) should be generated. This is experimental and requires the Objective-C runtime (libobjc) at runtime."),
         new HelpRow("generate-generic-pointer-wrapper", "Pointer<T> should be used for limited generic type support."),
         new HelpRow("generate-setslastsystemerror-attribute", "[SetsLastSystemError] attribute should be generated rather than using SetLastError = true."),
         new HelpRow("generate-template-bindings", "Bindings for template-definitions should be generated. This is currently experimental."),

@@ -342,6 +342,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool GenerateNativeInheritanceAttribute => (_options & PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute) != 0;
 
+    public bool GenerateObjectiveCBindings => (_options & PInvokeGeneratorConfigurationOptions.GenerateObjectiveCBindings) != 0;
+
     public bool GeneratePreviewCode => (_options & PInvokeGeneratorConfigurationOptions.GeneratePreviewCode) != 0;
 
     public bool GenerateSetsLastSystemErrorAttribute => (_options & PInvokeGeneratorConfigurationOptions.GenerateSetsLastSystemErrorAttribute) != 0;

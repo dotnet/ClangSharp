@@ -111,7 +111,17 @@ public partial class PInvokeGenerator
             // case CX_DeclKind_ObjCCategoryImpl:
             // case CX_DeclKind_ObjCImplementation:
             // case CX_DeclKind_ObjCInterface:
-            // case CX_DeclKind_ObjCProtocol:
+
+            case CX_DeclKind_ObjCProtocol:
+            {
+                if (_config.GenerateObjectiveCBindings)
+                {
+                    VisitObjCProtocolDecl((ObjCProtocolDecl)decl);
+                    break;
+                }
+                goto default;
+            }
+
             // case CX_DeclKind_ObjCMethod:
             // case CX_DeclKind_ObjCProperty:
             // case CX_DeclKind_BuiltinTemplate:
