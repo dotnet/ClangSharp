@@ -6,7 +6,12 @@
       <enumerator name="MyEnum2_Value1" access="public">
         <type primitive="False">int</type>
         <value>
-          <code>MyEnum1_Value1</code>
+          <value>
+            <cast>int</cast>
+            <value>
+              <code>MyEnum1_Value1</code>
+            </value>
+          </value>
         </value>
       </enumerator>
     </enumeration>

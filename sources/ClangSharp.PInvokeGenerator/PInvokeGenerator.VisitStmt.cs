@@ -927,66 +927,57 @@ public partial class PInvokeGenerator
                 firstIndex++;
             }
 
-            switch (name)
+            // `operator=` now remaps to `op_Assign`, so key the trivial-copy lowering off the raw
+            // operator spelling rather than the remapped name.
+            if ((functionDeclName == "operator=") && functionDecl.IsDefaulted)
             {
-                case "operator=":
+                var expr = args[firstIndex];
+
+                if (firstIndex != 0)
                 {
-                    if (!functionDecl.IsDefaulted)
+                    outputBuilder.Write(" = ");
+
+                    if (!IsTypePointerOrReference(args[firstIndex - 1]))
                     {
-                        goto default;
-                    }
-
-                    var expr = args[firstIndex];
-
-                    if (firstIndex != 0)
-                    {
-                        outputBuilder.Write(" = ");
-
-                        if (!IsTypePointerOrReference(args[firstIndex - 1]))
+                        if (IsType<ReferenceType>(expr))
                         {
-                            if (IsType<ReferenceType>(expr))
+                            outputBuilder.Write('*');
+                        }
+                        else if (IsStmtAsWritten<DeclRefExpr>(expr, out var declRefExpr, removeParens: true))
+                        {
+                            if (IsTypePointerOrReference(declRefExpr.Decl))
                             {
                                 outputBuilder.Write('*');
                             }
-                            else if (IsStmtAsWritten<DeclRefExpr>(expr, out var declRefExpr, removeParens: true))
-                            {
-                                if (IsTypePointerOrReference(declRefExpr.Decl))
-                                {
-                                    outputBuilder.Write('*');
-                                }
-                            }
                         }
                     }
-
-                    Visit(expr);
-                    break;
                 }
 
-                default:
+                Visit(expr);
+            }
+            else
+            {
+                if (firstIndex != 0)
                 {
-                    if (firstIndex != 0)
-                    {
-                        outputBuilder.Write('.');
-                    }
-
-                    outputBuilder.Write(name);
-
-                    outputBuilder.Write('(');
-
-                    if (args.Count > firstIndex)
-                    {
-                        Visit(args[firstIndex]);
-
-                        for (var i = firstIndex + 1; i < args.Count; i++)
-                        {
-                            outputBuilder.Write(", ");
-                            Visit(args[i]);
-                        }
-                    }
-
-                    outputBuilder.Write(')');
-                    break;
+                    outputBuilder.Write('.');
                 }
+
+                outputBuilder.Write(name);
+
+                outputBuilder.Write('(');
+
+                if (args.Count > firstIndex)
+                {
+                    Visit(args[firstIndex]);
+
+                    for (var i = firstIndex + 1; i < args.Count; i++)
+                    {
+                        outputBuilder.Write(", ");
+                        Visit(args[i]);
+                    }
+                }
+
+                outputBuilder.Write(')');
             }
         }
         else
