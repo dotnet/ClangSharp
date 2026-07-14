@@ -12,6 +12,7 @@ public sealed class PInvokeGeneratorConfiguration
     private const string DefaultClassValue = "Methods";
     private const string DefaultLibraryPathValue = @"""""";
     private const string DefaultMethodPrefixToStripValue = "";
+    private const string DefaultTypePrefixToStripValue = "";
     private const string DefaultTestOutputLocationValue = "";
 
     private readonly string _language;
@@ -25,6 +26,7 @@ public sealed class PInvokeGeneratorConfiguration
 
     private readonly string _defaultClass;
     private readonly string _methodPrefixToStrip;
+    private readonly string _typePrefixToStrip;
     private readonly string _testOutputLocation;
 
     internal readonly HashSet<string> _excludedNames;
@@ -82,6 +84,7 @@ public sealed class PInvokeGeneratorConfiguration
         _headerText = string.IsNullOrWhiteSpace(headerFile) ? string.Empty : File.ReadAllText(headerFile);
         _libraryPath = DefaultLibraryPathValue;
         _methodPrefixToStrip = DefaultMethodPrefixToStripValue;
+        _typePrefixToStrip = DefaultTypePrefixToStripValue;
         _testOutputLocation = DefaultTestOutputLocationValue;
 
         _excludedNames = new HashSet<string>(QualifiedNameComparer.Default);
@@ -402,6 +405,20 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             _methodPrefixToStrip = string.IsNullOrWhiteSpace(value) ? DefaultMethodPrefixToStripValue : value;
+        }
+    }
+
+    [AllowNull]
+    public string TypePrefixToStrip
+    {
+        get
+        {
+            return _typePrefixToStrip;
+        }
+
+        init
+        {
+            _typePrefixToStrip = string.IsNullOrWhiteSpace(value) ? DefaultTypePrefixToStripValue : value;
         }
     }
 

@@ -172,6 +172,7 @@ Options:
   -om, --output-mode <CSharp|Xml>                                  The mode describing how the information collected from the headers are presented in the resultant bindings. [default: CSharp]
   -o, --output <output>                                            The output location to write the generated bindings to. []
   -p, --prefixStrip <prefixStrip>                                  The prefix to strip from the generated method bindings. []
+  -tp, --typePrefixStrip <typePrefixStrip>                         The prefix to strip from the generated enum, struct, and union type bindings (and their enum member names). []
   --nativeTypeNamesToStrip <nativeTypeNamesToStrip>                The contents to strip from the generated NativeTypeName attributes. []
   -r, --remap <remap>                                              A declaration name to be remapped to another name during binding generation. []
   -rt, --remap-type <remap-type>                                   A type (record or enum) declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name. []

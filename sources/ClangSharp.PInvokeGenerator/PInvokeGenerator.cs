@@ -1029,14 +1029,24 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private string EscapeAndStripEnumMemberName(string name, string enumTypeName)
     {
-        if (Config.StripEnumMemberTypeName)
+        var typePrefixToStrip = _config.TypePrefixToStrip;
+
+        if (Config.StripEnumMemberTypeName || (typePrefixToStrip.Length != 0))
         {
-            var escapedName = PrefixAndStrip(name, enumTypeName, trimChar: '_');
-            if (escapedName.Length > 0 && char.IsAsciiDigit(escapedName[0]))
+            // Strip the library-wide type prefix first (e.g. `abc_` from `abc_some_enum_key1`),
+            // then optionally the enum type name itself, so both forms collapse to `key1`.
+            var strippedName = PrefixAndStrip(name, typePrefixToStrip);
+
+            if (Config.StripEnumMemberTypeName)
             {
-                escapedName = '_' + escapedName;
+                strippedName = PrefixAndStrip(strippedName, enumTypeName, trimChar: '_');
             }
-            return escapedName;
+
+            if (strippedName.Length > 0 && char.IsAsciiDigit(strippedName[0]))
+            {
+                strippedName = '_' + strippedName;
+            }
+            return strippedName;
         }
         return EscapeName(name);
     }
@@ -1709,6 +1719,33 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         name = PrefixAndStrip(name, _config.MethodPrefixToStrip);
         return $"_{name}{((overloadIndex != 0) ? overloadIndex.ToString(CultureInfo.InvariantCulture) : "")}";
+    }
+
+    // Strips the configured type prefix from an enum, struct, or union type name. The result is guarded so it
+    // remains a valid C# identifier: an empty result (the name was exactly the prefix) keeps the original name,
+    // and a leading digit is prefixed with an underscore. Collisions that result from stripping are the user's
+    // responsibility and can be resolved with an explicit `--remap`.
+    private string StripTypePrefix(string name)
+    {
+        var prefix = _config.TypePrefixToStrip;
+
+        if (prefix.Length == 0)
+        {
+            return name;
+        }
+
+        var strippedName = PrefixAndStrip(name, prefix);
+
+        if (strippedName.Length == 0)
+        {
+            return name;
+        }
+
+        if (char.IsAsciiDigit(strippedName[0]))
+        {
+            strippedName = '_' + strippedName;
+        }
+        return strippedName;
     }
 
     private void StartUsingOutputBuilder(string name, bool includeTestOutput = false)
