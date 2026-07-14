@@ -96,6 +96,4 @@ public enum PInvokeGeneratorConfigurationOptions : long
     GenerateGeneratedCodeAttributeAsType = 1L << 42,
 
     ExcludeGeneratedCodeAttribute = 1L << 43,
-
-    GenerateEqualityMethods = 1L << 44,
 }

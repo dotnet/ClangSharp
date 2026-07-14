@@ -37,6 +37,7 @@ internal static partial class Program
     private static readonly string[] s_withClassOptionAliases = ["--with-class", "-wc"];
     private static readonly string[] s_withConditionalOptionAliases = ["--with-conditional", "-wcond"];
     private static readonly string[] s_withEnumMemberStripOptionAliases = ["--with-enum-member-strip", "-wems"];
+    private static readonly string[] s_withEqualityOptionAliases = ["--with-equality", "-we"];
     private static readonly string[] s_withGuidOptionAliases = ["--with-guid", "-wg"];
     private static readonly string[] s_withLengthOptionAliases = ["--with-length", "-wl"];
     private static readonly string[] s_withLibraryPathOptionAliases = ["--with-librarypath", "-wlb"];
@@ -84,6 +85,7 @@ internal static partial class Program
     private static readonly CommandLineOption s_withClassNameValuePairs = Multi(s_withClassOptionAliases, "A class to be used for the given remapped constant or function declaration name during binding generation. Supports wildcards.");
     private static readonly CommandLineOption s_withConditional = Single(s_withConditionalOptionAliases, "A preprocessor symbol used to wrap single-file C# output in a leading '#if <symbol>' and trailing '#endif'. Useful when files can't be conditionally excluded at the project level (e.g. Unity).", valueName: "symbol");
     private static readonly CommandLineOption s_withEnumMemberStripNameValuePairs = Multi(s_withEnumMemberStripOptionAliases, "How to strip a prefix or suffix from the members of the given remapped enum name during binding generation. Mode is one of `none`, `common-prefix`, `common-suffix`, `type-name`, `prefix:<str>`, or `suffix:<str>`. Supports wildcards.");
+    private static readonly CommandLineOption s_withEqualities = Multi(s_withEqualityOptionAliases, "Generate IEquatable<T> with field-wise Equals, GetHashCode, and the == and != operators for the given struct. Opt-in and not valid for every native type; a named struct also opts in the nested and base structs it compares. Supports wildcards.");
     private static readonly CommandLineOption s_withGuidNameValuePairs = Multi(s_withGuidOptionAliases, "A GUID to be used for the given declaration during binding generation. Supports wildcards.");
     private static readonly CommandLineOption s_withLengthNameValuePairs = Multi(s_withLengthOptionAliases, "A length to be used for the given declaration during binding generation. Supports wildcards.");
     private static readonly CommandLineOption s_withLibraryPathNameValuePairs = Multi(s_withLibraryPathOptionAliases, "A library path to be used for the given declaration during binding generation. Supports wildcards.");
@@ -133,6 +135,7 @@ internal static partial class Program
         s_withClassNameValuePairs,
         s_withConditional,
         s_withEnumMemberStripNameValuePairs,
+        s_withEqualities,
         s_withGuidNameValuePairs,
         s_withLengthNameValuePairs,
         s_withLibraryPathNameValuePairs,
@@ -214,7 +217,6 @@ internal static partial class Program
         new HelpRow("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
         new HelpRow("generate-disable-runtime-marshalling", "[assembly: DisableRuntimeMarshalling] should be generated."),
         new HelpRow("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
-        new HelpRow("generate-equality-methods", "Generated structs should implement IEquatable<T> with field-wise Equals, GetHashCode, and the == and != operators. Opt-in; not valid for every native type."),
         new HelpRow("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
         new HelpRow("generate-fixed-buffer-indexer-overloads", "Fixed sized buffer helper types should generate additional uint, nint, and nuint indexer overloads."),
         new HelpRow("generate-generated-code=<mode>", "Controls the emission of the GeneratedCode attribute. 'assembly' (default) emits a single '[assembly: GeneratedCode]' when helper types are generated; 'type' instead annotates each generated top-level type; 'none' emits neither."),

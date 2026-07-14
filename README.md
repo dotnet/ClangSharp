@@ -188,6 +188,7 @@ Options:
   -wcc, --with-callconv <with-callconv>                            A calling convention to be used for the given declaration during binding generation. Supports wildcards. []
   -wc, --with-class <with-class>                                   A class to be used for the given remapped constant or function declaration name during binding generation. Supports wildcards. []
   -wems, --with-enum-member-strip <with-enum-member-strip>         How to strip a prefix or suffix from the members of the given remapped enum name during binding generation. Mode is one of `none`, `common-prefix`, `common-suffix`, `type-name`, `prefix:<str>`, or `suffix:<str>`. Supports wildcards. []
+  -we, --with-equality <with-equality>                             Generate IEquatable<T> with field-wise Equals, GetHashCode, and the == and != operators for the given struct. Opt-in and not valid for every native type; a named struct also opts in the nested and base structs it compares. Supports wildcards. []
   -wg, --with-guid <with-guid>                                     A GUID to be used for the given declaration during binding generation. Supports wildcards. []
   -wl, --with-length <with-length>                                 A length to be used for the given declaration during binding generation. Supports wildcards. []
   -wlb, --with-librarypath <with-librarypath>                      A library path to be used for the given declaration during binding generation. Supports wildcards. []
@@ -259,7 +260,6 @@ Options:
   generate-cpp-attributes                  [CppAttributeList("")] should be generated to document the encountered C++ attributes.
   generate-disable-runtime-marshalling     [assembly: DisableRuntimeMarshalling] should be generated.
   generate-doc-includes                    <include> xml documentation tags should be generated for declarations.
-  generate-equality-methods                Generated structs should implement IEquatable<T> with field-wise Equals, GetHashCode, and the == and != operators. Opt-in; not valid for every native type.
   generate-file-scoped-namespaces          Namespaces should be scoped to the file to reduce nesting.
   generate-fixed-buffer-indexer-overloads  Fixed sized buffer helper types should generate additional uint, nint, and nuint indexer overloads.
   generate-guid-member                     Types with an associated GUID should have a corresponding member generated.

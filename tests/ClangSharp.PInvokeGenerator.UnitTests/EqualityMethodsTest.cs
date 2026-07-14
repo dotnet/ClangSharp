@@ -8,7 +8,7 @@ namespace ClangSharp.UnitTests;
 
 /// <summary>
 /// Regression tests for https://github.com/dotnet/ClangSharp/issues/539.
-/// The opt-in <c>generate-equality-methods</c> option makes generated structs implement
+/// The opt-in <c>--with-equality</c> option makes named (or wildcard <c>*</c>) generated structs implement
 /// <c>IEquatable&lt;T&gt;</c> with a field-wise <c>Equals</c>, a matching <c>GetHashCode</c>, and the
 /// <c>==</c> / <c>!=</c> operators. This is strictly opt-in because element-wise comparison is not valid
 /// for every native type. Eligibility is transitive and covers scalars, pointers, nested records,
@@ -39,7 +39,7 @@ struct MyData
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
     }
 
     [Test]
@@ -52,7 +52,7 @@ struct MyData
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
     }
 
     [Test]
@@ -67,7 +67,7 @@ struct MyData
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
     }
 
     [Test]
@@ -81,7 +81,7 @@ struct MyData
 };
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+        return ValidateGeneratedCSharpCompatibleWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
     }
 
     [Test]
@@ -102,7 +102,7 @@ struct Outer
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
     }
 
     [Test]
@@ -119,7 +119,7 @@ struct Outer
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
     }
 
     [Test]
@@ -139,7 +139,7 @@ struct Derived : Base
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
     }
 
     [Test]
@@ -158,7 +158,7 @@ struct Derived : Base
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
     }
 
     [Test]
@@ -174,7 +174,7 @@ struct Derived : Base
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
     }
 
     [Test]
@@ -193,6 +193,33 @@ struct Derived : Base
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
+    }
+
+    [Test]
+    public Task NamedStructOptsInNestedDependencies()
+    {
+        // Naming only `MyData` still emits equality for the nested `Point` it compares by value, so
+        // MyData.Equals binds to Point's generated Equals(Point) rather than boxing through
+        // ValueType.Equals. An unrelated `Other` that MyData never references is left untouched.
+        var inputContents = @"struct Point
+{
+    int X;
+    int Y;
+};
+
+struct MyData
+{
+    int Value;
+    Point Origin;
+};
+
+struct Other
+{
+    int Unrelated;
+};
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["MyData"]);
     }
 }
