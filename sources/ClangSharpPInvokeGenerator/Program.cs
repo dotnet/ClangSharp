@@ -531,6 +531,7 @@ internal static partial class Program
         clangCommandLineArgs = [.. clangCommandLineArgs, .. includeDirectories.Select(x => $"--include-directory={x}")];
         clangCommandLineArgs = [.. clangCommandLineArgs, .. defineMacros.Select(x => $"--define-macro={x}")];
         clangCommandLineArgs = [.. clangCommandLineArgs, .. additionalArgs];
+        clangCommandLineArgs = AddResourceDirectory(clangCommandLineArgs, additionalArgs);
 
         var translationFlags = CXTranslationUnit_None;
 

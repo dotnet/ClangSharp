@@ -24,6 +24,8 @@ internal static partial class Program
     private static readonly string[] s_remapOptionAliases = ["--remap", "-r"];
     private static readonly string[] s_remapTypeOptionAliases = ["--remap-type", "-rt"];
     private static readonly string[] s_remapFieldOptionAliases = ["--remap-field", "-rf"];
+    private static readonly string[] s_resourceDirectoryOptionAliases = ["--resource-directory", "-rd"];
+    private static readonly string[] s_resourceDirectoryDetectionOptionAliases = ["--no-resource-directory-detection"];
     private static readonly string[] s_stdOptionAliases = ["--std", "-std"];
     private static readonly string[] s_testOutputOptionAliases = ["--test-output", "-to"];
     private static readonly string[] s_traverseOptionAliases = ["--traverse", "-t"];
@@ -66,6 +68,8 @@ internal static partial class Program
     private static readonly CommandLineOption s_remappedNameValuePairs = Multi(s_remapOptionAliases, "A declaration name to be remapped to another name during binding generation.");
     private static readonly CommandLineOption s_remappedTypeNameValuePairs = Multi(s_remapTypeOptionAliases, "A type (record or enum) declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name.");
     private static readonly CommandLineOption s_remappedFieldNameValuePairs = Multi(s_remapFieldOptionAliases, "A field declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name.");
+    private static readonly CommandLineOption s_resourceDirectory = Single(s_resourceDirectoryOptionAliases, "The Clang resource directory containing the builtin headers (such as stddef.h). When omitted, an installed and version-matched Clang's resource directory is automatically detected.", valueName: "directory");
+    private static readonly CommandLineOption s_resourceDirectoryDetectionDisabled = Flag(s_resourceDirectoryDetectionOptionAliases, "Disable the automatic detection of the Clang resource directory.");
     private static readonly CommandLineOption s_std = Single(s_stdOptionAliases, "Language standard to compile for.");
     private static readonly CommandLineOption s_testOutputLocation = Single(s_testOutputOptionAliases, "The output location to write the generated tests to.");
     private static readonly CommandLineOption s_traversalNames = Multi(s_traverseOptionAliases, "A file name included either directly or indirectly by -f that should be traversed during binding generation.");
@@ -110,6 +114,8 @@ internal static partial class Program
         s_remappedNameValuePairs,
         s_remappedTypeNameValuePairs,
         s_remappedFieldNameValuePairs,
+        s_resourceDirectory,
+        s_resourceDirectoryDetectionDisabled,
         s_std,
         s_testOutputLocation,
         s_traversalNames,

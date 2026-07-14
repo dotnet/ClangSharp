@@ -147,6 +147,13 @@ authoritative. This section groups the options by intent and notes when to reach
   `-Wno-*` warning suppression.
 * **`-x, --language` / `-std, --std`** — force C vs C++ and the language standard when the headers
   need it.
+* **`-rd, --resource-directory`** — the Clang resource directory holding the builtin headers
+  (`stddef.h`, `stdarg.h`, the intrinsics, ...). You normally don't need this: on Unix the tool
+  auto-detects an installed, version-matched Clang the same way the `clang` driver locates its own
+  builtin headers, and only warns (never fails) when nothing is found. Auto-detection is skipped on
+  Windows, where the MSVC/Windows SDK toolchain ships compatible copies of these headers so parsing
+  works without one. Set it explicitly to pin a specific toolchain (honored on every platform), or
+  pass `--no-resource-directory-detection` to opt out.
 
 ### Naming and remapping
 
