@@ -87,6 +87,7 @@ internal static partial class Program
         var withAttributeNameValuePairs = s_withAttributeNameValuePairs.GetValues();
         var withCallConvNameValuePairs = s_withCallConvNameValuePairs.GetValues();
         var withClassNameValuePairs = s_withClassNameValuePairs.GetValues();
+        var withEnumMemberStripNameValuePairs = s_withEnumMemberStripNameValuePairs.GetValues();
         var withGuidNameValuePairs = s_withGuidNameValuePairs.GetValues();
         var withLengthNameValuePairs = s_withLengthNameValuePairs.GetValues();
         var withLibraryPathNameValuePairs = s_withLibraryPathNameValuePairs.GetValues();
@@ -127,6 +128,7 @@ internal static partial class Program
         ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
         ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
         ParseKeyValuePairs(withClassNameValuePairs, errorList, out Dictionary<string, string> withClasses);
+        ParseKeyValuePairs(withEnumMemberStripNameValuePairs, errorList, out Dictionary<string, string> withEnumMemberStrip);
         ParseKeyValuePairs(withGuidNameValuePairs, errorList, out Dictionary<string, Guid> withGuids);
         ParseKeyValuePairs(withLengthNameValuePairs, errorList, out Dictionary<string, string> withLengths);
         ParseKeyValuePairs(withLibraryPathNameValuePairs, errorList, out Dictionary<string, string> withLibraryPaths);
@@ -598,6 +600,7 @@ internal static partial class Program
                 WithAttributes = withAttributes,
                 WithCallConvs = withCallConvs,
                 WithClasses = withClasses,
+                WithEnumMemberStrip = withEnumMemberStrip,
                 WithGuids = withGuids,
                 WithLengths = withLengths,
                 WithLibraryPaths = withLibraryPaths,

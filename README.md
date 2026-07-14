@@ -187,6 +187,7 @@ Options:
   -wa, --with-attribute <with-attribute>                           An attribute to be added to the given remapped declaration name during binding generation. Supports wildcards. []
   -wcc, --with-callconv <with-callconv>                            A calling convention to be used for the given declaration during binding generation. Supports wildcards. []
   -wc, --with-class <with-class>                                   A class to be used for the given remapped constant or function declaration name during binding generation. Supports wildcards. []
+  -wems, --with-enum-member-strip <with-enum-member-strip>         How to strip a prefix or suffix from the members of the given remapped enum name during binding generation. Mode is one of `none`, `common-prefix`, `common-suffix`, `type-name`, `prefix:<str>`, or `suffix:<str>`. Supports wildcards. []
   -wg, --with-guid <with-guid>                                     A GUID to be used for the given declaration during binding generation. Supports wildcards. []
   -wl, --with-length <with-length>                                 A length to be used for the given declaration during binding generation. Supports wildcards. []
   -wlb, --with-librarypath <with-librarypath>                      A library path to be used for the given declaration during binding generation. Supports wildcards. []

@@ -309,7 +309,7 @@ public partial class PInvokeGenerator
             parentName = _outputBuilder.Name;
         }
 
-        var escapedName = EscapeAndStripEnumMemberName(name, parentName);
+        var escapedName = EscapeAndStripEnumMemberName(name, parentName, enumConstantDecl.DeclContext as EnumDecl);
 
         var kind = isAnonymousEnum ? ValueKind.Primitive : ValueKind.Enumerator;
         var flags = ValueFlags.Constant;

@@ -83,6 +83,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly HashSet<string> _topLevelClassNames;
     private readonly HashSet<string> _usedRemappings;
     private readonly HashSet<RecordDecl> _declashedRecordNames;
+    private readonly Dictionary<EnumDecl, (EnumMemberStripKind Kind, string Text)> _enumMemberStrips;
     private readonly string _placeholderMacroType;
 
     private string _filePath;
@@ -199,6 +200,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             _topLevelClassUsings = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
             _usedRemappings = new HashSet<string>(StringComparer.Ordinal);
             _declashedRecordNames = [];
+            _enumMemberStrips = [];
             _filePath = "";
             _clangCommandLineArgs = [];
             _placeholderMacroType = GetPlaceholderMacroType();
@@ -1027,8 +1029,43 @@ public sealed partial class PInvokeGenerator : IDisposable
         return EscapeName(name);
     }
 
-    private string EscapeAndStripEnumMemberName(string name, string enumTypeName)
+    private string EscapeAndStripEnumMemberName(string name, string enumTypeName, EnumDecl? enumDecl = null)
     {
+        if ((enumDecl is not null) &&
+            (_config.WithEnumMemberStrip.TryGetValue(enumTypeName, out var mode) || _config.WithEnumMemberStrip.TryGetValue("*", out mode)))
+        {
+            // An explicit mode was configured for this enum (or via the `*` default) and fully determines
+            // how the member is stripped, taking precedence over the legacy type-name/type-prefix behavior.
+            switch (mode)
+            {
+                case "none":
+                {
+                    return EscapeName(name);
+                }
+
+                case "type-name":
+                {
+                    return StripEnumMemberTypeName(name, enumTypeName);
+                }
+
+                default:
+                {
+                    var (kind, text) = GetEnumMemberStrip(enumDecl, mode);
+
+                    if (kind == EnumMemberStripKind.None)
+                    {
+                        return EscapeName(name);
+                    }
+
+                    var strippedName = (kind == EnumMemberStripKind.Suffix)
+                        ? StripSuffix(name, text)
+                        : PrefixAndStrip(name, text);
+
+                    return GuardLeadingDigit(strippedName);
+                }
+            }
+        }
+
         var typePrefixToStrip = _config.TypePrefixToStrip;
 
         if (Config.StripEnumMemberTypeName || (typePrefixToStrip.Length != 0))
@@ -1042,14 +1079,169 @@ public sealed partial class PInvokeGenerator : IDisposable
                 strippedName = PrefixAndStrip(strippedName, enumTypeName, trimChar: '_');
             }
 
-            if (strippedName.Length > 0 && char.IsAsciiDigit(strippedName[0]))
-            {
-                strippedName = '_' + strippedName;
-            }
-            return strippedName;
+            return GuardLeadingDigit(strippedName);
         }
         return EscapeName(name);
     }
+
+    private static string StripEnumMemberTypeName(string name, string enumTypeName)
+    {
+        var strippedName = PrefixAndStrip(name, enumTypeName, trimChar: '_');
+        return GuardLeadingDigit(strippedName);
+    }
+
+    private static string GuardLeadingDigit(string name)
+    {
+        // A leading digit is not a valid C# identifier start, so guard it with an underscore.
+        if (name.Length > 0 && char.IsAsciiDigit(name[0]))
+        {
+            name = '_' + name;
+        }
+        return name;
+    }
+
+    private static string StripSuffix(string name, string suffix)
+    {
+        var nameSpan = name.AsSpan();
+        if (nameSpan.EndsWith(suffix, StringComparison.Ordinal))
+        {
+            return nameSpan[..^suffix.Length].ToString();
+        }
+        return name;
+    }
+
+    // Resolves, and caches per enum, the prefix/suffix that should be stripped from the members of an enum
+    // for the `common-prefix`, `common-suffix`, `prefix:<str>`, and `suffix:<str>` modes. The result is
+    // all-or-nothing: `EnumMemberStripKind.None` is returned when no valid strip exists so the whole enum
+    // keeps its original member names and stays internally consistent.
+    private (EnumMemberStripKind Kind, string Text) GetEnumMemberStrip(EnumDecl enumDecl, string mode)
+    {
+        if (_enumMemberStrips.TryGetValue(enumDecl, out var cached))
+        {
+            return cached;
+        }
+
+        var result = ComputeEnumMemberStrip(enumDecl, mode);
+        _enumMemberStrips.Add(enumDecl, result);
+        return result;
+    }
+
+    private (EnumMemberStripKind Kind, string Text) ComputeEnumMemberStrip(EnumDecl enumDecl, string mode)
+    {
+        EnumMemberStripKind kind;
+        string text;
+
+        if (mode.StartsWith("prefix:", StringComparison.Ordinal))
+        {
+            kind = EnumMemberStripKind.Prefix;
+            text = mode["prefix:".Length..];
+        }
+        else if (mode.StartsWith("suffix:", StringComparison.Ordinal))
+        {
+            kind = EnumMemberStripKind.Suffix;
+            text = mode["suffix:".Length..];
+        }
+        else if (mode == "common-prefix")
+        {
+            kind = EnumMemberStripKind.Prefix;
+            text = ComputeEnumMemberCommonAffix(enumDecl, suffix: false);
+        }
+        else if (mode == "common-suffix")
+        {
+            kind = EnumMemberStripKind.Suffix;
+            text = ComputeEnumMemberCommonAffix(enumDecl, suffix: true);
+        }
+        else
+        {
+            AddDiagnostic(DiagnosticLevel.Warning, $"Unrecognized enum member strip mode '{mode}' for enum '{GetCursorName(enumDecl)}'.", enumDecl);
+            return (EnumMemberStripKind.None, "");
+        }
+
+        if (text.Length == 0)
+        {
+            return (EnumMemberStripKind.None, "");
+        }
+
+        // Validate all-or-nothing: every member must remain a distinct, non-empty identifier after stripping.
+        var strippedNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var enumerator in enumDecl.Enumerators)
+        {
+            var name = GetRemappedCursorName(enumerator);
+            var strippedName = (kind == EnumMemberStripKind.Suffix) ? StripSuffix(name, text) : PrefixAndStrip(name, text);
+            strippedName = GuardLeadingDigit(strippedName);
+
+            if (strippedName.Length == 0)
+            {
+                AddDiagnostic(DiagnosticLevel.Info, $"Not stripping {(kind == EnumMemberStripKind.Suffix ? "suffix" : "prefix")} '{text}' from enum '{GetCursorName(enumDecl)}' because it would leave an empty member name.", enumDecl);
+                return (EnumMemberStripKind.None, "");
+            }
+
+            if (!strippedNames.Add(strippedName))
+            {
+                AddDiagnostic(DiagnosticLevel.Info, $"Not stripping {(kind == EnumMemberStripKind.Suffix ? "suffix" : "prefix")} '{text}' from enum '{GetCursorName(enumDecl)}' because it would cause member name collisions.", enumDecl);
+                return (EnumMemberStripKind.None, "");
+            }
+        }
+
+        return (kind, text);
+    }
+
+    // Auto-detects the longest common prefix (or suffix) shared by an enum's member names, trimmed back to
+    // the nearest `_` token boundary so a partial token is never cut. Returns "" when no valid affix exists
+    // (fewer than two members, no shared characters, or no `_` boundary within the shared characters).
+    private string ComputeEnumMemberCommonAffix(EnumDecl enumDecl, bool suffix)
+    {
+        var enumerators = enumDecl.Enumerators;
+
+        // The longest common affix of a single name is the whole name, which is useless, so require at least two.
+        if (enumerators.Count < 2)
+        {
+            return "";
+        }
+
+        var commonAffix = GetRemappedCursorName(enumerators[0]).AsSpan();
+
+        for (var i = 1; i < enumerators.Count; i++)
+        {
+            var name = GetRemappedCursorName(enumerators[i]).AsSpan();
+            var length = Math.Min(commonAffix.Length, name.Length);
+            var matched = 0;
+
+            while ((matched < length) && (suffix ? (commonAffix[^(matched + 1)] == name[^(matched + 1)]) : (commonAffix[matched] == name[matched])))
+            {
+                matched++;
+            }
+
+            commonAffix = suffix ? commonAffix[^matched..] : commonAffix[..matched];
+
+            if (commonAffix.Length == 0)
+            {
+                return "";
+            }
+        }
+
+        // Trim the affix back to the nearest `_` (inclusive) so we strip whole tokens only. Without this,
+        // `abc_some_enum_key1`/`key2` would share the prefix `abc_some_enum_key` and strip to `1`/`2`.
+        if (suffix)
+        {
+            var firstSeparator = commonAffix.IndexOf('_');
+            return (firstSeparator < 0) ? "" : commonAffix[firstSeparator..].ToString();
+        }
+        else
+        {
+            var lastSeparator = commonAffix.LastIndexOf('_');
+            return (lastSeparator < 0) ? "" : commonAffix[..(lastSeparator + 1)].ToString();
+        }
+    }
+
+    private enum EnumMemberStripKind
+    {
+        None,
+        Prefix,
+        Suffix,
+    }
+
 
     internal static string EscapeCharacter(char value) => value switch {
         '\0' => @"\0",
