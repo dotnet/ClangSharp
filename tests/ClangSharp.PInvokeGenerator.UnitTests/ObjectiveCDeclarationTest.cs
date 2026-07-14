@@ -173,4 +173,84 @@ namespace ClangSharp.Test
 
         return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateObjectiveCBindings, expectedDiagnostics: expectedDiagnostics, commandLineArgs: s_objectiveCCommandLineArgs, language: "objective-c", languageStandard: DefaultCStandard);
     }
+
+    [Test]
+    public Task PropertyTest()
+    {
+        var inputContents = @"@protocol Counter
+@property (readonly) int count;
+@property int step;
+@end
+";
+
+        // A `readonly` property maps to an expression-bodied getter; a read-write property maps to a
+        // `get`/`set` block whose setter dispatches the synthesized `setStep:` selector.
+        var expectedOutputContents = @"using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    [NativeTypeName(""@protocol Counter"")]
+    public unsafe partial struct Counter
+    {
+        [NativeTypeName(""Class"")]
+        public void* isa;
+
+        public static class Selectors
+        {
+            public static readonly SEL count = ObjectiveC.sel_registerName(""count"");
+            public static readonly SEL step = ObjectiveC.sel_registerName(""step"");
+            public static readonly SEL setStep_ = ObjectiveC.sel_registerName(""setStep:"");
+        }
+
+        public int count => ((delegate* unmanaged<Counter*, SEL, int>)ObjectiveC.objc_msgSend)((Counter*)Unsafe.AsPointer(ref this), Selectors.count);
+
+        public int step
+        {
+            get => ((delegate* unmanaged<Counter*, SEL, int>)ObjectiveC.objc_msgSend)((Counter*)Unsafe.AsPointer(ref this), Selectors.step);
+            set => ((delegate* unmanaged<Counter*, SEL, int, void>)ObjectiveC.objc_msgSend)((Counter*)Unsafe.AsPointer(ref this), Selectors.setStep_, value);
+        }
+    }
+
+    /// <summary>Represents an Objective-C selector (<c>SEL</c>).</summary>
+    public unsafe partial struct SEL : IEquatable<SEL>
+    {
+        public void* Value;
+
+        public SEL(void* value)
+        {
+            Value = value;
+        }
+
+        public static bool operator ==(SEL left, SEL right) => left.Value == right.Value;
+
+        public static bool operator !=(SEL left, SEL right) => left.Value != right.Value;
+
+        public override bool Equals(object? obj) => (obj is SEL other) && Equals(other);
+
+        public bool Equals(SEL other) => Value == other.Value;
+
+        public override int GetHashCode() => ((nuint)Value).GetHashCode();
+    }
+
+    /// <summary>Provides access to the Objective-C runtime (<c>libobjc</c>).</summary>
+    public static unsafe partial class ObjectiveC
+    {
+        private const string LibObjC = ""/usr/lib/libobjc.A.dylib"";
+
+        /// <summary>The raw <c>objc_msgSend</c> entry point, cast per call site to the selector's signature.</summary>
+        public static readonly void* objc_msgSend = (void*)NativeLibrary.GetExport(NativeLibrary.Load(LibObjC), ""objc_msgSend"");
+
+        [DllImport(LibObjC, EntryPoint = ""sel_registerName"", ExactSpelling = true)]
+        public static extern SEL sel_registerName([MarshalAs(UnmanagedType.LPUTF8Str)] string name);
+
+        [DllImport(LibObjC, EntryPoint = ""objc_getClass"", ExactSpelling = true)]
+        public static extern void* objc_getClass([MarshalAs(UnmanagedType.LPUTF8Str)] string name);
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateObjectiveCBindings, commandLineArgs: s_objectiveCCommandLineArgs, language: "objective-c", languageStandard: DefaultCStandard);
+    }
 }

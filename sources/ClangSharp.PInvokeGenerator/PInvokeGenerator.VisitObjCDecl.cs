@@ -71,18 +71,29 @@ public partial class PInvokeGenerator
         StopUsingOutputBuilder();
     }
 
-    // Emits the raw `Selectors` cache plus the friendly `objc_msgSend` members for the instance
-    // methods that fall within the v1 scalar/pointer/void subset. Anything outside that subset is
-    // diagnosed rather than emitted with a wrong ABI.
+    // Emits the raw `Selectors` cache plus the friendly `objc_msgSend` members (methods and
+    // properties) that fall within the v1 scalar/pointer/void subset. Anything outside that subset
+    // is diagnosed rather than emitted with a wrong ABI.
     private void EmitObjCMessageMembers(ObjCProtocolDecl objCProtocolDecl, string escapedParentName)
     {
         Debug.Assert(_outputBuilder is not null);
 
-        var emitted = new List<ObjCMessageMember>();
+        var selectors = new List<(string Field, string NativeSelector)>();
+        var seenSelectors = new HashSet<string>(StringComparer.Ordinal);
+        var methods = new List<ObjCMessageMember>();
+        var properties = new List<ObjCPropertyMember>();
+
+        void AddSelector(string field, string nativeSelector)
+        {
+            if (seenSelectors.Add(field))
+            {
+                selectors.Add((field, nativeSelector));
+            }
+        }
 
         foreach (var method in objCProtocolDecl.InstanceMethods)
         {
-            // Property accessors are surfaced via their properties in a later phase; class methods,
+            // Property accessors are surfaced through their `@property` below; class methods,
             // variadics, and by-value aggregate returns/parameters need dispatch machinery that is
             // deliberately out of scope for the first slice.
             if (method.IsPropertyAccessor)
@@ -109,10 +120,39 @@ public partial class PInvokeGenerator
                 parameters.Add((parmTypeName, parmName));
             }
 
-            emitted.Add(new ObjCMessageMember(memberName, nativeSelector, returnTypeName, parameters));
+            AddSelector(memberName, nativeSelector);
+            methods.Add(new ObjCMessageMember(memberName, returnTypeName, parameters));
         }
 
-        if (emitted.Count == 0)
+        foreach (var property in objCProtocolDecl.InstanceProperties)
+        {
+            if (IsAggregateType(property.Type))
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Objective-C property '{GetCursorName(property)}' on '@protocol {GetCursorName(objCProtocolDecl)}' is not supported: by-value aggregate types are not yet supported. It was skipped.", property);
+                continue;
+            }
+
+            var propertyName = EscapeName(GetRemappedCursorName(property));
+            var typeName = GetRemappedTypeName(property, objCProtocolDecl, property.Type, out _);
+
+            var getterSelector = property.GetterMethodDecl.Selector;
+            var getterField = EscapeName(getterSelector.Replace(':', '_'));
+            AddSelector(getterField, getterSelector);
+
+            var isReadOnly = (property.PropertyAttributes & CXObjCPropertyAttrKind.CXObjCPropertyAttr_readonly) != 0;
+            string? setterField = null;
+
+            if (!isReadOnly)
+            {
+                var setterSelector = property.SetterMethodDecl.Selector;
+                setterField = EscapeName(setterSelector.Replace(':', '_'));
+                AddSelector(setterField, setterSelector);
+            }
+
+            properties.Add(new ObjCPropertyMember(propertyName, typeName, getterField, setterField));
+        }
+
+        if (selectors.Count == 0)
         {
             return;
         }
@@ -128,9 +168,9 @@ public partial class PInvokeGenerator
         output.WriteIndentedLine("public static class Selectors");
         output.WriteBlockStart();
         {
-            foreach (var member in emitted)
+            foreach (var (field, nativeSelector) in selectors)
             {
-                output.WriteIndented($"public static readonly SEL {member.MemberName} = ObjectiveC.sel_registerName(\"{member.NativeSelector}\");");
+                output.WriteIndented($"public static readonly SEL {field} = ObjectiveC.sel_registerName(\"{nativeSelector}\");");
                 output.WriteNewline();
             }
         }
@@ -138,16 +178,11 @@ public partial class PInvokeGenerator
 
         // Friendly layer: named members that hide the selector lookup and the `objc_msgSend` cast,
         // dispatched on `this` exactly like the COM vtbl helpers dispatch on `lpVtbl`.
-        foreach (var member in emitted)
+        foreach (var member in methods)
         {
             output.WriteNewline();
 
             var prototype = new StringBuilder();
-            var fnPtrArgs = new StringBuilder();
-            var callArgs = new StringBuilder();
-
-            _ = fnPtrArgs.Append(escapedParentName).Append("*, SEL");
-            _ = callArgs.Append('(').Append(escapedParentName).Append("*)Unsafe.AsPointer(ref this), Selectors.").Append(member.MemberName);
 
             for (var i = 0; i < member.Parameters.Count; i++)
             {
@@ -159,18 +194,63 @@ public partial class PInvokeGenerator
                 }
 
                 _ = prototype.Append(typeName).Append(' ').Append(parmName);
-                _ = fnPtrArgs.Append(", ").Append(typeName);
-                _ = callArgs.Append(", ").Append(parmName);
             }
 
-            _ = fnPtrArgs.Append(", ").Append(member.ReturnTypeName);
+            var msgSend = BuildObjCMsgSend(escapedParentName, member.MemberName, member.ReturnTypeName, member.Parameters);
 
-            output.WriteIndented($"public {member.ReturnTypeName} {member.MemberName}({prototype}) => ");
-            output.Write($"((delegate* unmanaged<{fnPtrArgs}>)ObjectiveC.objc_msgSend)({callArgs});");
+            output.WriteIndented($"public {member.ReturnTypeName} {member.MemberName}({prototype}) => {msgSend};");
             output.WriteNewline();
         }
 
+        foreach (var property in properties)
+        {
+            output.WriteNewline();
+
+            var getter = BuildObjCMsgSend(escapedParentName, property.GetterField, property.TypeName, []);
+
+            if (property.SetterField is null)
+            {
+                output.WriteIndented($"public {property.TypeName} {property.PropertyName} => {getter};");
+                output.WriteNewline();
+            }
+            else
+            {
+                var setter = BuildObjCMsgSend(escapedParentName, property.SetterField, "void", [(property.TypeName, "value")]);
+
+                output.WriteIndentedLine($"public {property.TypeName} {property.PropertyName}");
+                output.WriteBlockStart();
+                {
+                    output.WriteIndented($"get => {getter};");
+                    output.WriteNewline();
+                    output.WriteIndented($"set => {setter};");
+                    output.WriteNewline();
+                }
+                output.WriteBlockEnd();
+            }
+        }
+
         _outputBuilder.EndCSharpCode(output);
+    }
+
+    // Builds the friendly-member body: a per-call-site cast of the cached `objc_msgSend` pointer to
+    // the selector's signature, invoked on `this` with the registered selector.
+    private static string BuildObjCMsgSend(string escapedParentName, string selectorField, string returnTypeName, IReadOnlyList<(string TypeName, string ArgExpr)> args)
+    {
+        var fnPtrArgs = new StringBuilder();
+        var callArgs = new StringBuilder();
+
+        _ = fnPtrArgs.Append(escapedParentName).Append("*, SEL");
+        _ = callArgs.Append('(').Append(escapedParentName).Append("*)Unsafe.AsPointer(ref this), Selectors.").Append(selectorField);
+
+        foreach (var (typeName, argExpr) in args)
+        {
+            _ = fnPtrArgs.Append(", ").Append(typeName);
+            _ = callArgs.Append(", ").Append(argExpr);
+        }
+
+        _ = fnPtrArgs.Append(", ").Append(returnTypeName);
+
+        return $"((delegate* unmanaged<{fnPtrArgs}>)ObjectiveC.objc_msgSend)({callArgs})";
     }
 
     // v1 message-send subset: no variadics and no by-value aggregate return/parameter types, so the
@@ -207,11 +287,18 @@ public partial class PInvokeGenerator
         return type.CanonicalType.Kind is CXTypeKind.CXType_Record;
     }
 
-    private readonly struct ObjCMessageMember(string memberName, string nativeSelector, string returnTypeName, List<(string TypeName, string EscapedName)> parameters)
+    private readonly struct ObjCMessageMember(string memberName, string returnTypeName, List<(string TypeName, string EscapedName)> parameters)
     {
         public string MemberName { get; } = memberName;
-        public string NativeSelector { get; } = nativeSelector;
         public string ReturnTypeName { get; } = returnTypeName;
         public List<(string TypeName, string EscapedName)> Parameters { get; } = parameters;
+    }
+
+    private readonly struct ObjCPropertyMember(string propertyName, string typeName, string getterField, string? setterField)
+    {
+        public string PropertyName { get; } = propertyName;
+        public string TypeName { get; } = typeName;
+        public string GetterField { get; } = getterField;
+        public string? SetterField { get; } = setterField;
     }
 }
