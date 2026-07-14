@@ -13,20 +13,25 @@ public partial class PInvokeGenerator
         Value,
         Pointer,
         Record,
+        Array,
     }
+
+    // A single operand of a field-wise comparison. Element is the managed element type name for `Array`
+    // (an InlineArray fixed buffer compared via ReadOnlySpan.SequenceEqual) and null otherwise.
+    private readonly record struct EqualityField(string Name, EqualityFieldKind Kind, string? Element = null);
 
     // Collects the instance fields that a field-wise equality implementation would compare, or returns
     // null when the record is not a safe candidate for `generate-equality-methods`. Element-wise equality
     // is only ever opt-in because it is not universally valid (padding, exported comparison functions),
     // so anything that cannot be compared field-for-field here is left untouched rather than guessed at.
-    private List<(string Name, EqualityFieldKind Kind)>? GetEqualityFields(RecordDecl recordDecl, CXXRecordDecl? cxxRecordDecl)
+    private List<EqualityField>? GetEqualityFields(RecordDecl recordDecl, CXXRecordDecl? cxxRecordDecl)
     {
         if (!_config.GenerateEqualityMethods)
         {
             return null;
         }
 
-        var fields = new List<(string Name, EqualityFieldKind Kind)>();
+        var fields = new List<EqualityField>();
 
         // Eligibility is transitive: the emitted Equals(TSelf) calls each nested struct's own Equals, so
         // if any record anywhere in the layout can't be compared field-for-field the whole thing falls
@@ -35,7 +40,7 @@ public partial class PInvokeGenerator
         return IsRecordEqualityEligible(recordDecl, cxxRecordDecl, fields, []) && (fields.Count != 0) ? fields : null;
     }
 
-    private bool IsRecordEqualityEligible(RecordDecl recordDecl, CXXRecordDecl? cxxRecordDecl, List<(string Name, EqualityFieldKind Kind)>? fields, HashSet<string> visited)
+    private bool IsRecordEqualityEligible(RecordDecl recordDecl, CXXRecordDecl? cxxRecordDecl, List<EqualityField>? fields, HashSet<string> visited)
     {
         // Unions have overlapping storage so there is no meaningful field-wise comparison.
         if (recordDecl.IsUnion)
@@ -81,7 +86,7 @@ public partial class PInvokeGenerator
                 }
 
                 hasField = true;
-                fields?.Add((baseFieldName, EqualityFieldKind.Record));
+                fields?.Add(new EqualityField(baseFieldName, EqualityFieldKind.Record));
             }
         }
 
@@ -111,7 +116,7 @@ public partial class PInvokeGenerator
                 if ((bitfieldBacking is not null) && bitfieldBacking.TryGetValue(GetRemappedCursorName(fieldDecl), out var backingName))
                 {
                     hasField = true;
-                    fields?.Add((backingName, EqualityFieldKind.Value));
+                    fields?.Add(new EqualityField(backingName, EqualityFieldKind.Value));
                 }
 
                 continue;
@@ -126,6 +131,7 @@ public partial class PInvokeGenerator
 
             var canonicalType = fieldDecl.Type.CanonicalType;
             EqualityFieldKind kind;
+            string? elementTypeName = null;
 
             if (canonicalType is PointerType)
             {
@@ -149,20 +155,54 @@ public partial class PInvokeGenerator
                     return false;
                 }
             }
+            else if (IsTypeConstantOrIncompleteArray(fieldDecl, out var arrayType))
+            {
+                // Fixed buffers are only comparable via a span when they are emitted as an InlineArray;
+                // the compatible-mode C# `fixed` buffer would need unsafe pointer loops instead.
+                if (_config.GenerateCompatibleCode || (arrayType is not ConstantArrayType constantArrayType))
+                {
+                    return false;
+                }
+
+                var totalSize = constantArrayType.Size;
+                var elementType = arrayType.ElementType;
+
+                while (IsTypeConstantOrIncompleteArray(fieldDecl, elementType, out var subArrayType))
+                {
+                    if (subArrayType is not ConstantArrayType subConstantArrayType)
+                    {
+                        return false;
+                    }
+
+                    totalSize *= subConstantArrayType.Size;
+                    elementType = subArrayType.ElementType;
+                }
+
+                // A single-element or pointer/record-element buffer isn't emitted as an InlineArray, so it
+                // doesn't expose the span this relies on. Restrict to primitive/enum elements, which are
+                // always bitwise-comparable via ReadOnlySpan.SequenceEqual.
+                if ((totalSize <= 1) || (elementType.CanonicalType is not (BuiltinType or EnumType)))
+                {
+                    return false;
+                }
+
+                kind = EqualityFieldKind.Array;
+                elementTypeName = GetRemappedTypeName(fieldDecl, context: null, elementType, out _);
+            }
             else
             {
-                // Arrays/fixed buffers, function prototypes, member pointers, etc. are not supported yet.
+                // Function prototypes, member pointers, etc. are not supported.
                 return false;
             }
 
             hasField = true;
-            fields?.Add((EscapeName(name), kind));
+            fields?.Add(new EqualityField(EscapeName(name), kind, elementTypeName));
         }
 
         return hasField;
     }
 
-    private void OutputEqualityMethods(CSharpOutputBuilder outputBuilder, string escapedName, List<(string Name, EqualityFieldKind Kind)> fields)
+    private void OutputEqualityMethods(CSharpOutputBuilder outputBuilder, string escapedName, List<EqualityField> fields)
     {
         outputBuilder.AddUsingDirective("System");
 
@@ -190,21 +230,32 @@ public partial class PInvokeGenerator
                 outputBuilder.Write(" && ");
             }
 
-            var (fieldName, fieldKind) = fields[i];
+            var field = fields[i];
 
-            if (fieldKind == EqualityFieldKind.Record)
+            if (field.Kind == EqualityFieldKind.Record)
             {
-                outputBuilder.Write(fieldName);
+                outputBuilder.Write(field.Name);
                 outputBuilder.Write(".Equals(other.");
-                outputBuilder.Write(fieldName);
+                outputBuilder.Write(field.Name);
+                outputBuilder.Write(')');
+            }
+            else if (field.Kind == EqualityFieldKind.Array)
+            {
+                // ((ReadOnlySpan<TElem>)Field).SequenceEqual(other.Field)
+                outputBuilder.Write("((ReadOnlySpan<");
+                outputBuilder.Write(field.Element!);
+                outputBuilder.Write(">)");
+                outputBuilder.Write(field.Name);
+                outputBuilder.Write(").SequenceEqual(other.");
+                outputBuilder.Write(field.Name);
                 outputBuilder.Write(')');
             }
             else
             {
                 outputBuilder.Write('(');
-                outputBuilder.Write(fieldName);
+                outputBuilder.Write(field.Name);
                 outputBuilder.Write(" == other.");
-                outputBuilder.Write(fieldName);
+                outputBuilder.Write(field.Name);
                 outputBuilder.Write(')');
             }
         }
@@ -231,15 +282,19 @@ public partial class PInvokeGenerator
         outputBuilder.NeedsNewline = true;
     }
 
-    private static void OutputGetHashCode(CSharpOutputBuilder outputBuilder, string readOnly, List<(string Name, EqualityFieldKind Kind)> fields)
+    private static void OutputGetHashCode(CSharpOutputBuilder outputBuilder, string readOnly, List<EqualityField> fields)
     {
-        static string HashOperand((string Name, EqualityFieldKind Kind) field)
+        static string HashOperand(EqualityField field)
         {
             return field.Kind == EqualityFieldKind.Pointer ? $"(nint){field.Name}" : field.Name;
         }
 
+        // An InlineArray can't be fed to HashCode.Combine/Add directly, so any array field forces the
+        // incremental builder path where each element is folded in individually.
+        var hasArray = fields.Any(static (field) => field.Kind == EqualityFieldKind.Array);
+
         // HashCode.Combine supports up to eight values; fall back to the incremental builder past that.
-        if (fields.Count <= 8)
+        if (!hasArray && (fields.Count <= 8))
         {
             outputBuilder.WriteIndented("public override ");
             outputBuilder.Write(readOnly);
@@ -258,6 +313,19 @@ public partial class PInvokeGenerator
 
         foreach (var field in fields)
         {
+            if (field.Kind == EqualityFieldKind.Array)
+            {
+                outputBuilder.WriteIndented("foreach (var element in (ReadOnlySpan<");
+                outputBuilder.Write(field.Element!);
+                outputBuilder.Write(">)");
+                outputBuilder.Write(field.Name);
+                outputBuilder.WriteLine(')');
+                outputBuilder.WriteBlockStart();
+                outputBuilder.WriteIndentedLine("hashCode.Add(element);");
+                outputBuilder.WriteBlockEnd();
+                continue;
+            }
+
             outputBuilder.WriteIndented("hashCode.Add(");
             outputBuilder.Write(HashOperand(field));
             outputBuilder.WriteLine(");");

@@ -54,11 +54,14 @@ struct MyData
     }
 
     [Test]
-    public Task FixedBuffersAreLeftUntouched()
+    public Task FixedBuffersCompareViaSpan()
     {
+        // In modern (non-compatible) code a fixed buffer is emitted as an InlineArray, so it is compared
+        // element-wise via ReadOnlySpan.SequenceEqual and hashed by folding in each element.
         var inputContents = @"struct WithArray
 {
     int Values[4];
+    float Scale;
 };
 ";
 
@@ -66,13 +69,28 @@ struct MyData
     }
 
     [Test]
-    public Task NestedIneligibleLayoutIsTransitive()
+    public Task FixedBuffersAreLeftUntouchedInCompatibleCode()
     {
-        // Inner contains a fixed buffer, so it is not field-wise comparable. Outer embeds Inner by value,
-        // so Outer must also be left untouched rather than deferring to reflection-based ValueType.Equals.
-        var inputContents = @"struct Inner
+        // Compatible code emits a C# `fixed` buffer with no span accessor, so the struct is left
+        // untouched rather than emitting unsafe pointer loops.
+        var inputContents = @"struct WithArray
 {
     int Values[4];
+};
+";
+
+        return ValidateGeneratedCSharpCompatibleWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+    }
+
+    [Test]
+    public Task NestedIneligibleLayoutIsTransitive()
+    {
+        // Inner contains a fixed buffer of pointers, which is not emitted as an InlineArray and so is not
+        // field-wise comparable. Outer embeds Inner by value, so Outer must also be left untouched rather
+        // than deferring to reflection-based ValueType.Equals.
+        var inputContents = @"struct Inner
+{
+    void* Handles[4];
 };
 
 struct Outer

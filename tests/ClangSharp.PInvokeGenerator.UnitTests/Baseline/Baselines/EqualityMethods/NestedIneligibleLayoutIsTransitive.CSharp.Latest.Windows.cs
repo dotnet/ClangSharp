@@ -1,16 +1,27 @@
-using System.Runtime.CompilerServices;
-
 namespace ClangSharp.Test
 {
     public partial struct Inner
     {
-        [NativeTypeName("int[4]")]
-        public _Values_e__FixedBuffer Values;
+        [NativeTypeName("void *[4]")]
+        public _Handles_e__FixedBuffer Handles;
 
-        [InlineArray(4)]
-        public partial struct _Values_e__FixedBuffer
+        public unsafe partial struct _Handles_e__FixedBuffer
         {
-            public int e0;
+            public void* e0;
+            public void* e1;
+            public void* e2;
+            public void* e3;
+
+            public ref void* this[int index]
+            {
+                get
+                {
+                    fixed (void** pThis = &e0)
+                    {
+                        return ref pThis[index];
+                    }
+                }
+            }
         }
     }
 
