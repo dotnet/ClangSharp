@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="Vector3" access="public">
+      <field name="x" access="public">
+        <type>float</type>
+      </field>
+      <field name="y" access="public">
+        <type>float</type>
+      </field>
+      <field name="z" access="public">
+        <type>float</type>
+      </field>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true">
+        <type>Vector3</type>
+        <param name="v">
+          <type>Vector3</type>
+        </param>
+        <code>Vector3 cardinalAxis = new Vector3
+      {
+          x = 1.0f,
+          y = 0.0f,
+          z = 0.0f,
+      };
+      Vector3 tmp = new Vector3
+      {
+          x = 0.0f,
+          y = 1.0f,
+          z = 0.0f,
+      };
+
+      cardinalAxis = tmp;
+      return cardinalAxis;</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

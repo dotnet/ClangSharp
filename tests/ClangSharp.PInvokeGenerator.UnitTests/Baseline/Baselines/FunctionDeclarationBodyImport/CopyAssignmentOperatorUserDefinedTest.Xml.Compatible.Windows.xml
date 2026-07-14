@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="Vector3" access="public" unsafe="true">
+      <field name="x" access="public">
+        <type>float</type>
+      </field>
+      <field name="y" access="public">
+        <type>float</type>
+      </field>
+      <field name="z" access="public">
+        <type>float</type>
+      </field>
+      <function name="op_Assign" access="public" unsafe="true">
+        <type native="Vector3 &amp;">Vector3*</type>
+        <param name="other">
+          <type>Vector3*</type>
+        </param>
+        <code>x = other-&gt;x;
+    y = other-&gt;y;
+    z = other-&gt;z;
+    return (Vector3*)Unsafe.AsPointer(ref this);</code>
+      </function>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true">
+        <type>Vector3</type>
+        <param name="v">
+          <type>Vector3</type>
+        </param>
+        <code>Vector3 cardinalAxis = new Vector3
+      {
+          x = 1.0f,
+          y = 0.0f,
+          z = 0.0f,
+      };
+      Vector3 tmp = new Vector3
+      {
+          x = 0.0f,
+          y = 1.0f,
+          z = 0.0f,
+      };
+
+      cardinalAxis.op_Assign(tmp);
+      return cardinalAxis;</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>
