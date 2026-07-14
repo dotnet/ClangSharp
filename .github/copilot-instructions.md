@@ -32,17 +32,29 @@ The baseline builds with **0 warnings**; keep it that way.
 
 ## Generator test model (read before touching generator output)
 
-Tests are **golden-file** and cover a matrix. `tests/ClangSharp.PInvokeGenerator.UnitTests/Base/*` defines
-abstract `*Impl` test methods; per-configuration folders implement them with **inline expected output**:
+Tests are **golden-file** and cover a matrix of `CSharp`/`Xml` × `Default`/`Latest`/`Preview`/`Compatible`
+× `Windows`/`Unix` (16 variants). Fixtures live in `tests/ClangSharp.PInvokeGenerator.UnitTests/Baseline/*.cs`
+(e.g. `FunctionDeclarationBodyImportTest`), derive from `BaselineTest`, and are parameterized over every
+variant via `[TestFixtureSource]`. A concrete case supplies its C/C++ `inputContents` and a case name once
+by calling `ValidateAsync(nameof(TheTest), inputContents, ...)`; the **expected output is a checked-in
+baseline file**, not inline text.
 
-- Output modes × language levels × OS: `CSharp`/`Xml` × `Default`/`Latest`/`Preview`/`Compatible` × `Windows`/`Unix`.
-- Concrete cases feed `inputContents` (C/C++) + `expectedOutputContents` to `ValidateGenerated...Async`.
+Baselines live under `Baseline/Baselines/{Area}/` and are resolved per variant via a most-specific-first
+fallback chain (`BaselineHarness.CandidateNames`):
+`{Case}.{Mode}.{Config}.{Os}.{ext}` → `{Case}.{Mode}.{Config}.{ext}` → `{Case}.{Mode}.{ext}`.
 
 Consequences when you change generator output:
-- Update **every affected configuration variant**, not just one — the same case is duplicated across folders.
-- Windows/Unix variants are `[Platform(...)]`-gated, so a single-OS run only exercises half the matrix.
-  CI runs Windows + Linux + macOS (x64 and arm64); confirm both `Windows` and `Unix` expected outputs.
-- Add a regression test in `Base/` (+ all variants) for any fix; that is the established pattern here.
+- Regenerate baselines with `UPDATE_BASELINES=1` (it also implies `RUN_ALL_VARIANTS=1`, so both OSes are
+  written from one host via the pinned Unix triple). This writes the **most-specific** file for every
+  variant — i.e. fully expanded — so you **must then unify** (see below).
+- **Always unify identical baselines — do not check in duplicates.** Collapse output that is identical
+  across the OS axis to the `{Case}.{Mode}.{Config}.{ext}` level, and collapse output identical across
+  **all 16** variants to a single `{Case}.{Mode}.{ext}` per mode. Keep one file per `Config` when configs
+  differ, even if two happen to match (matching `AccessUnionMemberTest` / `VirtualTest`); do **not** invent
+  a global-plus-override mix — the repo doesn't use it. Verify a collapse with
+  `RUN_ALL_VARIANTS=1 dotnet test ... --filter FullyQualifiedName~TheTest` so both OSes are checked against
+  the collapsed files.
+- Add a regression test (in the matching `Baseline/*Test.cs`) for any fix; that is the established pattern.
 
 ## Regenerating the self-hosted bindings
 
