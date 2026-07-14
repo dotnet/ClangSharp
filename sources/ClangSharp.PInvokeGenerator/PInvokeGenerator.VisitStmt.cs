@@ -416,56 +416,42 @@ public partial class PInvokeGenerator
                 {
                     if (IsType<ReferenceType>(callExpr, functionProtoType.ParamTypes[i], out var referenceType))
                     {
-                        if (IsStmtAsWritten<UnaryOperator>(arg, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CXUnaryOperator_Deref))
+                        if (IsStmtAsWritten<UnaryOperator>(arg, out var unaryOperator, removeParens: true)
+                         && (unaryOperator.Opcode == CXUnaryOperator_Deref)
+                         && (unaryOperator.SubExpr is CXXThisExpr))
                         {
-                            var subExpr = unaryOperator.SubExpr;
+                            var referenceTypeName = GetTypeName(callExpr, context: null, type: referenceType, ignoreTransparentStructsWhereRequired: true, isTemplate: false, nativeTypeName: out _);
 
-                            if (subExpr is CXXThisExpr)
+                            outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                            outputBuilder.Write('(');
+                            outputBuilder.Write(referenceTypeName);
+                            outputBuilder.Write(")Unsafe.AsPointer(");
+
+                            if (referenceType.IsLocalConstQualified)
                             {
-                                var referenceTypeName = GetTypeName(callExpr, context: null, type: referenceType, ignoreTransparentStructsWhereRequired: true, isTemplate: false, nativeTypeName: out _);
-
-                                outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
-                                outputBuilder.Write('(');
-                                outputBuilder.Write(referenceTypeName);
-                                outputBuilder.Write(")Unsafe.AsPointer(");
-
-                                if (referenceType.IsLocalConstQualified)
+                                if (!_config.GenerateLatestCode)
                                 {
-                                    if (!_config.GenerateLatestCode)
-                                    {
-                                        outputBuilder.Write("ref Unsafe.AsRef(");
-                                    }
-
-                                    outputBuilder.Write("in this");
-
-                                    if (!_config.GenerateLatestCode)
-                                    {
-                                        outputBuilder.Write(')');
-                                    }
+                                    outputBuilder.Write("ref Unsafe.AsRef(");
                                 }
-                                else
+
+                                outputBuilder.Write("in this");
+
+                                if (!_config.GenerateLatestCode)
                                 {
-                                    outputBuilder.Write("ref this");
+                                    outputBuilder.Write(')');
                                 }
-                                outputBuilder.Write(')');
-
-                                needsComma = true;
-                                continue;
                             }
-
-                            arg = subExpr;
-                        }
-                        else if (IsStmtAsWritten<DeclRefExpr>(arg, out var declRefExpr, removeParens: true))
-                        {
-                            if (!IsTypePointerOrReference(declRefExpr.Decl))
+                            else
                             {
-                                outputBuilder.Write('&');
+                                outputBuilder.Write("ref this");
                             }
+                            outputBuilder.Write(')');
+
+                            needsComma = true;
+                            continue;
                         }
-                        else if (!IsTypePointerOrReference(arg))
-                        {
-                            outputBuilder.Write('&');
-                        }
+
+                        arg = WriteArgumentByReferenceAdjustment(outputBuilder, arg);
                     }
                     else if (IsStmtAsWritten<CXXThisExpr>(arg, out _) && (functionName == "memcpy"))
                     {
@@ -968,16 +954,33 @@ public partial class PInvokeGenerator
 
                 if (args.Count > firstIndex)
                 {
-                    Visit(args[firstIndex]);
+                    VisitOperatorArg(firstIndex);
 
                     for (var i = firstIndex + 1; i < args.Count; i++)
                     {
                         outputBuilder.Write(", ");
-                        Visit(args[i]);
+                        VisitOperatorArg(i);
                     }
                 }
 
                 outputBuilder.Write(')');
+
+                void VisitOperatorArg(int i)
+                {
+                    var arg = args[i];
+
+                    // A member operator receives the object as `args[0]`, so the parameter that
+                    // backs `args[i]` is offset by `firstIndex`. Pass by reference the same way
+                    // `VisitArgs` does for an ordinary call.
+                    var paramIndex = i - firstIndex;
+
+                    if ((paramIndex >= 0) && (paramIndex < functionDecl.Parameters.Count) && IsType<ReferenceType>(functionDecl.Parameters[paramIndex], out _))
+                    {
+                        arg = WriteArgumentByReferenceAdjustment(outputBuilder, arg);
+                    }
+
+                    Visit(arg);
+                }
             }
         }
         else
@@ -986,6 +989,28 @@ public partial class PInvokeGenerator
         }
 
         StopCSharpCode();
+    }
+
+    // Emits the address-of/dereference adjustment needed to pass `arg` to a by-reference parameter
+    // (which projects as a pointer), returning the expression that should actually be visited.
+    private static Expr WriteArgumentByReferenceAdjustment(CSharpOutputBuilder outputBuilder, Expr arg)
+    {
+        if (IsStmtAsWritten<UnaryOperator>(arg, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CXUnaryOperator_Deref))
+        {
+            return unaryOperator.SubExpr;
+        }
+        else if (IsStmtAsWritten<DeclRefExpr>(arg, out var declRefExpr, removeParens: true))
+        {
+            if (!IsTypePointerOrReference(declRefExpr.Decl))
+            {
+                outputBuilder.Write('&');
+            }
+        }
+        else if (!IsTypePointerOrReference(arg))
+        {
+            outputBuilder.Write('&');
+        }
+        return arg;
     }
 
     private static void VisitCXXPseudoDestructorExpr(CXXPseudoDestructorExpr cxxPseudoDestructorExpr)
