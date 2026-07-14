@@ -12,4 +12,5 @@ internal enum StructFlags
     Vtbl = 1 << 1,
     Union = 1 << 2,
     Nested = 1 << 3,
+    Equality = 1 << 4,
 }

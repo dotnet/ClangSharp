@@ -429,6 +429,12 @@ internal static partial class Program
                     break;
                 }
 
+                case "generate-equality-methods":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods;
+                    break;
+                }
+
                 case "generate-helper-types":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateHelperTypes;

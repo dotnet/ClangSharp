@@ -70,6 +70,19 @@ internal struct StructDesc
         }
     }
 
+    public bool HasEquality
+    {
+        readonly get
+        {
+            return GetFlag(StructFlags.Equality);
+        }
+
+        set
+        {
+            SetFlag(StructFlags.Equality, value);
+        }
+    }
+
     private readonly bool GetFlag(StructFlags flag) => (Flags & flag) != 0;
 
     private void SetFlag(StructFlags flag, bool value) => Flags = value ? Flags | flag : Flags & ~flag;
