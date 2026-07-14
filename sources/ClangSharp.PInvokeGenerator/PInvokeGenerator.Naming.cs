@@ -725,13 +725,7 @@ public sealed partial class PInvokeGenerator
         if ((cursor is CXXBaseSpecifier cxxBaseSpecifier) && remappedName.StartsWith(AnonymousBasePrefix, StringComparison.Ordinal))
         {
             Debug.Assert(_cxxRecordDeclContext is not null);
-            remappedName = "Base";
-
-            if (_cxxRecordDeclContext.Bases.Count > 1)
-            {
-                var index = _cxxRecordDeclContext.Bases.IndexOf(cxxBaseSpecifier) + 1;
-                remappedName += index.ToString(CultureInfo.InvariantCulture);
-            }
+            remappedName = GetBaseSubobjectFieldName(_cxxRecordDeclContext, cxxBaseSpecifier);
 
             wasRemapped = true;
             return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
@@ -739,6 +733,54 @@ public sealed partial class PInvokeGenerator
 
         wasRemapped = false;
         return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsingIfNotRemapped);
+    }
+
+    // Computes the field name for a base subobject emitted on `emittingRecordDecl`. The natural name is
+    // `Base` plus the base specifier's one-based index among its OWN owning record's bases (so a carried
+    // grand-base keeps the name it had on the base that declared it, e.g. `B` -> `Base2` whether emitted on
+    // `C` or carried onto `D`). For a direct base the owner is `emittingRecordDecl`, so this matches the
+    // historical numbering exactly. Because a direct secondary base and a carried secondary base can share a
+    // natural name, the names are assigned in native layout order with a deterministic `_N` disambiguator so
+    // the result is a pure function of `(emittingRecordDecl, cxxBaseSpecifier)` and therefore agrees between
+    // the field declaration and every member access that resolves through the subobject.
+    private string GetBaseSubobjectFieldName(CXXRecordDecl emittingRecordDecl, CXXBaseSpecifier cxxBaseSpecifier)
+    {
+        var usedNames = new HashSet<string>(StringComparer.Ordinal);
+        var result = (string?)null;
+
+        foreach (var (specifier, owner) in EnumerateBaseSubobjects(emittingRecordDecl))
+        {
+            var name = "Base";
+
+            if (owner.Bases.Count > 1)
+            {
+                var index = owner.Bases.IndexOf(specifier) + 1;
+                name += index.ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (!usedNames.Add(name))
+            {
+                var suffix = 2;
+                var candidate = $"{name}_{suffix.ToString(CultureInfo.InvariantCulture)}";
+
+                while (!usedNames.Add(candidate))
+                {
+                    suffix++;
+                    candidate = $"{name}_{suffix.ToString(CultureInfo.InvariantCulture)}";
+                }
+
+                name = candidate;
+            }
+
+            if (specifier == cxxBaseSpecifier)
+            {
+                result = name;
+            }
+        }
+
+        // A base specifier that is not itself materialized as a subobject (for example a flattened primary
+        // vtbl base) has no field name; fall back to the un-numbered `Base` to preserve prior behavior.
+        return result ?? "Base";
     }
 
     private string AddUsingDirectiveIfNeeded(IOutputBuilder? outputBuilder, string remappedName, bool skipUsing)

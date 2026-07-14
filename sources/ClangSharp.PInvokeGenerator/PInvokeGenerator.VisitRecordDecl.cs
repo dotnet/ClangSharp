@@ -35,8 +35,6 @@ public partial class PInvokeGenerator
         var name = GetRemappedCursorName(recordDecl);
         var escapedName = EscapeName(name);
 
-        var vtblFlatteningNeedsCarry = (recordDecl is CXXRecordDecl cxxRecordDeclForCarry) && VtblFlatteningNeedsCarry(cxxRecordDeclForCarry);
-
         StartUsingOutputBuilder(name, includeTestOutput: true);
         {
             var cxxRecordDecl = recordDecl as CXXRecordDecl;
@@ -49,14 +47,9 @@ public partial class PInvokeGenerator
             {
                 hasVtbl = HasVtbl(cxxRecordDecl, out hasBaseVtbl);
 
-                if (vtblFlatteningNeedsCarry)
+                if (HasVirtualBase(cxxRecordDecl))
                 {
-                    // Nested multiple inheritance would require carrying a flattened base's own non-primary
-                    // polymorphic subobjects (each with its own vtable pointer at a distinct offset) onto the
-                    // derived type. That is not yet modeled, so we fall back to the legacy flattened `lpVtbl`
-                    // (which preserves reachability of every inherited method, though not their true offsets)
-                    // and flag the record as incomplete.
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported cxx record declaration: 'nested multiple virtual bases'. Generated bindings for {name} may be incomplete.", cxxRecordDecl);
+                    AddDiagnostic(DiagnosticLevel.Warning, "Virtual inheritance is not currently modeled. The generated layout and vtable dispatch for this type may be incorrect.", cxxRecordDecl);
                 }
             }
 
@@ -365,7 +358,7 @@ public partial class PInvokeGenerator
                 _outputBuilder.EndValue(in valueDesc);
             }
 
-            if (hasVtbl || hasBaseVtbl)
+            if ((hasVtbl || hasBaseVtbl) && ((cxxRecordDecl is null) || (GetVtblPtrAccessPrefix(cxxRecordDecl).Length == 0)))
             {
                 var fieldDesc = new FieldDesc {
                     AccessSpecifier = AccessSpecifier.Public,
@@ -397,26 +390,11 @@ public partial class PInvokeGenerator
 
             if (cxxRecordDecl is not null)
             {
-                var seenPrimaryVtblBase = false;
-
-                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                foreach (var (cxxBaseSpecifier, _) in EnumerateBaseSubobjects(cxxRecordDecl))
                 {
                     var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
-                    var isPolymorphic = HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl;
-                    var isPrimaryVtblBase = isPolymorphic && !seenPrimaryVtblBase;
-                    seenPrimaryVtblBase |= isPolymorphic;
-
-                    // A base is emitted as a nested subobject when it carries its own fields or when it is a
-                    // non-primary polymorphic base (its distinct vtable pointer cannot be flattened into the
-                    // derived type's single `lpVtbl`). The vtbl-only primary polymorphic base is instead
-                    // flattened, so it is not repeated as a field here. Records whose primary base chain has
-                    // its own non-primary polymorphic base (nested multiple inheritance) cannot be modeled
-                    // this way and fall back to the legacy flattened layout, which only ever nested bases
-                    // that carry fields.
-                    var emitAsSubobject = HasField(baseCxxRecordDecl) || (!vtblFlatteningNeedsCarry && isPolymorphic && !isPrimaryVtblBase);
-
-                    if (emitAsSubobject && !IsBaseExcluded(cxxRecordDecl, baseCxxRecordDecl, cxxBaseSpecifier, out var baseFieldName))
+                    if (!IsBaseExcluded(cxxRecordDecl, baseCxxRecordDecl, cxxBaseSpecifier, out var baseFieldName))
                     {
                         var parent = GetRemappedCursorName(baseCxxRecordDecl);
 
@@ -656,28 +634,23 @@ public partial class PInvokeGenerator
             return remappedName;
         }
 
-        // The vtbl emission passes flatten a base's vtable into the derived type's `lpVtbl`. Normally only
-        // the primary polymorphic base is flattened (every other polymorphic base becomes a subobject with
-        // its own vtable pointer). For nested multiple inheritance we cannot model the carried subobjects, so
-        // we fall back to the legacy behavior of flattening every polymorphic base into a single run-on
-        // vtable -- this keeps all inherited methods reachable, at the cost of exact offsets.
+        // The vtbl emission passes flatten the primary polymorphic base's vtable into the derived type (it
+        // shares, and extends, the derived type's vtable pointer) so the derived type re-exposes every
+        // inherited virtual method at its native index. This holds whether the pointer lives in the derived
+        // type's own `lpVtbl` (vtbl-only primary base) or inside a field-bearing primary base subobject; only
+        // the physical location of the pointer differs (see `GetVtblPtrAccessPrefix`). Every other polymorphic
+        // base becomes a subobject with its own vtable pointer and is not flattened here.
         IEnumerable<CXXRecordDecl> EnumerateFlattenedVtblBases(CXXRecordDecl cxxRecordDecl)
         {
-            if (vtblFlatteningNeedsCarry)
+            foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
             {
-                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
-                {
-                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+                var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
-                    if (HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl)
-                    {
-                        yield return baseCxxRecordDecl;
-                    }
+                if (HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl)
+                {
+                    yield return baseCxxRecordDecl;
+                    yield break;
                 }
-            }
-            else if (GetPrimaryVtblBase(cxxRecordDecl) is CXXRecordDecl primaryVtblBase)
-            {
-                yield return primaryVtblBase;
             }
         }
 
@@ -938,6 +911,7 @@ public partial class PInvokeGenerator
             var cxxRecordDeclName = GetRemappedCursorName(cxxRecordDecl);
             var parentName = cxxRecordDeclName;
             var isInherited = false;
+            var vtblPtrAccessPrefix = GetVtblPtrAccessPrefix(cxxRecordDecl);
 
             var parent = cxxMethodDecl.Parent;
             Debug.Assert(parent is not null);
@@ -1045,7 +1019,23 @@ public partial class PInvokeGenerator
 
             if (_config.GenerateExplicitVtbls)
             {
-                body.Write("lpVtbl->");
+                if (vtblPtrAccessPrefix.Length != 0)
+                {
+                    // The shared vtable pointer lives inside a field-bearing primary base subobject and is
+                    // typed as that base's `Vtbl`; reinterpret it as this type's fuller `Vtbl` so the entries
+                    // this type appends onto the shared vtable resolve at their native offsets.
+                    var vtblTypeName = (_config.GenerateMarkerInterfaces && !_config.GenerateCompatibleCode) ? $"Vtbl<{nativeName}>" : "Vtbl";
+                    body.Write("((");
+                    body.Write(vtblTypeName);
+                    body.Write("*)");
+                    body.Write(vtblPtrAccessPrefix);
+                    body.Write("lpVtbl)->");
+                }
+                else
+                {
+                    body.Write("lpVtbl->");
+                }
+
                 body.BeginMarker("vtbl", new KeyValuePair<string, object>("explicit", true));
                 body.Write(EscapeAndStripMethodName(remappedName));
                 body.EndMarker("vtbl");
@@ -1061,7 +1051,9 @@ public partial class PInvokeGenerator
 
                 body.Write('(');
                 body.Write(cxxMethodDeclTypeName);
-                body.Write(")(lpVtbl[");
+                body.Write(")(");
+                body.Write(vtblPtrAccessPrefix);
+                body.Write("lpVtbl[");
                 body.BeginMarker("vtbl", new KeyValuePair<string, object>("explicit", false));
                 body.Write(cxxMethodDecl.VtblIndex);
                 body.EndMarker("vtbl");

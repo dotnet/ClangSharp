@@ -2129,7 +2129,7 @@ public partial class PInvokeGenerator
 
                 if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != parent) && HasField(parent))
                 {
-                    var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == parent).SingleOrDefault();
+                    var cxxBaseSpecifier = GetBaseSubobjectSpecifier(_cxxRecordDeclContext, parent);
 
                     if ((cxxBaseSpecifier is not null) && IsBaseExcluded(_cxxRecordDeclContext, GetRecordDecl(cxxBaseSpecifier), cxxBaseSpecifier, out baseFieldName))
                     {
@@ -2144,7 +2144,7 @@ public partial class PInvokeGenerator
 
                 if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != parent))
                 {
-                    var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == parent).SingleOrDefault();
+                    var cxxBaseSpecifier = GetBaseSubobjectSpecifier(_cxxRecordDeclContext, parent);
 
                     if ((cxxBaseSpecifier is not null) && IsBaseExcluded(_cxxRecordDeclContext, GetRecordDecl(cxxBaseSpecifier), cxxBaseSpecifier, out baseFieldName))
                     {

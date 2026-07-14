@@ -1424,6 +1424,26 @@ public sealed partial class PInvokeGenerator : IDisposable
         return hasUnsafeMethod;
     }
 
+    // Virtual inheritance introduces a shared base subobject that is laid out once in the most-derived object.
+    // A class that carries a virtual base therefore has a different layout standalone than when it is itself
+    // embedded as a base (the shared base moves to the most-derived object), and the shared base must not be
+    // duplicated across the classes that inherit it. ClangSharp models every base as a by-value subobject of a
+    // single generated type, which cannot represent that context-dependent layout, so records that inherit a
+    // virtual base -- directly or indirectly -- cannot be laid out correctly. Detect them so the caller can
+    // surface a diagnostic rather than silently emit a wrong layout.
+    private bool HasVirtualBase(CXXRecordDecl cxxRecordDecl)
+    {
+        foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+        {
+            if (cxxBaseSpecifier.IsVirtual || HasVirtualBase(GetRecordDecl(cxxBaseSpecifier)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private bool HasVtbl(CXXRecordDecl cxxRecordDecl, out bool hasBaseVtbl)
     {
         var hasVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual && (method.OverriddenMethods.Count == 0));
@@ -1457,44 +1477,93 @@ public sealed partial class PInvokeGenerator : IDisposable
         return null;
     }
 
-    // Flattening a vtbl-only primary base inlines its vtable into the derived type's `lpVtbl`. That is only
-    // loss-free when nothing has to be carried alongside it. A base along the flattened primary chain that
-    // itself has a non-primary polymorphic base (nested multiple inheritance) introduces a second vtable
-    // pointer at a distinct offset that would have to be carried onto the derived type as a subobject; that
-    // is not yet modeled, so such records fall back to the legacy run-on `lpVtbl`.
-    private bool VtblFlatteningNeedsCarry(CXXRecordDecl cxxRecordDecl)
+    // Enumerates the base subobjects a record materializes as fields, in native layout order, together with
+    // the record that directly declares each base specifier (its owner). A base is a subobject when it
+    // carries its own fields or when it is a non-primary polymorphic base (its distinct vtable pointer
+    // cannot be flattened into the derived type's single `lpVtbl`). The vtbl-only primary polymorphic base
+    // is instead flattened into `lpVtbl`; its own non-primary polymorphic subobjects are carried onto the
+    // derived type (nested multiple inheritance), so we recurse into it to collect them. The collected
+    // subobjects are then ordered by clang's authoritative per-target offset so the emitted layout matches
+    // the native one even when the ABI reorders bases (see below).
+    private IEnumerable<(CXXBaseSpecifier Specifier, CXXRecordDecl Owner)> EnumerateBaseSubobjects(CXXRecordDecl cxxRecordDecl)
     {
-        for (var primaryVtblBase = GetPrimaryVtblBase(cxxRecordDecl); primaryVtblBase is not null; primaryVtblBase = GetPrimaryVtblBase(primaryVtblBase))
-        {
-            if (HasNonPrimaryVtblBase(primaryVtblBase))
-            {
-                return true;
-            }
-        }
+        var entries = new List<(CXXBaseSpecifier Specifier, CXXRecordDecl Owner, long Offset)>();
+        CollectBaseSubobjects(cxxRecordDecl, 0, entries);
 
-        return false;
+        // Emit subobjects in native layout order rather than declaration order. The MSVC ABI promotes the
+        // first polymorphic direct base to offset 0 (so it can share its vtable pointer), which can reorder a
+        // non-polymorphic base declared before it. Ordering by clang's authoritative per-target base offset
+        // keeps the generated sequential layout byte-compatible. OrderBy is stable, so bases at the same
+        // offset (none, in practice) keep declaration order.
+        foreach (var (specifier, owner, _) in entries.OrderBy((entry) => entry.Offset))
+        {
+            yield return (specifier, owner);
+        }
     }
 
-    private bool HasNonPrimaryVtblBase(CXXRecordDecl cxxRecordDecl)
+    private void CollectBaseSubobjects(CXXRecordDecl owningRecordDecl, long baseOffsetBits, List<(CXXBaseSpecifier Specifier, CXXRecordDecl Owner, long Offset)> entries)
     {
-        var seenVtblBase = false;
+        var seenPrimaryVtblBase = false;
 
+        foreach (var cxxBaseSpecifier in owningRecordDecl.Bases)
+        {
+            var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+
+            var isPolymorphic = HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl;
+            var isPrimaryVtblBase = isPolymorphic && !seenPrimaryVtblBase;
+            seenPrimaryVtblBase |= isPolymorphic;
+
+            var hasField = HasField(baseCxxRecordDecl);
+
+            var relativeOffset = clang.getOffsetOfBase(owningRecordDecl.Handle, cxxBaseSpecifier.Handle);
+            var offset = (relativeOffset < 0) ? baseOffsetBits : (baseOffsetBits + relativeOffset);
+
+            if (isPrimaryVtblBase && !hasField)
+            {
+                CollectBaseSubobjects(baseCxxRecordDecl, offset, entries);
+            }
+            else if (hasField || (isPolymorphic && !isPrimaryVtblBase))
+            {
+                entries.Add((cxxBaseSpecifier, owningRecordDecl, offset));
+            }
+        }
+    }
+
+    // Resolves the base subobject specifier through which a member declared on `parentRecordDecl` is reached
+    // from `emittingRecordDecl`, considering carried subobjects (nested multiple inheritance) and not just
+    // direct bases. Returns null when the member is reached through the flattened primary chain (i.e. not
+    // through a distinct subobject field).
+    private CXXBaseSpecifier? GetBaseSubobjectSpecifier(CXXRecordDecl emittingRecordDecl, RecordDecl parentRecordDecl)
+        => EnumerateBaseSubobjects(emittingRecordDecl)
+            .Where((entry) => entry.Specifier.Referenced == parentRecordDecl)
+            .Select((entry) => entry.Specifier)
+            .SingleOrDefault();
+
+    // A record shares (and extends) the vtable pointer of its primary polymorphic base. When that base is
+    // vtbl-only it is flattened into the record's own `lpVtbl`; when it also carries data fields it cannot be
+    // flattened and is emitted as a subobject instead, so the shared vtable pointer physically lives inside
+    // that subobject. This returns the access prefix used to reach the shared pointer in the latter case (for
+    // example `Base.`, or `Base.Base.` for a deeper chain of field-bearing primary bases) and an empty string
+    // when the record declares its own `lpVtbl` (no polymorphic base, or a flattened vtbl-only primary base).
+    private string GetVtblPtrAccessPrefix(CXXRecordDecl cxxRecordDecl)
+    {
         foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
         {
             var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
             if (HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl)
             {
-                if (seenVtblBase)
+                if (!HasField(baseCxxRecordDecl))
                 {
-                    return true;
+                    return "";
                 }
 
-                seenVtblBase = true;
+                var baseFieldName = GetBaseSubobjectFieldName(cxxRecordDecl, cxxBaseSpecifier);
+                return $"{baseFieldName}.{GetVtblPtrAccessPrefix(baseCxxRecordDecl)}";
             }
         }
 
-        return false;
+        return "";
     }
 
     private bool NeedsReturnFixup(CXXMethodDecl cxxMethodDecl)
