@@ -3,12 +3,15 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using ClangSharp.UnitTests.Baseline;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
-public sealed class CTest : PInvokeGeneratorTest
+public sealed class CTest : StandaloneBaselineTest
 {
+    protected override string Area => "C";
+
     [Test]
     public Task BasicTest()
     {
@@ -22,49 +25,8 @@ typedef struct MyStruct {
     enum_t _field;
 } struct_t;
 ";
-        string expectedOutputContents;
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public enum MyEnum
-    {
-        MyEnum_Value0,
-        MyEnum_Value1,
-        MyEnum_Value2,
-    }
-
-    public partial struct MyStruct
-    {
-        [NativeTypeName(""enum_t"")]
-        public MyEnum _field;
-    }
-}
-";
-        }
-        else
-        {
-            expectedOutputContents = @"namespace ClangSharp.Test
-{
-    [NativeTypeName(""unsigned int"")]
-    public enum MyEnum : uint
-    {
-        MyEnum_Value0,
-        MyEnum_Value1,
-        MyEnum_Value2,
-    }
-
-    public partial struct MyStruct
-    {
-        [NativeTypeName(""enum_t"")]
-        public MyEnum _field;
-    }
-}
-";
-        }
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestHostBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -84,60 +46,12 @@ struct MyStruct {
     } field;
 };
 ";
-        string expectedOutputContents;
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public partial struct MyStruct
-    {
-        [NativeTypeName(""__AnonymousEnum_ClangUnsavedFile_L8_C5"")]
-        public int field;
-
-        public const int VALUEA = 0;
-        public const int VALUEB = 1;
-        public const int VALUEC = 2;
-    }
-
-    public static partial class Methods
-    {
-        public const int VALUE1 = 0;
-        public const int VALUE2 = 1;
-        public const int VALUE3 = 2;
-    }
-}
-";
-        }
-        else
-        {
-            expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public partial struct MyStruct
-    {
-        [NativeTypeName(""__AnonymousEnum_ClangUnsavedFile_L8_C5"")]
-        public uint field;
-
-        public const uint VALUEA = 0;
-        public const uint VALUEB = 1;
-        public const uint VALUEC = 2;
-    }
-
-    public static partial class Methods
-    {
-        public const uint VALUE1 = 0;
-        public const uint VALUE2 = 1;
-        public const uint VALUE3 = 2;
-    }
-}
-";
-        }
 
         var diagnostics = new[] {
             new Diagnostic(DiagnosticLevel.Info, "Found anonymous enum: __AnonymousEnum_ClangUnsavedFile_L1_C1. Mapping values as constants in: Methods", "Line 1, Column 1 in ClangUnsavedFile.h"),
             new Diagnostic(DiagnosticLevel.Info, "Found anonymous enum: __AnonymousEnum_ClangUnsavedFile_L8_C5. Mapping values as constants in: Methods", "Line 8, Column 5 in ClangUnsavedFile.h")
         };
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, expectedDiagnostics: diagnostics, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestHostBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, expectedDiagnostics: diagnostics, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -169,53 +83,7 @@ typedef struct _MyStructWithAnonymousUnion
     } union1;
 } MyStructWithAnonymousUnion;
 ";
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{
-    public partial struct _MyStruct
-    {
-        public int _field;
-    }
-
-    public unsafe partial struct _MyOtherStruct
-    {
-        [NativeTypeName(""MyStruct"")]
-        public _MyStruct _field1;
-
-        [NativeTypeName(""MyStruct *"")]
-        public _MyStruct* _field2;
-    }
-
-    public partial struct _MyStructWithAnonymousStruct
-    {
-        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L14_C5"")]
-        public __anonymousStructField1_e__Struct _anonymousStructField1;
-
-        public partial struct __anonymousStructField1_e__Struct
-        {
-            public int _field;
-        }
-    }
-
-    public partial struct _MyStructWithAnonymousUnion
-    {
-        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L21_C5"")]
-        public _union1_e__Union union1;
-
-        [StructLayout(LayoutKind.Explicit)]
-        public unsafe partial struct _union1_e__Union
-        {
-            [FieldOffset(0)]
-            public int _field1;
-
-            [FieldOffset(0)]
-            public int* _field2;
-        }
-    }
-}
-";
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -232,31 +100,7 @@ typedef union _MyOtherUnion
     MyUnion* _field2;
 } MyOtherUnion;
 ";
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{
-    [StructLayout(LayoutKind.Explicit)]
-    public partial struct _MyUnion
-    {
-        [FieldOffset(0)]
-        public int _field;
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    public unsafe partial struct _MyOtherUnion
-    {
-        [FieldOffset(0)]
-        [NativeTypeName(""MyUnion"")]
-        public _MyUnion _field1;
-
-        [FieldOffset(0)]
-        [NativeTypeName(""MyUnion *"")]
-        public _MyUnion* _field2;
-    }
-}
-";
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -265,20 +109,7 @@ namespace ClangSharp.Test
         var inputContents = @"#define MyMacro1 5
 #define MyMacro2 MyMacro1";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public static partial class Methods
-    {
-        [NativeTypeName(""#define MyMacro1 5"")]
-        public const int MyMacro1 = 5;
-
-        [NativeTypeName(""#define MyMacro2 MyMacro1"")]
-        public const int MyMacro2 = 5;
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -333,98 +164,7 @@ const int Hexadecimal = 1 << 0x01;
         // IntMin
         // ULongMax
         // Hexadecimal
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public static partial class Methods
-    {
-        [NativeTypeName(""const int"")]
-        public const int Signed = 1;
-
-        [NativeTypeName(""const long"")]
-        public const int SignedLong = 1;
-
-        [NativeTypeName(""const unsigned int"")]
-        public const uint Unsigned = 1;
-
-        [NativeTypeName(""const int"")]
-        public const int ShiftSigned = 1 << Signed;
-
-        [NativeTypeName(""const int"")]
-        public const int ShiftSignedLong = 1 << SignedLong;
-
-        [NativeTypeName(""const int"")]
-        public const int ShiftUnsigned = 1 << (int)(Unsigned);
-
-        [NativeTypeName(""const int"")]
-        public const int Char = 1 << (sbyte)('a');
-
-        [NativeTypeName(""const int"")]
-        public const int Byte = 1 << (sbyte)(1);
-
-        [NativeTypeName(""const int"")]
-        public const int UByte = unchecked(1 << (byte)(1));
-
-        [NativeTypeName(""const int"")]
-        public const int CInt = 1 << 1;
-
-        [NativeTypeName(""const int"")]
-        public const int CUint = 1 << 1;
-
-        [NativeTypeName(""const int"")]
-        public const int Negative = 1 << -1;
-
-        [NativeTypeName(""const int"")]
-        public const int OutOfRangePos = unchecked(1 << (int)(10000000000));
-
-        [NativeTypeName(""const int"")]
-        public const int OutOfRangeNeg = unchecked(1 << (int)(-10000000000));
-
-        [NativeTypeName(""const int"")]
-        public const int IntMax = 1 << 2147483647;
-
-        [NativeTypeName(""const int"")]
-        public const int IntMin = unchecked(1 << -2147483648);
-
-        [NativeTypeName(""const int"")]
-        public const int LongMax = unchecked(1 << (int)(9223372036854775807));
-
-        [NativeTypeName(""const int"")]
-        public const int LongMin = unchecked(1 << (int)(-9223372036854775808));
-
-        [NativeTypeName(""const int"")]
-        public const int ULongMax = 1 << -1;
-
-        [NativeTypeName(""const int"")]
-        public const int Hexadecimal = 1 << 1;
-
-        [NativeTypeName(""#define Left 1 << 1U"")]
-        public const int Left = 1 << 1;
-
-        [NativeTypeName(""#define Right 1 >> 1U"")]
-        public const int Right = 1 >> 1;
-
-        [NativeTypeName(""#define Int 1 << 1"")]
-        public const int Int = 1 << 1;
-
-        [NativeTypeName(""#define Long 1 << 1L"")]
-        public const int Long = 1 << 1;
-
-        [NativeTypeName(""#define LongLong 1 << 1LL"")]
-        public const int LongLong = 1 << 1;
-
-        [NativeTypeName(""#define ULong 1 << 1UL"")]
-        public const int ULong = 1 << 1;
-
-        [NativeTypeName(""#define ULongLong 1 << 1ULL"")]
-        public const int ULongLong = 1 << 1;
-
-        [NativeTypeName(""#define Complex ((((unsigned int)(0)) << 29U) | (((unsigned int)(1)) << 22U) | (((unsigned int)(0)) << 12U) | ((unsigned int)(0)))"")]
-        public const uint Complex = ((((uint)(0)) << 29) | (((uint)(1)) << 22) | (((uint)(0)) << 12) | ((uint)(0)));
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
 
@@ -436,20 +176,7 @@ const long SignedLong = 1;
 const int ShiftSignedLong = 1 << SignedLong;
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public static partial class Methods
-    {
-        [NativeTypeName(""const long"")]
-        public const nint SignedLong = 1;
-
-        [NativeTypeName(""const int"")]
-        public const int ShiftSignedLong = 1 << (int)(SignedLong);
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -470,62 +197,7 @@ typedef struct Bitfield {
 } Bitfield;
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public partial struct Bitfield
-    {
-        public byte _bitfield1;
-
-        [NativeTypeName(""unsigned char : 8"")]
-        public byte bits1
-        {
-            readonly get
-            {
-                return (byte)(_bitfield1 & 0xFFu);
-            }
-
-            set
-            {
-                _bitfield1 = (byte)((_bitfield1 & ~0xFFu) | (value & 0xFFu));
-            }
-        }
-
-        public sbyte _bitfield2;
-
-        [NativeTypeName(""char : 8"")]
-        public sbyte bits2
-        {
-            readonly get
-            {
-                return (sbyte)((_bitfield2 << 0) >> 0);
-            }
-
-            set
-            {
-                _bitfield2 = (sbyte)((_bitfield2 & ~0xFF) | (value & 0xFF));
-            }
-        }
-
-        public byte _bitfield3;
-
-        [NativeTypeName(""unsigned char : 8"")]
-        public byte bits3
-        {
-            readonly get
-            {
-                return (byte)(_bitfield3 & 0xFFu);
-            }
-
-            set
-            {
-                _bitfield3 = (byte)((_bitfield3 & ~0xFFu) | (value & 0xFFu));
-            }
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -552,105 +224,7 @@ typedef struct UIntBitfield {
 } UIntBitfield;
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public partial struct IntBitfield
-    {
-        public int _bitfield;
-
-        [NativeTypeName(""int : 8"")]
-        public int bits
-        {
-            readonly get
-            {
-                return (_bitfield << 24) >> 24;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~0xFF) | (value & 0xFF);
-            }
-        }
-
-        [NativeTypeName(""unsigned int : 8"")]
-        public uint bits2
-        {
-            readonly get
-            {
-                return (uint)((_bitfield >> 8) & 0xFF);
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~(0xFF << 8)) | (int)((value & 0xFFu) << 8);
-            }
-        }
-    }
-
-    public partial struct UIntBitfield
-    {
-        public uint _bitfield;
-
-        [NativeTypeName(""unsigned int : 8"")]
-        public uint bits1
-        {
-            readonly get
-            {
-                return _bitfield & 0xFFu;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
-            }
-        }
-
-        [NativeTypeName(""int : 8"")]
-        public int bits2
-        {
-            readonly get
-            {
-                return (int)(_bitfield << 16) >> 24;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~(0xFFu << 8)) | (uint)((value & 0xFF) << 8);
-            }
-        }
-
-        [NativeTypeName(""unsigned char : 8"")]
-        public byte bits3
-        {
-            readonly get
-            {
-                return (byte)((_bitfield >> 16) & 0xFFu);
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~(0xFFu << 16)) | (uint)((value & 0xFFu) << 16);
-            }
-        }
-
-        [NativeTypeName(""char : 8"")]
-        public sbyte bits4
-        {
-            readonly get
-            {
-                return (sbyte)((sbyte)(_bitfield << 0) >> 24);
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~(0xFFu << 24)) | (uint)((value & 0xFF) << 24);
-            }
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -668,50 +242,7 @@ typedef struct Bitfield {
 } Bitfield;
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    [NativeTypeName(""unsigned int"")]
-    public enum Flags : uint
-    {
-        Member = 0x7FFFFFFF,
-    }
-
-    public partial struct Bitfield
-    {
-        public uint _bitfield;
-
-        [NativeTypeName(""unsigned int : 8"")]
-        public uint bits
-        {
-            readonly get
-            {
-                return _bitfield & 0xFFu;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
-            }
-        }
-
-        [NativeTypeName(""Flags : 8"")]
-        public Flags flags
-        {
-            readonly get
-            {
-                return (Flags)((_bitfield >> 8) & 0xFFu);
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFFu) << 8);
-            }
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -726,30 +257,7 @@ typedef struct Bitfield {
 } Bitfield;
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public partial struct Bitfield
-    {
-        public uint _bitfield;
-
-        [NativeTypeName(""Number : 8"")]
-        public uint bits
-        {
-            readonly get
-            {
-                return _bitfield & 0xFFu;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
-            }
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -767,49 +275,7 @@ typedef struct Bitfield {
 } Bitfield;
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public enum Flags
-    {
-        Member = 0x7FFFFFFF,
-    }
-
-    public partial struct Bitfield
-    {
-        public uint _bitfield;
-
-        [NativeTypeName(""unsigned int : 8"")]
-        public uint bits
-        {
-            readonly get
-            {
-                return _bitfield & 0xFFu;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
-            }
-        }
-
-        [NativeTypeName(""Flags : 8"")]
-        public Flags flags
-        {
-            readonly get
-            {
-                return (Flags)((_bitfield << 16) >> 24);
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFF) << 8);
-            }
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -828,50 +294,7 @@ typedef struct Bitfield {
 } Bitfield;
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    [NativeTypeName(""unsigned int"")]
-    public enum FlagBits : uint
-    {
-        Member = 0x7FFFFFFF,
-    }
-
-    public partial struct Bitfield
-    {
-        public uint _bitfield;
-
-        [NativeTypeName(""unsigned int : 8"")]
-        public uint bits
-        {
-            readonly get
-            {
-                return _bitfield & 0xFFu;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
-            }
-        }
-
-        [NativeTypeName(""Flags : 8"")]
-        public uint flags
-        {
-            readonly get
-            {
-                return (_bitfield >> 8) & 0xFFu;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~(0xFFu << 8)) | ((value & 0xFFu) << 8);
-            }
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -890,50 +313,7 @@ typedef struct Bitfield {
 } Bitfield;
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    [NativeTypeName(""unsigned int"")]
-    public enum FlagBits : uint
-    {
-        Member = 0x7FFFFFFF,
-    }
-
-    public partial struct Bitfield
-    {
-        public uint _bitfield;
-
-        [NativeTypeName(""unsigned int : 8"")]
-        public uint bits
-        {
-            readonly get
-            {
-                return _bitfield & 0xFFu;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
-            }
-        }
-
-        [NativeTypeName(""Flags : 8"")]
-        public FlagBits flags
-        {
-            readonly get
-            {
-                return (FlagBits)((_bitfield >> 8) & 0xFFu);
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFFu) << 8);
-            }
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents,
+        return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents,
             commandLineArgs: DefaultCClangCommandLineArgs,
             language: "c",
             languageStandard: DefaultCStandard,
@@ -956,44 +336,7 @@ typedef struct Bitfield {
 } Bitfield;
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public partial struct Bitfield
-    {
-        public uint _bitfield;
-
-        [NativeTypeName(""unsigned int : 8"")]
-        public uint bits
-        {
-            readonly get
-            {
-                return _bitfield & 0xFFu;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
-            }
-        }
-
-        [NativeTypeName(""Flags : 8"")]
-        public Flags flags
-        {
-            readonly get
-            {
-                return (Flags)((_bitfield >> 8) & 0xFFu);
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFFu) << 8);
-            }
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents,
+        return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents,
             commandLineArgs: DefaultCClangCommandLineArgs,
             language: "c",
             languageStandard: DefaultCStandard,
@@ -1031,41 +374,7 @@ typedef struct Bitfield {
 ";
 
         // We use "static readonly" instead of "const" because nint/nuint differ on 32/64-bit platforms
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public static partial class Methods
-    {
-        [NativeTypeName(""#define SIZE_MAX (18446744073709551615UL)"")]
-        public static readonly nuint SIZE_MAX = unchecked((nuint)(18446744073709551615U));
-
-        [NativeTypeName(""#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX"")]
-        public static readonly nuint CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = unchecked((nuint)(18446744073709551615U));
-
-        [NativeTypeName(""#define LONG_MAX __LONG_MAX__"")]
-        public static readonly nint LONG_MAX = unchecked((nint)(9223372036854775807));
-
-        [NativeTypeName(""#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)"")]
-        public static readonly nuint ULONG_MAX = unchecked((nuint)(9223372036854775807 * 2U + 1U));
-
-        [NativeTypeName(""#define CONST_IN_RANGE_S1 ((long)2147483647)"")]
-        public const nint CONST_IN_RANGE_S1 = ((nint)(2147483647));
-
-        [NativeTypeName(""#define CONST_IN_RANGE_U1 ((unsigned long)4294967295)"")]
-        public const nuint CONST_IN_RANGE_U1 = ((nuint)(4294967295));
-
-        [NativeTypeName(""#define READONLY_OUT_OF_RANGE_S1 ((long)4294967295)"")]
-        public static readonly nint READONLY_OUT_OF_RANGE_S1 = unchecked((nint)(4294967295));
-
-        [NativeTypeName(""#define READONLY_OUT_OF_RANGE_S2 ((long)4294967296)"")]
-        public static readonly nint READONLY_OUT_OF_RANGE_S2 = unchecked((nint)(4294967296));
-
-        [NativeTypeName(""#define READONLY_OUT_OF_RANGE_U1 ((unsigned long)4294967296)"")]
-        public static readonly nuint READONLY_OUT_OF_RANGE_U1 = unchecked((nuint)(4294967296));
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -1100,32 +409,7 @@ bool SDL_size_add_check_overflow(size_t a, size_t b, size_t *ret)
         // The expected below currently does not represent the ideal behavior.
         // Ideally, the unchecked keywork is removed as it is unnecessary.
         // This issue is tracked here: https://github.com/dotnet/ClangSharp/issues/709
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public static unsafe partial class Methods
-    {
-        [return: NativeTypeName(""_Bool"")]
-        public static bool SDL_size_add_check_overflow([NativeTypeName(""size_t"")] nuint a, [NativeTypeName(""size_t"")] nuint b, [NativeTypeName(""size_t *"")] nuint* ret)
-        {
-            if (b > unchecked(18446744073709551615U) - a)
-            {
-                return (0) != 0;
-            }
-
-            *ret = a + b;
-            return (1) != 0;
-        }
-
-        [NativeTypeName(""#define true 1"")]
-        public const int @true = 1;
-
-        [NativeTypeName(""#define false 0"")]
-        public const int @false = 0;
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -1146,26 +430,7 @@ bool SDL_size_add_check_overflow(size_t a, size_t b, size_t *ret)
 #define ULONG_MAX 0xffffffffUL
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public static partial class Methods
-    {
-        [NativeTypeName(""#define SIZE_MAX 0xffffffffffffffffui64"")]
-        public const ulong SIZE_MAX = 0xffffffffffffffffUL;
-
-        [NativeTypeName(""#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX"")]
-        public const ulong CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = 0xffffffffffffffffUL;
-
-        [NativeTypeName(""#define LONG_MAX 2147483647L"")]
-        public const int LONG_MAX = 2147483647;
-
-        [NativeTypeName(""#define ULONG_MAX 0xffffffffUL"")]
-        public const uint ULONG_MAX = 0xffffffffU;
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -1225,18 +490,6 @@ typedef long int intptr_t;
 }
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public static unsafe partial class Methods
-    {
-        public static void* MyFunction(void* buf, [NativeTypeName(""unsigned long long"")] ulong size)
-        {
-            return (byte*)buf + size;
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 }

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <delegate name="Callback0" access="public" convention="Cdecl" static="true">
+      <type>void</type>
+    </delegate>
+    <delegate name="Callback1" access="public" convention="Cdecl" static="true">
+      <attribute>Obsolete</attribute>
+      <type>void</type>
+    </delegate>
+    <delegate name="Callback2" access="public" convention="Cdecl" static="true">
+      <attribute>Obsolete("This is obsolete.")</attribute>
+      <type>void</type>
+    </delegate>
+    <delegate name="Callback3" access="public" convention="Cdecl" static="true">
+      <type>void</type>
+    </delegate>
+    <struct name="MyStruct0" access="public">
+      <field name="_callback" access="public">
+        <type native="Callback0">IntPtr</type>
+      </field>
+    </struct>
+    <struct name="MyStruct1" access="public">
+      <field name="_callback" access="public">
+        <attribute>Obsolete</attribute>
+        <type native="Callback1">IntPtr</type>
+      </field>
+    </struct>
+    <struct name="MyStruct2" access="public">
+      <field name="_callback" access="public">
+        <attribute>Obsolete("This is obsolete.")</attribute>
+        <type native="Callback2">IntPtr</type>
+      </field>
+    </struct>
+    <struct name="MyStruct3" access="public">
+      <field name="_callback" access="public">
+        <type native="Callback3">IntPtr</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyUnion" access="public" layout="Explicit">
+      <field name="Equals" access="public" offset="0">
+        <type>int</type>
+      </field>
+      <field name="Dispose" access="public" offset="0">
+        <type>int</type>
+      </field>
+      <field name="GetHashCode" access="public" offset="0">
+        <type>int</type>
+      </field>
+      <field name="GetType" access="public" offset="0">
+        <type>int</type>
+      </field>
+      <field name="MemberwiseClone" access="public" offset="0">
+        <type>int</type>
+      </field>
+      <field name="ReferenceEquals" access="public" offset="0">
+        <type>int</type>
+      </field>
+      <field name="ToString" access="public" offset="0">
+        <type>int</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

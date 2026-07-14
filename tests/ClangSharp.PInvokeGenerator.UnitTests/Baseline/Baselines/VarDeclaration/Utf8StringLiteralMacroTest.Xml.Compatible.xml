@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <constant name="MyMacro1" access="public">
+        <type primitive="False">ReadOnlySpan&lt;byte&gt;</type>
+        <value>
+          <code>new byte[] { 0x54, 0x65, 0x73, 0x74, 0x00, 0x5C, 0x0D, 0x0A, 0x09, 0x22, 0x00 }</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>

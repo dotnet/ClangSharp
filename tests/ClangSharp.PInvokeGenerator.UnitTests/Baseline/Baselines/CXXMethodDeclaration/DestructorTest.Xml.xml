@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <function name="Dispose" access="public">
+        <type>void</type>
+        <code></code>
+      </function>
+    </struct>
+  </namespace>
+</bindings>

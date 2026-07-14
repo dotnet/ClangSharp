@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <constant name="IID_IUnknown" access="public">
+        <type primitive="False">Guid</type>
+        <value>
+          <code>new Guid(0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46)</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>

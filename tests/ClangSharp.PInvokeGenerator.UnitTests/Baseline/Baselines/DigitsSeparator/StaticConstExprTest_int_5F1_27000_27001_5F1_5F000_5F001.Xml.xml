@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyClass" access="public">
+      <constant name="x" access="private">
+        <type primitive="True">int</type>
+        <value>
+          <code>1_000_001</code>
+        </value>
+      </constant>
+    </struct>
+  </namespace>
+</bindings>

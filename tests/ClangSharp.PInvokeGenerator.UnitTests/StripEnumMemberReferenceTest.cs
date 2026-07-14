@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
+using ClangSharp.UnitTests.Baseline;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
@@ -12,8 +13,10 @@ namespace ClangSharp.UnitTests;
 /// the emitted code references undefined names.
 /// </summary>
 [Platform("win")]
-public sealed class StripEnumMemberReferenceTest : PInvokeGeneratorTest
+public sealed class StripEnumMemberReferenceTest : StandaloneBaselineTest
 {
+    protected override string Area => "StripEnumMemberReference";
+
     [Test]
     public Task SiblingReferencesAreStripped()
     {
@@ -27,19 +30,6 @@ public sealed class StripEnumMemberReferenceTest : PInvokeGeneratorTest
 } WGPUInstanceBackend;
 ";
 
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public enum WGPUInstanceBackend
-    {
-        Vulkan = 1 << 0,
-        GL = 1 << 1,
-        Metal = 1 << 2,
-        Primary = Vulkan | Metal,
-        Secondary = GL,
-    }
-}
-";
-
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.StripEnumMemberTypeName);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, PInvokeGeneratorConfigurationOptions.StripEnumMemberTypeName);
     }
 }

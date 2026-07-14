@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <constant name="MyArray" access="public">
+        <type primitive="False">int[][]</type>
+        <value>
+          <code>new int[2][]
+      {
+          new int[2]
+          {
+              0,
+              1,
+          },
+          new int[2]
+          {
+              2,
+              3,
+          },
+      }</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>

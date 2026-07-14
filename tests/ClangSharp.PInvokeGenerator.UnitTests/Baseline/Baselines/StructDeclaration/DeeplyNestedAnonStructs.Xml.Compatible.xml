@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="_MyStruct" access="public" unsafe="true">
+      <field name="Anonymous" access="public">
+        <type native="__AnonymousRecord_ClangUnsavedFile_L3_C5">_Anonymous_e__Struct</type>
+      </field>
+      <field name="Value1" access="public">
+        <type>ref int</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct._Anonymous1_e__Struct._Anonymous2_e__Struct* pField = &amp;Anonymous.Anonymous1.Anonymous2)
+    {
+        return ref pField-&gt;Value1;
+    }</code>
+        </get>
+      </field>
+      <field name="Value2" access="public">
+        <type>ref int</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct._Anonymous1_e__Struct._Anonymous3_e__Struct* pField = &amp;Anonymous.Anonymous1.Anonymous3)
+    {
+        return ref pField-&gt;Value2;
+    }</code>
+        </get>
+      </field>
+      <struct name="_Anonymous_e__Struct" access="public" unsafe="true">
+        <field name="Anonymous1" access="public">
+          <type native="__AnonymousRecord_ClangUnsavedFile_L3_C14">_Anonymous1_e__Struct</type>
+        </field>
+        <struct name="_Anonymous1_e__Struct" access="public" unsafe="true">
+          <field name="Anonymous2" access="public">
+            <type native="__AnonymousRecord_ClangUnsavedFile_L4_C9">_Anonymous2_e__Struct</type>
+          </field>
+          <field name="Anonymous3" access="public">
+            <type native="__AnonymousRecord_ClangUnsavedFile_L5_C9">_Anonymous3_e__Struct</type>
+          </field>
+          <struct name="_Anonymous2_e__Struct" access="public">
+            <field name="Value1" access="public">
+              <type>int</type>
+            </field>
+          </struct>
+          <struct name="_Anonymous3_e__Struct" access="public">
+            <field name="Value2" access="public">
+              <type>int</type>
+            </field>
+          </struct>
+        </struct>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

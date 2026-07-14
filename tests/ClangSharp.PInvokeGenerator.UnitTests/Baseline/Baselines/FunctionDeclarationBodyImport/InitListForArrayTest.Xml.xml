@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true">
+        <type>void</type>
+        <code>int[] x = new int[4]
+      {
+          1,
+          2,
+          3,
+          4,
+      };
+      int[] y = new int[4]
+      {
+          1,
+          2,
+          3,
+          default,
+      };
+      int[] z = new int[2]
+      {
+          1,
+          2,
+      };</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

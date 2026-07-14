@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true">
+        <type>int</type>
+        <param name="x">
+          <type>int</type>
+        </param>
+        <param name="y">
+          <type>int</type>
+        </param>
+        <code>return x /= y;</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

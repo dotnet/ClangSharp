@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct1" access="private">
+      <field name="Field1" access="private">
+        <type>int</type>
+      </field>
+      <field name="Field2" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name="MyStruct2" access="internal">
+      <field name="Field1" access="private">
+        <type>int</type>
+      </field>
+      <field name="Field2" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name="MyStruct3" access="public">
+      <field name="Field1" access="private">
+        <type>int</type>
+      </field>
+      <field name="Field2" access="internal">
+        <type>int</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

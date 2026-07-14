@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="value" access="public">
+        <type>int</type>
+      </field>
+      <function name="MyFunction1" access="public">
+        <type>int</type>
+        <code>return value;</code>
+      </function>
+      <function name="MyFunction2" access="public">
+        <type>int</type>
+        <code>return MyFunction1();</code>
+      </function>
+      <function name="MyFunction3" access="public">
+        <type>int</type>
+        <code>return this.MyFunction1();</code>
+      </function>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunctionA" access="public" static="true">
+        <type>int</type>
+        <param name="x">
+          <type>MyStruct</type>
+        </param>
+        <code>return x.MyFunction1();</code>
+      </function>
+      <function name="MyFunctionB" access="public" static="true" unsafe="true">
+        <type>int</type>
+        <param name="x">
+          <type>MyStruct*</type>
+        </param>
+        <code>return x-&gt;MyFunction2();</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

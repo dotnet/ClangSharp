@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <function name="MyFunction0" access="public">
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+      <function name="MyFunction1" access="public">
+        <attribute>Obsolete</attribute>
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+      <function name="MyFunction2" access="public">
+        <attribute>Obsolete("This is obsolete.")</attribute>
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+      <function name="MyFunction3" access="public">
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+    </struct>
+  </namespace>
+</bindings>

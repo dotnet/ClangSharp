@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" lib="" convention="Cdecl" static="true">
+        <type>void</type>
+      </function>
+    </class>
+  </namespace>
+</bindings>

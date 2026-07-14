@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public" unsafe="true">
+      <field name="x" access="public">
+        <type native="double[]" count="1" fixed="_x_e__FixedBuffer">double</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

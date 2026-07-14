@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <constant name="MyMacro3" access="public">
+        <type primitive="True">int</type>
+        <value>
+          <unchecked>
+            <code>((int)(((uint)(1) &lt;&lt; 31) | ((uint)(2) &lt;&lt; 16) | ((uint)(3))))</code>
+          </unchecked>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>

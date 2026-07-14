@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
+using ClangSharp.UnitTests.Baseline;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
@@ -13,8 +14,10 @@ namespace ClangSharp.UnitTests;
 /// emit the attribute the same way parameters do.
 /// </summary>
 [Platform("win")]
-public sealed class SalFieldAttributeTest : PInvokeGeneratorTest
+public sealed class SalFieldAttributeTest : StandaloneBaselineTest
 {
+    protected override string Area => "SalFieldAttribute";
+
     private const string InputContents = @"#define _Field_size_full_(x) __attribute__((annotate(""_Field_size_full_("" #x "")"")))
 
 struct MyStruct
@@ -27,23 +30,10 @@ struct MyStruct
     [Test]
     public Task FieldSalAnnotationGeneratesCppAttributeList()
     {
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public unsafe partial struct MyStruct
-    {
-        public int count;
-
-        [CppAttributeList(""_Field_size_full_(count)"")]
-        [NativeAnnotation(""_Field_size_full_(count)"")]
-        public int* data;
-    }
-}
-";
-
         var expectedDiagnostics = new[] {
             new Diagnostic(DiagnosticLevel.Warning, "Function like macro definition records are not supported: '_Field_size_full_'. Generated bindings may be incomplete.", "Line 1, Column 9 in ClangUnsavedFile.h")
         };
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(InputContents, expectedOutputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateCppAttributes, expectedDiagnostics: expectedDiagnostics);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(InputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateCppAttributes, expectedDiagnostics: expectedDiagnostics);
     }
 }

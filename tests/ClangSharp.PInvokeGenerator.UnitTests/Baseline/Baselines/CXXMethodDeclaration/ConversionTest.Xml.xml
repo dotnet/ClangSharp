@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public" unsafe="true">
+      <field name="value" access="public">
+        <type>int</type>
+      </field>
+      <field name="pointer" access="public">
+        <type>int*</type>
+      </field>
+      <field name="pointer2" access="public">
+        <type>int**</type>
+      </field>
+      <field name="pointer3" access="public">
+        <type>int***</type>
+      </field>
+      <function name="ToInt32" access="public">
+        <type>int</type>
+        <code>return value;</code>
+      </function>
+      <function name="ToInt32Pointer" access="public" unsafe="true">
+        <type>int*</type>
+        <code>return pointer;</code>
+      </function>
+      <function name="ToInt32PointerPointer" access="public" unsafe="true">
+        <type>int**</type>
+        <code>return pointer2;</code>
+      </function>
+      <function name="ToInt32PointerPointerPointer" access="public" unsafe="true">
+        <type>int***</type>
+        <code>return pointer3;</code>
+      </function>
+    </struct>
+  </namespace>
+</bindings>
