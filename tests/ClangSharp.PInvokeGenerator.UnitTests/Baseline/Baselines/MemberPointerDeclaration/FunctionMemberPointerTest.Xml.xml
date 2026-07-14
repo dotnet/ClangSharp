@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyClass" access="public"></struct>
+    <struct name="MyStruct" access="public" unsafe="true">
+      <field name="callback" access="public">
+        <type native="void (MyClass::*)(int)">void*</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

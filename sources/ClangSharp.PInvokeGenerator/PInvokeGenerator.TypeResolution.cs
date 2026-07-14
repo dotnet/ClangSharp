@@ -347,6 +347,17 @@ public sealed partial class PInvokeGenerator
                     result.nativeTypeName = $"{nativePointeeTypeName} &";
                 }
             }
+            else if (type is MemberPointerType)
+            {
+                // C++ pointers-to-members have no C# equivalent. Their size and layout are ABI-specific
+                // (a data member pointer is pointer-sized on the Itanium ABI, where-as a member function
+                // pointer is generally larger), so we emit an opaque pointer-sized `void*` and preserve the
+                // original spelling via the NativeTypeName. The layout may be incorrect for member function
+                // pointers, which the diagnostic calls out so a consumer can remap the field if needed.
+
+                result.typeName = "void*";
+                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.TypeClass}'. Emitting an opaque 'void*'; the size and layout may be incorrect for member function pointers.", cursor);
+            }
             else if (type is SubstTemplateTypeParmType substTemplateTypeParmType)
             {
                 result.typeName = GetTypeName(cursor, context, rootType, substTemplateTypeParmType.ReplacementType, ignoreTransparentStructsWhereRequired, isTemplate, out _);
@@ -900,7 +911,7 @@ public sealed partial class PInvokeGenerator
         {
             GetTypeSize(cursor, enumType.Decl.IntegerType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out size32, out size64);
         }
-        else if (type is FunctionType or PointerType or ReferenceType)
+        else if (type is FunctionType or PointerType or ReferenceType or MemberPointerType)
         {
             size32 = 4;
             size64 = 8;
