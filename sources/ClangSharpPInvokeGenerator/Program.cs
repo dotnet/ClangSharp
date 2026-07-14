@@ -73,6 +73,7 @@ internal static partial class Program
         var libraryPath = s_libraryPath.SingleValue;
         var methodClassName = s_methodClassName.SingleValue;
         var methodPrefixToStrip = s_methodPrefixToStrip.SingleValue;
+        var typePrefixToStrip = s_typePrefixToStrip.SingleValue;
         var nativeTypeNamesToStrip = s_nativeTypeNamesToStrip.GetValues();
         var namespaceName = s_namespaceName.SingleValue;
         var outputLocation = s_outputLocation.SingleValue;
@@ -586,6 +587,7 @@ internal static partial class Program
                 IncludedNames = includedNames,
                 LibraryPath = libraryPath,
                 MethodPrefixToStrip = methodPrefixToStrip,
+                TypePrefixToStrip = typePrefixToStrip,
                 NativeTypeNamesToStrip = nativeTypeNamesToStrip,
                 RemappedNames = remappedNames,
                 RemappedTypeNames = remappedTypeNames,

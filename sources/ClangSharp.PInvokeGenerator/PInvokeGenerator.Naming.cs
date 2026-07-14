@@ -483,6 +483,14 @@ public sealed partial class PInvokeGenerator
             return remappedName;
         }
 
+        if (namedDecl is EnumDecl or RecordDecl)
+        {
+            // Strip the configured type prefix from named enum/struct/union declarations. Anonymous
+            // names (which don't start with the user prefix) and declash below both operate on the
+            // stripped name so the declaration and every reference resolve to the same type.
+            remappedName = StripTypePrefix(remappedName);
+        }
+
         if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
         {
             var parent = cxxConstructorDecl.Parent;
@@ -546,6 +554,9 @@ public sealed partial class PInvokeGenerator
                 return remappedTypeName;
             }
         }
+
+        // A `--remap-type` takes precedence over prefix stripping, matching the declaration side.
+        leafName = StripTypePrefix(leafName);
 
         if ((tagType.Decl is RecordDecl recordDecl) && TryDeclashRecordName(recordDecl, leafName, out var declashedName))
         {

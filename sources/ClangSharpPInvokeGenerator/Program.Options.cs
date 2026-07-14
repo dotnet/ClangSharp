@@ -21,6 +21,7 @@ internal static partial class Program
     private static readonly string[] s_outputModeOptionAliases = ["--output-mode", "-om"];
     private static readonly string[] s_outputOptionAliases = ["--output", "-o"];
     private static readonly string[] s_prefixStripOptionAliases = ["--prefixStrip", "-p"];
+    private static readonly string[] s_typePrefixStripOptionAliases = ["--typePrefixStrip", "-tp"];
     private static readonly string[] s_remapOptionAliases = ["--remap", "-r"];
     private static readonly string[] s_remapTypeOptionAliases = ["--remap-type", "-rt"];
     private static readonly string[] s_remapFieldOptionAliases = ["--remap-field", "-rf"];
@@ -65,6 +66,7 @@ internal static partial class Program
     private static readonly CommandLineOption s_outputMode = Single(s_outputModeOptionAliases, "The mode describing how the information collected from the headers are presented in the resultant bindings.", defaultValue: "CSharp", valueName: "CSharp|Xml");
     private static readonly CommandLineOption s_outputLocation = Single(s_outputOptionAliases, "The output location to write the generated bindings to.");
     private static readonly CommandLineOption s_methodPrefixToStrip = Single(s_prefixStripOptionAliases, "The prefix to strip from the generated method bindings.");
+    private static readonly CommandLineOption s_typePrefixToStrip = Single(s_typePrefixStripOptionAliases, "The prefix to strip from the generated enum, struct, and union type bindings (and their enum member names).");
     private static readonly CommandLineOption s_remappedNameValuePairs = Multi(s_remapOptionAliases, "A declaration name to be remapped to another name during binding generation.");
     private static readonly CommandLineOption s_remappedTypeNameValuePairs = Multi(s_remapTypeOptionAliases, "A type (record or enum) declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name.");
     private static readonly CommandLineOption s_remappedFieldNameValuePairs = Multi(s_remapFieldOptionAliases, "A field declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name.");
@@ -110,6 +112,7 @@ internal static partial class Program
         s_outputMode,
         s_outputLocation,
         s_methodPrefixToStrip,
+        s_typePrefixToStrip,
         s_nativeTypeNamesToStrip,
         s_remappedNameValuePairs,
         s_remappedTypeNameValuePairs,
