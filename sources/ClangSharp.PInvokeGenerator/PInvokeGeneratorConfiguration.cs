@@ -36,6 +36,7 @@ public sealed class PInvokeGeneratorConfiguration
     private readonly HashSet<string> _nativeTypeNamesToStrip;
     private readonly HashSet<string> _withManualImports;
     private readonly HashSet<string> _traversalNames;
+    internal readonly HashSet<string> _withEqualityMembers;
     internal readonly HashSet<string> _withReadonlys;
     internal readonly HashSet<string> _withSetLastErrors;
     internal readonly HashSet<string> _withSuppressGCTransitions;
@@ -96,6 +97,7 @@ public sealed class PInvokeGeneratorConfiguration
         _nativeTypeNamesToStrip = new HashSet<string>(StringComparer.Ordinal);
         _withManualImports = new HashSet<string>(StringComparer.Ordinal);
         _traversalNames = new HashSet<string>(StringComparer.Ordinal);
+        _withEqualityMembers = new HashSet<string>(QualifiedNameComparer.Default);
         _withReadonlys = new HashSet<string>(QualifiedNameComparer.Default);
         _withSetLastErrors = new HashSet<string>(QualifiedNameComparer.Default);
         _withSuppressGCTransitions = new HashSet<string>(QualifiedNameComparer.Default);
@@ -680,6 +682,20 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             AddRange(_withNamespaces, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithEqualityMembers
+    {
+        get
+        {
+            return _withEqualityMembers;
+        }
+
+        init
+        {
+            AddRange(_withEqualityMembers, value);
         }
     }
 

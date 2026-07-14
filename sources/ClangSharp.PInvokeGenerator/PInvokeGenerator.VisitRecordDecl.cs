@@ -137,6 +137,8 @@ public partial class PInvokeGenerator
 
             var hasGuidMember = _config.GenerateGuidMember && !string.IsNullOrWhiteSpace(uuidName);
 
+            var equalityFields = GetEqualityFields(recordDecl, cxxRecordDecl);
+
             var layoutKind = recordDecl.IsUnion
                 ? LayoutKind.Explicit
                 : LayoutKind.Sequential;
@@ -200,6 +202,7 @@ public partial class PInvokeGenerator
                 IsUnsafe = IsUnsafe(recordDecl) || hasGuidMember,
                 HasVtbl = hasVtbl || hasBaseVtbl,
                 IsUnion = recordDecl.IsUnion,
+                HasEquality = equalityFields is not null,
                 Layout = new() {
                     Alignment32 = alignment32,
                     Alignment64 = alignment64,
@@ -606,6 +609,14 @@ public partial class PInvokeGenerator
                     OutputVtblEntries(cxxRecordDecl, cxxRecordDecl, new HashSet<string>(StringComparer.Ordinal));
                     _outputBuilder.EndExplicitVtbl();
                 }
+            }
+
+            if ((equalityFields is not null) && (_outputBuilder is CSharpOutputBuilder csharpEqualityBuilder))
+            {
+                // A nested type emitted just above (e.g. a promoted anonymous record) leaves the builder
+                // without a pending newline, so force the blank-line separator before the members.
+                csharpEqualityBuilder.NeedsNewline = true;
+                OutputEqualityMethods(csharpEqualityBuilder, escapedName, equalityFields);
             }
 
             if (!isTopLevelStruct)

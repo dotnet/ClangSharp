@@ -89,6 +89,7 @@ internal static partial class Program
         var withCallConvNameValuePairs = s_withCallConvNameValuePairs.GetValues();
         var withClassNameValuePairs = s_withClassNameValuePairs.GetValues();
         var withEnumMemberStripNameValuePairs = s_withEnumMemberStripNameValuePairs.GetValues();
+        var withEqualityMembers = s_withEqualityMembers.GetValues();
         var withGuidNameValuePairs = s_withGuidNameValuePairs.GetValues();
         var withLengthNameValuePairs = s_withLengthNameValuePairs.GetValues();
         var withLibraryPathNameValuePairs = s_withLibraryPathNameValuePairs.GetValues();
@@ -603,6 +604,7 @@ internal static partial class Program
                 WithClasses = withClasses,
                 WithConditional = withConditional,
                 WithEnumMemberStrip = withEnumMemberStrip,
+                WithEqualityMembers = withEqualityMembers,
                 WithGuids = withGuids,
                 WithLengths = withLengths,
                 WithLibraryPaths = withLibraryPaths,

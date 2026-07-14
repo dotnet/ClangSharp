@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using ClangSharp.Abstractions;
@@ -813,20 +814,31 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
         Write("partial struct ");
         Write(desc.EscapedName);
 
+        var baseTypeNames = new List<string>();
+
         if (_generator.Config.GenerateMarkerInterfaces)
         {
             if (desc.HasVtbl)
             {
-                Write(" : ");
-                Write(desc.EscapedName);
-                Write(".Interface");
+                baseTypeNames.Add($"{desc.EscapedName}.Interface");
             }
 
             if ((desc.Uuid is not null) && _generator.Config.GenerateGuidMember && !_generator.Config.GenerateCompatibleCode)
             {
-                Write(desc.HasVtbl ? ", " : " : ");
-                Write("INativeGuid");
+                baseTypeNames.Add("INativeGuid");
             }
+        }
+
+        if (desc.HasEquality)
+        {
+            AddUsingDirective("System");
+            baseTypeNames.Add($"IEquatable<{desc.EscapedName}>");
+        }
+
+        if (baseTypeNames.Count != 0)
+        {
+            Write(" : ");
+            Write(string.Join(", ", baseTypeNames));
         }
 
         WriteNewline();
