@@ -46,6 +46,11 @@ public partial class PInvokeGenerator
             if (cxxRecordDecl is not null)
             {
                 hasVtbl = HasVtbl(cxxRecordDecl, out hasBaseVtbl);
+
+                if (HasVirtualBase(cxxRecordDecl))
+                {
+                    AddDiagnostic(DiagnosticLevel.Warning, "Virtual inheritance is not currently modeled. The generated layout and vtable dispatch for this type may be incorrect.", cxxRecordDecl);
+                }
             }
 
             var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);

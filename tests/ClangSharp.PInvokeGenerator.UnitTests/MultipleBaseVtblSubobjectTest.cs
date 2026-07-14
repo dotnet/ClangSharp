@@ -261,4 +261,59 @@ struct D : C
     {
         return ValidateGeneratedCSharpLatestWindowsBaselineAsync(FieldBearingPrimaryDeepChainInputContents);
     }
+
+    // MSVC promotes the first polymorphic base to offset 0 so the object can share its vtable pointer,
+    // reordering any non-polymorphic base that was declared before it. The subobject fields must be emitted
+    // in native layout order (`P` first, then `Data`) rather than declaration order, or the struct layout
+    // would not match the native ABI.
+    private const string ReorderedPolymorphicBaseInputContents = @"struct Data
+{
+    int dx;
+};
+
+struct P
+{
+    int pp;
+    virtual void v();
+};
+
+struct C : Data, P
+{
+    int cx;
+    virtual void c();
+};
+";
+
+    [Test]
+    public Task EmitsReorderedPolymorphicPrimaryBaseInLayoutOrder()
+    {
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(ReorderedPolymorphicBaseInputContents);
+    }
+
+    // Virtual inheritance is not representable in the by-value subobject model: a virtually-inherited base
+    // is laid out once for the most-derived object, so its offset within a given subobject is
+    // context-dependent. The generator emits a diagnostic and falls back to a best-effort layout rather
+    // than silently emitting an ABI-incorrect one.
+    private const string VirtualInheritanceInputContents = @"struct A
+{
+    int ax;
+    virtual void a();
+};
+
+struct C : virtual A
+{
+    int cx;
+    virtual void c();
+};
+";
+
+    [Test]
+    public Task WarnsThatVirtualInheritanceIsNotModeled()
+    {
+        var expectedDiagnostics = new[] {
+            new Diagnostic(DiagnosticLevel.Warning, "Virtual inheritance is not currently modeled. The generated layout and vtable dispatch for this type may be incorrect.", "Line 7, Column 8 in ClangUnsavedFile.h")
+        };
+
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(VirtualInheritanceInputContents, expectedDiagnostics: expectedDiagnostics);
+    }
 }

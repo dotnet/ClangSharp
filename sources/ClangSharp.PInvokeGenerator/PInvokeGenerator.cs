@@ -1424,6 +1424,26 @@ public sealed partial class PInvokeGenerator : IDisposable
         return hasUnsafeMethod;
     }
 
+    // Virtual inheritance introduces a shared base subobject that is laid out once in the most-derived object.
+    // A class that carries a virtual base therefore has a different layout standalone than when it is itself
+    // embedded as a base (the shared base moves to the most-derived object), and the shared base must not be
+    // duplicated across the classes that inherit it. ClangSharp models every base as a by-value subobject of a
+    // single generated type, which cannot represent that context-dependent layout, so records that inherit a
+    // virtual base -- directly or indirectly -- cannot be laid out correctly. Detect them so the caller can
+    // surface a diagnostic rather than silently emit a wrong layout.
+    private bool HasVirtualBase(CXXRecordDecl cxxRecordDecl)
+    {
+        foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+        {
+            if (cxxBaseSpecifier.IsVirtual || HasVirtualBase(GetRecordDecl(cxxBaseSpecifier)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private bool HasVtbl(CXXRecordDecl cxxRecordDecl, out bool hasBaseVtbl)
     {
         var hasVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual && (method.OverriddenMethods.Count == 0));
@@ -1462,13 +1482,30 @@ public sealed partial class PInvokeGenerator : IDisposable
     // carries its own fields or when it is a non-primary polymorphic base (its distinct vtable pointer
     // cannot be flattened into the derived type's single `lpVtbl`). The vtbl-only primary polymorphic base
     // is instead flattened into `lpVtbl`; its own non-primary polymorphic subobjects are carried onto the
-    // derived type (nested multiple inheritance), so we recurse into it in declaration order -- this keeps
-    // every carried subobject at the correct position relative to the derived type's later direct bases.
+    // derived type (nested multiple inheritance), so we recurse into it to collect them. The collected
+    // subobjects are then ordered by clang's authoritative per-target offset so the emitted layout matches
+    // the native one even when the ABI reorders bases (see below).
     private IEnumerable<(CXXBaseSpecifier Specifier, CXXRecordDecl Owner)> EnumerateBaseSubobjects(CXXRecordDecl cxxRecordDecl)
+    {
+        var entries = new List<(CXXBaseSpecifier Specifier, CXXRecordDecl Owner, long Offset)>();
+        CollectBaseSubobjects(cxxRecordDecl, 0, entries);
+
+        // Emit subobjects in native layout order rather than declaration order. The MSVC ABI promotes the
+        // first polymorphic direct base to offset 0 (so it can share its vtable pointer), which can reorder a
+        // non-polymorphic base declared before it. Ordering by clang's authoritative per-target base offset
+        // keeps the generated sequential layout byte-compatible. OrderBy is stable, so bases at the same
+        // offset (none, in practice) keep declaration order.
+        foreach (var (specifier, owner, _) in entries.OrderBy((entry) => entry.Offset))
+        {
+            yield return (specifier, owner);
+        }
+    }
+
+    private void CollectBaseSubobjects(CXXRecordDecl owningRecordDecl, long baseOffsetBits, List<(CXXBaseSpecifier Specifier, CXXRecordDecl Owner, long Offset)> entries)
     {
         var seenPrimaryVtblBase = false;
 
-        foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+        foreach (var cxxBaseSpecifier in owningRecordDecl.Bases)
         {
             var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
@@ -1478,16 +1515,16 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             var hasField = HasField(baseCxxRecordDecl);
 
+            var relativeOffset = clang.getOffsetOfBase(owningRecordDecl.Handle, cxxBaseSpecifier.Handle);
+            var offset = (relativeOffset < 0) ? baseOffsetBits : (baseOffsetBits + relativeOffset);
+
             if (isPrimaryVtblBase && !hasField)
             {
-                foreach (var carried in EnumerateBaseSubobjects(baseCxxRecordDecl))
-                {
-                    yield return carried;
-                }
+                CollectBaseSubobjects(baseCxxRecordDecl, offset, entries);
             }
             else if (hasField || (isPolymorphic && !isPrimaryVtblBase))
             {
-                yield return (cxxBaseSpecifier, cxxRecordDecl);
+                entries.Add((cxxBaseSpecifier, owningRecordDecl, offset));
             }
         }
     }
