@@ -137,7 +137,7 @@ public partial class PInvokeGenerator
 
             var hasGuidMember = _config.GenerateGuidMember && !string.IsNullOrWhiteSpace(uuidName);
 
-            var equalityFields = GetEqualityFields(recordDecl, cxxRecordDecl, hasVtbl, hasBaseVtbl);
+            var equalityFields = GetEqualityFields(recordDecl, cxxRecordDecl);
 
             var layoutKind = recordDecl.IsUnion
                 ? LayoutKind.Explicit
@@ -613,6 +613,9 @@ public partial class PInvokeGenerator
 
             if ((equalityFields is not null) && (_outputBuilder is CSharpOutputBuilder csharpEqualityBuilder))
             {
+                // A nested type emitted just above (e.g. a promoted anonymous record) leaves the builder
+                // without a pending newline, so force the blank-line separator before the members.
+                csharpEqualityBuilder.NeedsNewline = true;
                 OutputEqualityMethods(csharpEqualityBuilder, escapedName, equalityFields);
             }
 
