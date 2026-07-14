@@ -537,35 +537,46 @@ internal static partial class Program
         translationFlags |= CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
         translationFlags |= CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-        var config = new PInvokeGeneratorConfiguration(language, std, namespaceName, outputLocation, headerFile, outputMode, configOptions) {
-            DefaultClass = methodClassName,
-            ExcludedNames = excludedNames,
-            IncludedNames = includedNames,
-            LibraryPath = libraryPath,
-            MethodPrefixToStrip = methodPrefixToStrip,
-            NativeTypeNamesToStrip = nativeTypeNamesToStrip,
-            RemappedNames = remappedNames,
-            RemappedTypeNames = remappedTypeNames,
-            RemappedFieldNames = remappedFieldNames,
-            TraversalNames = traversalNames,
-            TestOutputLocation = testOutputLocation,
-            WithAccessSpecifiers = withAccessSpecifiers,
-            WithAttributes = withAttributes,
-            WithCallConvs = withCallConvs,
-            WithClasses = withClasses,
-            WithGuids = withGuids,
-            WithLengths = withLengths,
-            WithLibraryPaths = withLibraryPaths,
-            WithManualImports = withManualImports,
-            WithNamespaces = withNamespaces,
-            WithReadonlys = withReadonlys,
-            WithSetLastErrors = withSetLastErrors,
-            WithSuppressGCTransitions = withSuppressGCTransitions,
-            WithTransparentStructs = withTransparentStructs,
-            WithTypes = withTypes,
-            WithUsings = withUsings,
-            WithPackings = withPackings,
-        };
+        PInvokeGeneratorConfiguration config;
+
+        try
+        {
+            config = new PInvokeGeneratorConfiguration(language, std, namespaceName, outputLocation, headerFile, outputMode, configOptions) {
+                DefaultClass = methodClassName,
+                ExcludedNames = excludedNames,
+                IncludedNames = includedNames,
+                LibraryPath = libraryPath,
+                MethodPrefixToStrip = methodPrefixToStrip,
+                NativeTypeNamesToStrip = nativeTypeNamesToStrip,
+                RemappedNames = remappedNames,
+                RemappedTypeNames = remappedTypeNames,
+                RemappedFieldNames = remappedFieldNames,
+                TraversalNames = traversalNames,
+                TestOutputLocation = testOutputLocation,
+                WithAccessSpecifiers = withAccessSpecifiers,
+                WithAttributes = withAttributes,
+                WithCallConvs = withCallConvs,
+                WithClasses = withClasses,
+                WithGuids = withGuids,
+                WithLengths = withLengths,
+                WithLibraryPaths = withLibraryPaths,
+                WithManualImports = withManualImports,
+                WithNamespaces = withNamespaces,
+                WithReadonlys = withReadonlys,
+                WithSetLastErrors = withSetLastErrors,
+                WithSuppressGCTransitions = withSuppressGCTransitions,
+                WithTransparentStructs = withTransparentStructs,
+                WithTypes = withTypes,
+                WithUsings = withUsings,
+                WithPackings = withPackings,
+            };
+        }
+        catch (ArgumentException e)
+        {
+            Console.Error.Write($"Error: {e.Message}");
+            Console.Error.Write(Environment.NewLine);
+            return -1;
+        }
 
         if (config.GenerateMacroBindings)
         {
