@@ -157,14 +157,60 @@ public sealed class PInvokeGeneratorConfiguration
                 _remappedNames.Add("intptr_t", "nint");
                 _remappedNames.Add("ptrdiff_t", "nint");
                 _remappedNames.Add("size_t", "nuint");
+                _remappedNames.Add("ssize_t", "nint");
                 _remappedNames.Add("uintptr_t", "nuint");
+
+                if (!GenerateUnixTypes)
+                {
+                    _remappedNames.Add("INT_PTR", "nint");
+                    _remappedNames.Add("LONG_PTR", "nint");
+                    _remappedNames.Add("SSIZE_T", "nint");
+                    _remappedNames.Add("DWORD_PTR", "nuint");
+                    _remappedNames.Add("SIZE_T", "nuint");
+                    _remappedNames.Add("UINT_PTR", "nuint");
+                    _remappedNames.Add("ULONG_PTR", "nuint");
+                }
             }
             else
             {
                 _remappedNames.Add("intptr_t", "IntPtr");
                 _remappedNames.Add("ptrdiff_t", "IntPtr");
                 _remappedNames.Add("size_t", "UIntPtr");
+                _remappedNames.Add("ssize_t", "IntPtr");
                 _remappedNames.Add("uintptr_t", "UIntPtr");
+
+                if (!GenerateUnixTypes)
+                {
+                    _remappedNames.Add("INT_PTR", "IntPtr");
+                    _remappedNames.Add("LONG_PTR", "IntPtr");
+                    _remappedNames.Add("SSIZE_T", "IntPtr");
+                    _remappedNames.Add("DWORD_PTR", "UIntPtr");
+                    _remappedNames.Add("SIZE_T", "UIntPtr");
+                    _remappedNames.Add("UINT_PTR", "UIntPtr");
+                    _remappedNames.Add("ULONG_PTR", "UIntPtr");
+                }
+            }
+
+            // The exact-width stdint types are architecture-independent and have a
+            // guaranteed width with no padding bits. However, the underlying typedef
+            // is allowed to resolve to any integer type of the same width, such as
+            // `unsigned long` on Unix which would otherwise decay to `nuint`. Remap
+            // them to the corresponding fixed-width type so they stay consistent.
+
+            _remappedNames.Add("int8_t", "sbyte");
+            _remappedNames.Add("int16_t", "short");
+            _remappedNames.Add("int32_t", "int");
+            _remappedNames.Add("int64_t", "long");
+            _remappedNames.Add("uint8_t", "byte");
+            _remappedNames.Add("uint16_t", "ushort");
+            _remappedNames.Add("uint32_t", "uint");
+            _remappedNames.Add("uint64_t", "ulong");
+
+            if (!GenerateUnixTypes)
+            {
+                // _GUID is the tag of the Windows GUID struct and matches the layout
+                // of System.Guid, so map it directly rather than emitting a copy.
+                _remappedNames.Add("_GUID", "Guid");
             }
         }
     }
