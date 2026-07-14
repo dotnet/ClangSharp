@@ -628,6 +628,13 @@ public sealed partial class PInvokeGenerator : IDisposable
                     sw.WriteLine(_config.HeaderText);
                 }
 
+                if (!string.IsNullOrEmpty(_config.WithConditional))
+                {
+                    sw.Write("#if ");
+                    sw.WriteLine(_config.WithConditional);
+                    sw.WriteLine();
+                }
+
                 if (isMethodClass)
                 {
                     var nonTestName = outputBuilder.IsTestOutput ? outputBuilder.Name.AsSpan()[..^5] : outputBuilder.Name;
@@ -849,6 +856,11 @@ public sealed partial class PInvokeGenerator : IDisposable
             if (_config.GenerateMultipleFiles && !Config.GenerateFileScopedNamespaces)
             {
                 sw.WriteLine('}');
+            }
+
+            if (_config.GenerateMultipleFiles && !string.IsNullOrEmpty(_config.WithConditional))
+            {
+                sw.WriteLine("#endif");
             }
         }
 
