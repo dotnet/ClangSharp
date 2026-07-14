@@ -928,6 +928,30 @@ Vector3 MyFunction(Vector3 v)
     }
 
     [Test]
+    public Task ThisAsPointerTest()
+    {
+        var inputContents = @"struct TestInterface_;
+struct MyStruct_;
+
+typedef MyStruct_ MyStruct;
+
+struct TestInterface_ {
+    int (*TestMethod)(MyStruct *vm);
+};
+
+struct MyStruct_ {
+    const struct TestInterface_ *functions;
+
+    int TestMethod() {
+        return functions->TestMethod(this);
+    }
+};
+";
+
+        return ValidateAsync(nameof(ThisAsPointerTest), inputContents);
+    }
+
+    [Test]
     public Task WhileTest()
     {
         var inputContents = @"int MyFunction(int count)
