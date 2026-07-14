@@ -481,6 +481,159 @@ typedef long int intptr_t;
     }
 
     [Test]
+    public Task FixedWidthIntTypedefTest()
+    {
+        // The exact-width stdint types are architecture-independent, but their underlying
+        // typedef can decay to a platform-specific integer (e.g. `unsigned long` on Unix,
+        // which would otherwise map to `nuint`). Ensure they resolve to the fixed-width type.
+
+        string inputContents;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            inputContents = @"typedef long long int64_t;
+typedef unsigned long long uint64_t;
+
+struct MyStruct
+{
+    int64_t s64;
+    uint64_t u64;
+};
+";
+        }
+        else
+        {
+            inputContents = @"typedef long int64_t;
+typedef unsigned long uint64_t;
+
+struct MyStruct
+{
+    int64_t s64;
+    uint64_t u64;
+};
+";
+        }
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        [NativeTypeName(""int64_t"")]
+        public long s64;
+
+        [NativeTypeName(""uint64_t"")]
+        public ulong u64;
+    }
+}
+";
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        }
+        else
+        {
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        }
+    }
+
+    [Test]
+    [Platform("unix")] // ssize_t is a POSIX type and not defined by MSVC
+    public Task SSizeTypedefTestUnix()
+    {
+        // ssize_t is pointer-width, so it should map to nint just like ptrdiff_t/intptr_t.
+
+        var inputContents = @"typedef long ssize_t;
+
+struct MyStruct
+{
+    ssize_t count;
+};
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        [NativeTypeName(""ssize_t"")]
+        public nint count;
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("win")] // The pointer-width Windows types are only remapped when targeting Windows
+    public Task WindowsPointerWidthTypedefTestWindows()
+    {
+        // The pointer-width Windows SDK types are architecture-independent (pointer-width by
+        // definition), but their underlying typedef (e.g. __int64) would otherwise decay to a
+        // fixed-width type. Ensure they resolve to nint/nuint just like intptr_t/size_t.
+
+        var inputContents = @"typedef __int64 INT_PTR;
+typedef unsigned __int64 UINT_PTR;
+
+struct MyStruct
+{
+    INT_PTR s;
+    UINT_PTR u;
+};
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        [NativeTypeName(""INT_PTR"")]
+        public nint s;
+
+        [NativeTypeName(""UINT_PTR"")]
+        public nuint u;
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("win")] // _GUID is only remapped to System.Guid when targeting Windows
+    public Task GuidTypedefTestWindows()
+    {
+        // _GUID matches the layout of System.Guid and is remapped to it. Its definition
+        // normally lives in a system header that isn't traversed, so exclude it here and
+        // ensure references resolve to Guid.
+
+        var inputContents = @"typedef struct _GUID
+{
+    unsigned long Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char Data4[8];
+} GUID;
+
+struct MyStruct
+{
+    GUID id;
+};
+";
+
+        var expectedOutputContents = @"using System;
+
+namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public Guid id;
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: ["_GUID"], commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
     public Task VoidPointerArithmeticTest()
     {
         // C/C++ allow pointer arithmetic on `void*` (treating it as byte-sized), but C# does not,
