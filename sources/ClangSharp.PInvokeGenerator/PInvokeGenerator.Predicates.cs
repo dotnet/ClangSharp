@@ -145,6 +145,20 @@ public sealed partial class PInvokeGenerator
 
             if (cursor is NamedDecl namedDecl)
             {
+                // An out-of-line definition of a class-template member (e.g. `template<...> C<...>::C() {}`)
+                // is a CXXMethodDecl whose `this` type is dependent, so it has no resolvable parent record.
+                // It isn't a `TemplateDecl` and so slips past IsExcludedByConfig, but it can't be represented
+                // as a P/Invoke and the naming machinery below can't qualify it (the parent record, function
+                // type, and vtable index all come back null/invalid). Exclude it up front.
+                if ((namedDecl is CXXMethodDecl earlyMethodDecl) && (earlyMethodDecl.Parent is null))
+                {
+                    if (_config.LogExclusions)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded {namedDecl.DeclKindName} declaration as it is an out-of-line class-template member definition with no resolvable parent record.");
+                    }
+                    return true;
+                }
+
                 // We get the non-remapped name for the purpose of exclusion checks to ensure that users
                 // can remove no-definition declarations in favor of remapped anonymous declarations.
 

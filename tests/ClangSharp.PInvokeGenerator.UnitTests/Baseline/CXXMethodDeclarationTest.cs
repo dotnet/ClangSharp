@@ -102,6 +102,22 @@ struct MyStruct : public MyTemplate<int>
 ");
 
     [Test]
+    public Task OutOfLineTemplateConstructorDefinitionTest()
+        => ValidateAsync(nameof(OutOfLineTemplateConstructorDefinitionTest), @"template <class T, class P>
+struct MyCallResult
+{
+    MyCallResult();
+    int _value;
+};
+
+template <class T, class P>
+inline MyCallResult<T, P>::MyCallResult()
+{
+    _value = 0;
+}
+");
+
+    [Test]
     public Task InstanceTest()
         => ValidateAsync(nameof(InstanceTest), @"struct MyStruct
 {
