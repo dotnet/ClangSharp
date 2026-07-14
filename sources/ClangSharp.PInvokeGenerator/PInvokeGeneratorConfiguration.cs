@@ -127,6 +127,20 @@ public sealed class PInvokeGeneratorConfiguration
         {
             throw new ArgumentOutOfRangeException(nameof(options));
         }
+        else if ((options & PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles) == 0 && Directory.Exists(_outputLocation))
+        {
+            // In single-file mode the output location is treated as a file path; pointing it at an
+            // existing directory otherwise surfaces as a confusing UnauthorizedAccessException (or a
+            // DirectoryNotFoundException with a trailing separator) when the stream is opened.
+            throw new ArgumentException($"The output location '{_outputLocation}' is an existing directory, but single-file output was requested. Specify a file path for the output location, or pass '--config multi-file' to generate multiple files into the directory.", nameof(outputLocation));
+        }
+        else if ((options & PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles) != 0 && File.Exists(_outputLocation))
+        {
+            // In multi-file mode the output location is treated as a directory that each file is
+            // written into; pointing it at an existing file otherwise fails when that directory is
+            // created.
+            throw new ArgumentException($"The output location '{_outputLocation}' is an existing file, but multi-file output was requested. Specify a directory path for the output location, or remove '--config multi-file' to generate a single file.", nameof(outputLocation));
+        }
 
         if ((options & PInvokeGeneratorConfigurationOptions.GeneratePreviewCode) != 0)
         {
