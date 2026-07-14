@@ -8,7 +8,7 @@ namespace ClangSharp.UnitTests;
 
 /// <summary>
 /// Regression tests for https://github.com/dotnet/ClangSharp/issues/539.
-/// The opt-in <c>--with-equality</c> option makes named (or wildcard <c>*</c>) generated structs implement
+/// The opt-in <c>--with-equality-members</c> option makes named (or wildcard <c>*</c>) generated structs implement
 /// <c>IEquatable&lt;T&gt;</c> with a field-wise <c>Equals</c>, a matching <c>GetHashCode</c>, and the
 /// <c>==</c> / <c>!=</c> operators. This is strictly opt-in because element-wise comparison is not valid
 /// for every native type. Eligibility is transitive and covers scalars, pointers, nested records,
@@ -39,7 +39,7 @@ struct MyData
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualityMembers: ["*"]);
     }
 
     [Test]
@@ -52,7 +52,7 @@ struct MyData
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualityMembers: ["*"]);
     }
 
     [Test]
@@ -67,7 +67,7 @@ struct MyData
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualityMembers: ["*"]);
     }
 
     [Test]
@@ -81,7 +81,7 @@ struct MyData
 };
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
+        return ValidateGeneratedCSharpCompatibleWindowsBaselineAsync(inputContents, withEqualityMembers: ["*"]);
     }
 
     [Test]
@@ -102,7 +102,7 @@ struct Outer
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualityMembers: ["*"]);
     }
 
     [Test]
@@ -119,7 +119,7 @@ struct Outer
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualityMembers: ["*"]);
     }
 
     [Test]
@@ -139,7 +139,7 @@ struct Derived : Base
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualityMembers: ["*"]);
     }
 
     [Test]
@@ -158,7 +158,7 @@ struct Derived : Base
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualityMembers: ["*"]);
     }
 
     [Test]
@@ -174,7 +174,7 @@ struct Derived : Base
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualityMembers: ["*"]);
     }
 
     [Test]
@@ -193,7 +193,7 @@ struct Derived : Base
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["*"]);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualityMembers: ["*"]);
     }
 
     [Test]
@@ -220,6 +220,6 @@ struct Other
 };
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualities: ["MyData"]);
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEqualityMembers: ["MyData"]);
     }
 }
