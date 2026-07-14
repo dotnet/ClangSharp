@@ -946,6 +946,19 @@ public sealed partial class PInvokeGenerator
                 targetTypeName = transparentStruct.Name;
             }
         }
+        else
+        {
+            // The platform-dependent narrowing that could overflow on a 32-bit target only happens
+            // when the generator emits the explicit `(nint)`/`(nuint)` cast, which it only does for
+            // `VarDecl` initializers (see `UncheckStmt`). Outside of that context an expression keeps
+            // its natural C# type and never needs an `unchecked` scope, so evaluate native-sized
+            // integer targets against their widest equivalent.
+            targetTypeName = targetTypeName switch {
+                "nint" or "IntPtr" => "long",
+                "nuint" or "UIntPtr" => "ulong",
+                _ => targetTypeName,
+            };
+        }
 
         switch (stmt.StmtClass)
         {
@@ -1159,23 +1172,6 @@ public sealed partial class PInvokeGenerator
             {
                 var integerLiteral = (IntegerLiteral)stmt;
                 var signedValue = integerLiteral.Value;
-
-                // A bare integer literal is emitted with its natural C# type (e.g. a value that only
-                // fits `ulong` gets a `U` suffix and is a `ulong` constant). For the native-sized
-                // integer targets (`nint`/`nuint`), the platform-dependent narrowing that could
-                // overflow on a 32-bit target only happens when the generator emits the explicit
-                // `(nint)`/`(nuint)` cast, which it only does for `VarDecl` initializers (see
-                // `UncheckStmt`). Outside of that context the literal keeps its natural type and
-                // never needs an `unchecked` scope, so evaluate against the widest equivalent.
-                if (!IsPrevContextDecl<VarDecl>(out _, out _))
-                {
-                    targetTypeName = targetTypeName switch {
-                        "nint" or "IntPtr" => "long",
-                        "nuint" or "UIntPtr" => "ulong",
-                        _ => targetTypeName,
-                    };
-                }
-
                 return IsUnchecked(targetTypeName, signedValue, integerLiteral.IsNegative, isHex: integerLiteral.ValueString.StartsWith("0x", StringComparison.Ordinal));
             }
 
