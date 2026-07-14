@@ -382,7 +382,7 @@ typedef struct Bitfield {
     public Task CLongDefinesRegressionTestUnix()
     {
         // This test is to catch a potential regression when changing how native integers are handled
-        // Specifically, (18446744073709551615U) became unchecked(18446744073709551615U)
+        // Specifically, (18446744073709551615U) must not be wrapped in an unnecessary unchecked scope
 
         // Macro values are taken from the Linux headers when using Clang
         // Some values are substituted for simplicity
@@ -406,9 +406,8 @@ bool SDL_size_add_check_overflow(size_t a, size_t b, size_t *ret)
 }
 ";
 
-        // The expected below currently does not represent the ideal behavior.
-        // Ideally, the unchecked keywork is removed as it is unnecessary.
-        // This issue is tracked here: https://github.com/dotnet/ClangSharp/issues/709
+        // The unnecessary unchecked scope around the `ulong` literal is now elided; see
+        // https://github.com/dotnet/ClangSharp/issues/709
         return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 

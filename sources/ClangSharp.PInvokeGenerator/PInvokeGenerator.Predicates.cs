@@ -960,6 +960,19 @@ public sealed partial class PInvokeGenerator
                 targetTypeName = transparentStruct.Name;
             }
         }
+        else
+        {
+            // The platform-dependent narrowing that could overflow on a 32-bit target only happens
+            // when the generator emits the explicit `(nint)`/`(nuint)` cast, which it only does for
+            // `VarDecl` initializers (see `UncheckStmt`). Outside of that context an expression keeps
+            // its natural C# type and never needs an `unchecked` scope, so evaluate native-sized
+            // integer targets against their widest equivalent.
+            targetTypeName = targetTypeName switch {
+                "nint" or "IntPtr" => "long",
+                "nuint" or "UIntPtr" => "ulong",
+                _ => targetTypeName,
+            };
+        }
 
         switch (stmt.StmtClass)
         {
