@@ -168,6 +168,13 @@ public partial class PInvokeGenerator
                         sw.WriteLine(_config.HeaderText);
                     }
 
+                    if (!string.IsNullOrEmpty(_config.WithConditional))
+                    {
+                        sw.Write("#if ");
+                        sw.WriteLine(_config.WithConditional);
+                        sw.WriteLine();
+                    }
+
                     if (usingDirectives.Count != 0)
                     {
                         foreach (var usingDirective in usingDirectives)
@@ -420,6 +427,11 @@ public partial class PInvokeGenerator
                 if (!_config.GenerateFileScopedNamespaces)
                 {
                     sw.WriteLine('}');
+                }
+
+                if (!string.IsNullOrEmpty(_config.WithConditional))
+                {
+                    sw.WriteLine("#endif");
                 }
             }
             else if (_config.OutputMode == PInvokeGeneratorOutputMode.Xml)
