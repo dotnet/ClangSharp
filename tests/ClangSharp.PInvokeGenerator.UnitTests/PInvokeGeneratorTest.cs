@@ -95,7 +95,7 @@ public abstract class PInvokeGeneratorTest
 
     // Shared generator core: produces the actual generated bindings text without asserting against an
     // expected value, so both the inline-string harness and the checked-in baseline harness can reuse it.
-    internal static async Task<string> GenerateBindingsAsync(string inputContents, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions configOptions, string[]? excludedNames, IReadOnlyDictionary<string, string>? remappedNames, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes, IReadOnlyDictionary<string, string>? withCallConvs, IReadOnlyDictionary<string, string>? withClasses, IReadOnlyDictionary<string, string>? withLibraryPaths, IReadOnlyDictionary<string, string>? withNamespaces, string[]? withSetLastErrors, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs, IReadOnlyDictionary<string, string>? withTypes, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings, IReadOnlyDictionary<string, string>? withPackings, IEnumerable<Diagnostic>? expectedDiagnostics, string libraryPath, string[]? commandLineArgs, string language, string languageStandard, IReadOnlyDictionary<string, string>? remappedTypeNames = null, IReadOnlyDictionary<string, string>? remappedFieldNames = null, string? typePrefixToStrip = null)
+    internal static async Task<string> GenerateBindingsAsync(string inputContents, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions configOptions, string[]? excludedNames, IReadOnlyDictionary<string, string>? remappedNames, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes, IReadOnlyDictionary<string, string>? withCallConvs, IReadOnlyDictionary<string, string>? withClasses, IReadOnlyDictionary<string, string>? withLibraryPaths, IReadOnlyDictionary<string, string>? withNamespaces, string[]? withSetLastErrors, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs, IReadOnlyDictionary<string, string>? withTypes, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings, IReadOnlyDictionary<string, string>? withPackings, IEnumerable<Diagnostic>? expectedDiagnostics, string libraryPath, string[]? commandLineArgs, string language, string languageStandard, IReadOnlyDictionary<string, string>? remappedTypeNames = null, IReadOnlyDictionary<string, string>? remappedFieldNames = null, string? typePrefixToStrip = null, IReadOnlyDictionary<string, string>? withEnumMemberStrip = null)
     {
         Assert.That(DefaultInputFileName, Does.Exist);
         commandLineArgs ??= DefaultCppClangCommandLineArgs;
@@ -122,6 +122,7 @@ public abstract class PInvokeGeneratorTest
             WithAttributes = withAttributes,
             WithCallConvs = withCallConvs,
             WithClasses = withClasses,
+            WithEnumMemberStrip = withEnumMemberStrip,
             WithLibraryPaths = withLibraryPaths,
             WithManualImports = null,
             WithNamespaces = withNamespaces,
