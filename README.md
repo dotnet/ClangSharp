@@ -28,6 +28,8 @@ Source browsing is available via: https://source.clangsharp.dev/
 * [Building Native](#building-native)
 * [Generating Bindings](#generating-bindings)
   * [Best practices](docs/generating-bindings-best-practices.md)
+  * [XML binding format](docs/xml-binding-format.md)
+* [Using as a Library](#using-as-a-library)
 * [Using locally built versions](#using-locally-built-versions)
 * [Spotlight](#spotlight)
 
@@ -142,6 +144,8 @@ A response file allows you to specify and checkin the command line arguments in 
 At a minimum, the command line expects one or more input files (`-f`), an output namespace (`-n`), and an output location (`-o`). A typical response file may also specify explicit files to traverse, configuration options, name remappings, and other fixups.
 
 For an opinionated walkthrough of how to structure a real generation project — response-file composition, the key options and when to use them, incremental regeneration, and common pitfalls — see [Generating bindings: best practices](docs/generating-bindings-best-practices.md).
+
+The generator can also emit its bindings as XML rather than C# via `--output-mode Xml`; the shape of that output is described in [The XML binding format](docs/xml-binding-format.md).
 
 The full set of available switches:
 ```
@@ -275,6 +279,10 @@ Options:
   log-potential-typedef-remappings         A list of potential typedef remappings should be generated. This can help identify missing remappings.
   log-visited-files                        A list of the visited files should be generated. This can help identify traversal issues.
 ```
+
+### Using as a Library
+
+In addition to generating bindings, ClangSharp can be consumed directly as a library to parse C/C++ and inspect the resulting AST. This is an advanced scenario that assumes familiarity with the Clang APIs, which remain the source of truth. For the ClangSharp-specific conventions — how the `clang_*` C functions and the Clang C++ AST map onto the `ClangSharp.Interop` and `ClangSharp` surfaces, lifetime/`IDisposable` handling, and the required package references — see [Using ClangSharp as a library](docs/using-clangsharp-as-a-library.md).
 
 ### Using locally built versions
 
