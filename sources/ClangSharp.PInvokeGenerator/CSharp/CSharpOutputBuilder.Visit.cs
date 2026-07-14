@@ -36,6 +36,10 @@ internal partial class CSharpOutputBuilder
         {
             AddUsingDirective("System.Runtime.Versioning");
         }
+        else if (attribute.StartsWith("GeneratedCode(", StringComparison.Ordinal))
+        {
+            AddUsingDirective("System.CodeDom.Compiler");
+        }
 
         if (!_customAttrIsForParameter)
         {

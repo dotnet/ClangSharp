@@ -92,4 +92,8 @@ public enum PInvokeGeneratorConfigurationOptions : long
     DontUseUsingStaticsForGuidMember = 1L << 40,
 
     GenerateFixedBufferIndexerOverloads = 1L << 41,
+
+    GenerateGeneratedCodeAttributeAsType = 1L << 42,
+
+    ExcludeGeneratedCodeAttribute = 1L << 43,
 }
