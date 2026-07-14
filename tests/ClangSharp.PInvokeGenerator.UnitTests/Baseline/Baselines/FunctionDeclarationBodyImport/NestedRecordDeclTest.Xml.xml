@@ -9,12 +9,12 @@
     <class name="Methods" access="public" static="true">
       <function name="MyFunction" access="public" static="true">
         <type>int</type>
-        <code>_Anonymous_e__Union u = new _Anonymous_e__Union();
+        <code>_MyFunction_e__Union u = new _MyFunction_e__Union();
 
       u.i = 0;
       return u.s.x;</code>
       </function>
-      <struct name="_Anonymous_e__Union" access="public" layout="Explicit">
+      <struct name="_MyFunction_e__Union" access="public" layout="Explicit">
         <field name="s" access="public" offset="0">
           <type native="struct MyStruct">MyStruct</type>
         </field>

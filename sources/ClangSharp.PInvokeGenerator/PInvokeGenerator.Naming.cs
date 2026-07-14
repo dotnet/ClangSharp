@@ -682,8 +682,52 @@ public sealed partial class PInvokeGenerator
         }
         else
         {
-            return $"_Anonymous{AnonymousTypeKindTag}{(recordDecl.IsUnion ? "Union" : "Struct")}";
+            return GetRemappedNameForFunctionLocalAnonymousRecord(recordDecl);
         }
+    }
+
+    private string GetRemappedNameForFunctionLocalAnonymousRecord(RecordDecl recordDecl)
+    {
+        var kind = recordDecl.IsUnion ? "Union" : "Struct";
+
+        // A record declared in a function body is hoisted out to the enclosing type, so qualify it
+        // with the enclosing function's name; otherwise two functions that each declare an anonymous
+        // record would both hoist to `_Anonymous_e__Union` and clash.
+        var functionDecl = null as FunctionDecl;
+
+        for (var declContext = recordDecl.DeclContext; declContext is Decl decl; declContext = decl.DeclContext)
+        {
+            if (decl is FunctionDecl candidate)
+            {
+                functionDecl = candidate;
+                break;
+            }
+        }
+
+        if (functionDecl is null)
+        {
+            return $"_Anonymous{AnonymousTypeKindTag}{kind}";
+        }
+
+        var remappedNameBuilder = new StringBuilder();
+        _ = remappedNameBuilder.Append('_');
+        _ = remappedNameBuilder.Append(GetRemappedCursorName(functionDecl));
+
+        // Multiple anonymous records of the same kind in one function would still collide on the
+        // function-qualified name, so disambiguate them by their order within the function.
+        var sameKindRecords = functionDecl.Decls
+            .OfType<RecordDecl>()
+            .Where((other) => (other.IsUnion == recordDecl.IsUnion) && IsAnonymousRecord(GetCursorName(other)))
+            .ToList();
+
+        if (sameKindRecords.Count > 1)
+        {
+            _ = remappedNameBuilder.Append(sameKindRecords.IndexOf(recordDecl) + 1);
+        }
+
+        _ = remappedNameBuilder.Append(AnonymousTypeKindTag);
+        _ = remappedNameBuilder.Append(kind);
+        return remappedNameBuilder.ToString();
     }
 
     private string GetRemappedName(string name, Cursor? cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
