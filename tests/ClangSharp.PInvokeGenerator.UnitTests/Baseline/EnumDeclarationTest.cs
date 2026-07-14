@@ -234,6 +234,17 @@ enum MyEnum2 : int
 ");
 
     [Test]
+    public Task WithUnsignedInitConversionTest()
+        => ValidateAsync(nameof(WithUnsignedInitConversionTest), @"enum MyEnum : int
+{
+    MyEnum_Value0,
+    MyEnum_Value1 = (1U << 22),
+    MyEnum_Value2 = (1U << 22) | (1 << 12),
+    MyEnum_Value3 = 0x80000000,
+};
+");
+
+    [Test]
     public Task WithTypeTest()
     {
         var inputContents = @"enum MyEnum : int
