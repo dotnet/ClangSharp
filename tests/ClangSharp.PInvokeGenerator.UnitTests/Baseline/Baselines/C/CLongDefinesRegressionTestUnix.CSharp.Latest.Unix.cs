@@ -5,7 +5,7 @@ namespace ClangSharp.Test
         [return: NativeTypeName("_Bool")]
         public static bool SDL_size_add_check_overflow([NativeTypeName("size_t")] nuint a, [NativeTypeName("size_t")] nuint b, [NativeTypeName("size_t *")] nuint* ret)
         {
-            if (b > unchecked(18446744073709551615U) - a)
+            if (b > (18446744073709551615U) - a)
             {
                 return (0) != 0;
             }
