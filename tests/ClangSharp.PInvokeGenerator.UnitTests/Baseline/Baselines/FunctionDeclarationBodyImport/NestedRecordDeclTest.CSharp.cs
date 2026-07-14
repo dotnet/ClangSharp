@@ -11,14 +11,14 @@ namespace ClangSharp.Test
     {
         public static int MyFunction()
         {
-            _Anonymous_e__Union u = new _Anonymous_e__Union();
+            _MyFunction_e__Union u = new _MyFunction_e__Union();
 
             u.i = 0;
             return u.s.x;
         }
 
         [StructLayout(LayoutKind.Explicit)]
-        public partial struct _Anonymous_e__Union
+        public partial struct _MyFunction_e__Union
         {
             [FieldOffset(0)]
             [NativeTypeName("struct MyStruct")]

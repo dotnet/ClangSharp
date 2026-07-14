@@ -919,6 +919,27 @@ struct MyStruct_ {
     }
 
     [Test]
+    public Task NestedRecordDeclCollisionTest()
+    {
+        var inputContents = @"int MyFunction1()
+{
+    union { int a; float b; } u;
+    u.a = 0;
+    return u.a;
+}
+
+int MyFunction2()
+{
+    union { int a; float b; } u;
+    u.a = 0;
+    return u.a;
+}
+";
+
+        return ValidateAsync(nameof(NestedRecordDeclCollisionTest), inputContents);
+    }
+
+    [Test]
     public Task WhileTest()
     {
         var inputContents = @"int MyFunction(int count)

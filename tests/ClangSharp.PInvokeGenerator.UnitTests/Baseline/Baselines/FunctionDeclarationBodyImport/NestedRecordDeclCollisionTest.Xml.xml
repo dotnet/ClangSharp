@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction1" access="public" static="true">
+        <type>int</type>
+        <code>_MyFunction1_e__Union u = new _MyFunction1_e__Union();
+
+      u.a = 0;
+      return u.a;</code>
+      </function>
+      <struct name="_MyFunction1_e__Union" access="public" layout="Explicit">
+        <field name="a" access="public" offset="0">
+          <type>int</type>
+        </field>
+        <field name="b" access="public" offset="0">
+          <type>float</type>
+        </field>
+      </struct>
+      <function name="MyFunction2" access="public" static="true">
+        <type>int</type>
+        <code>_MyFunction2_e__Union u = new _MyFunction2_e__Union();
+
+      u.a = 0;
+      return u.a;</code>
+      </function>
+      <struct name="_MyFunction2_e__Union" access="public" layout="Explicit">
+        <field name="a" access="public" offset="0">
+          <type>int</type>
+        </field>
+        <field name="b" access="public" offset="0">
+          <type>float</type>
+        </field>
+      </struct>
+    </class>
+  </namespace>
+</bindings>
