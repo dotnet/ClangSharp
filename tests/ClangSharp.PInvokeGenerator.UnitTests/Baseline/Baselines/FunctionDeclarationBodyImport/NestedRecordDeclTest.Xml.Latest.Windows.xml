@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="x" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true">
+        <type>int</type>
+        <code>_Anonymous_e__Union u = new _Anonymous_e__Union();
+
+      u.i = 0;
+      return u.s.x;</code>
+      </function>
+      <struct name="_Anonymous_e__Union" access="public" layout="Explicit">
+        <field name="s" access="public" offset="0">
+          <type native="struct MyStruct">MyStruct</type>
+        </field>
+        <field name="i" access="public" offset="0">
+          <type>int</type>
+        </field>
+      </struct>
+    </class>
+  </namespace>
+</bindings>

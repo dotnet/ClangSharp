@@ -876,6 +876,25 @@ MyStruct MyFunction()
     }
 
     [Test]
+    public Task NestedRecordDeclTest()
+    {
+        var inputContents = @"struct MyStruct
+{
+    int x;
+};
+
+int MyFunction()
+{
+    union { struct MyStruct s; int i; } u;
+    u.i = 0;
+    return u.s.x;
+}
+";
+
+        return ValidateAsync(nameof(NestedRecordDeclTest), inputContents);
+    }
+
+    [Test]
     public Task WhileTest()
     {
         var inputContents = @"int MyFunction(int count)

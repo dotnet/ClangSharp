@@ -295,7 +295,21 @@ public partial class PInvokeGenerator
             var name = GetRemappedCursorName(varDecl);
             var escapedName = EscapeName(name);
 
-            if (varDecl == declStmt.Decls[0])
+            // The type prefix (`T` in `T a, b`) is written by the first value declarator. Inline type
+            // declarations (a struct/union defined as the variable's type) are skipped when emitting the
+            // DeclStmt, so key off the first non-type declaration rather than Decls[0].
+            var firstValueDecl = null as Decl;
+
+            foreach (var decl in declStmt.Decls)
+            {
+                if (decl is not TypeDecl)
+                {
+                    firstValueDecl = decl;
+                    break;
+                }
+            }
+
+            if (varDecl == firstValueDecl)
             {
                 var type = varDecl.Type;
                 var typeName = GetRemappedTypeName(varDecl, context: null, type, out _);

@@ -1116,16 +1116,33 @@ public partial class PInvokeGenerator
         {
             var singleDecl = declStmt.SingleDecl;
             Debug.Assert(singleDecl is not null);
-            Visit(singleDecl);
+
+            // A type declared inline (e.g. a struct/union used as a variable's type) has no C#
+            // equivalent inside a method body; it is hoisted to the enclosing type scope by
+            // VisitFunctionDecl, so it must not be emitted here.
+            if (singleDecl is not TypeDecl)
+            {
+                Visit(singleDecl);
+            }
         }
         else
         {
-            Visit(declStmt.Decls[0]);
+            var isFirst = true;
 
-            foreach (var decl in declStmt.Decls.Skip(1))
+            foreach (var decl in declStmt.Decls)
             {
-                outputBuilder.Write(", ");
+                if (decl is TypeDecl)
+                {
+                    continue;
+                }
+
+                if (!isFirst)
+                {
+                    outputBuilder.Write(", ");
+                }
+
                 Visit(decl);
+                isFirst = false;
             }
         }
 
