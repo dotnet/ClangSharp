@@ -162,6 +162,22 @@ struct Derived : Base
     }
 
     [Test]
+    public Task FunctionPointerFieldsCompareViaVoidPointer()
+    {
+        // A function-pointer field is emitted as delegate*unmanaged<...>, which trips CS8909 when compared
+        // with `==`; equality routes it through a `void*` cast for both the comparison and the hash so the
+        // struct stays comparable without warnings.
+        var inputContents = @"struct WithCallback
+{
+    int Id;
+    void (*Callback)(int);
+};
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateEqualityMethods);
+    }
+
+    [Test]
     public Task AnonymousUnionFieldsAreLeftUntouched()
     {
         // An anonymous union nests overlapping storage, so the containing struct is not field-wise

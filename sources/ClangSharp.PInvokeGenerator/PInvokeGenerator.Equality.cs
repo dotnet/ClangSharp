@@ -12,6 +12,7 @@ public partial class PInvokeGenerator
     {
         Value,
         Pointer,
+        FunctionPointer,
         Record,
         Array,
     }
@@ -133,9 +134,15 @@ public partial class PInvokeGenerator
             EqualityFieldKind kind;
             string? elementTypeName = null;
 
-            if (canonicalType is PointerType)
+            if (canonicalType is PointerType pointerType)
             {
-                kind = EqualityFieldKind.Pointer;
+                // A function-pointer field is emitted as `delegate*unmanaged<...>`, which can't be
+                // compared with `==` (CS8909); route it through a `void*` cast so identity comparison
+                // stays warning-free. When fnptr codegen is disabled the field is a plain `nint`, so the
+                // ordinary pointer path already compares cleanly.
+                kind = (!_config.ExcludeFnptrCodegen && pointerType.PointeeType.CanonicalType is FunctionType)
+                    ? EqualityFieldKind.FunctionPointer
+                    : EqualityFieldKind.Pointer;
             }
             else if (canonicalType is BuiltinType or EnumType)
             {
@@ -239,6 +246,15 @@ public partial class PInvokeGenerator
                 outputBuilder.Write(field.Name);
                 outputBuilder.Write(')');
             }
+            else if (field.Kind == EqualityFieldKind.FunctionPointer)
+            {
+                // ((void*)Field == (void*)other.Field) -- avoids CS8909 on function-pointer comparison.
+                outputBuilder.Write("((void*)");
+                outputBuilder.Write(field.Name);
+                outputBuilder.Write(" == (void*)other.");
+                outputBuilder.Write(field.Name);
+                outputBuilder.Write(')');
+            }
             else if (field.Kind == EqualityFieldKind.Array)
             {
                 // ((ReadOnlySpan<TElem>)Field).SequenceEqual(other.Field)
@@ -286,7 +302,13 @@ public partial class PInvokeGenerator
     {
         static string HashOperand(EqualityField field)
         {
-            return field.Kind == EqualityFieldKind.Pointer ? $"(nint){field.Name}" : field.Name;
+            return field.Kind switch {
+                // Raw pointers aren't valid HashCode.Combine type args; a function pointer additionally
+                // needs the `void*` hop before it can reach `nint`.
+                EqualityFieldKind.Pointer => $"(nint){field.Name}",
+                EqualityFieldKind.FunctionPointer => $"(nint)(void*){field.Name}",
+                _ => field.Name,
+            };
         }
 
         // An InlineArray can't be fed to HashCode.Combine/Add directly, so any array field forces the
