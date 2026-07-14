@@ -876,6 +876,58 @@ MyStruct MyFunction()
     }
 
     [Test]
+    public Task CopyAssignmentOperatorTest()
+    {
+        var inputContents = @"struct Vector3
+{
+    float x;
+    float y;
+    float z;
+};
+
+Vector3 MyFunction(Vector3 v)
+{
+    Vector3 cardinalAxis = { 1.0f, 0.0f, 0.0f };
+    Vector3 tmp = { 0.0f, 1.0f, 0.0f };
+    cardinalAxis = tmp;
+    return cardinalAxis;
+}
+";
+
+        return ValidateAsync(nameof(CopyAssignmentOperatorTest), inputContents);
+    }
+
+    [Test]
+    public Task CopyAssignmentOperatorUserDefinedTest()
+    {
+        var inputContents = @"struct Vector3
+{
+    float x;
+    float y;
+    float z;
+
+    Vector3& operator=(const Vector3& other)
+    {
+        x = other.x;
+        y = other.y;
+        z = other.z;
+        return *this;
+    }
+};
+
+Vector3 MyFunction(Vector3 v)
+{
+    Vector3 cardinalAxis = { 1.0f, 0.0f, 0.0f };
+    Vector3 tmp = { 0.0f, 1.0f, 0.0f };
+    cardinalAxis = tmp;
+    return cardinalAxis;
+}
+";
+
+        return ValidateAsync(nameof(CopyAssignmentOperatorUserDefinedTest), inputContents);
+    }
+
+    [Test]
     public Task ThisAsPointerTest()
     {
         var inputContents = @"struct TestInterface_;

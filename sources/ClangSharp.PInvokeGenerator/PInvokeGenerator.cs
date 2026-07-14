@@ -2004,6 +2004,14 @@ public sealed partial class PInvokeGenerator : IDisposable
                 return true;
             }
 
+            case "operator=":
+            {
+                // C# has no user-overloadable assignment operator, so a copy/move assignment
+                // operator is projected as an `op_Assign` method (see dotnet/clangsharp#298).
+                name = "op_Assign";
+                return true;
+            }
+
             default:
             {
                 return false;
