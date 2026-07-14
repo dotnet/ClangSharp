@@ -11,8 +11,10 @@ namespace ClangSharp.UnitTests;
 /// The opt-in <c>generate-equality-methods</c> option makes generated structs implement
 /// <c>IEquatable&lt;T&gt;</c> with a field-wise <c>Equals</c>, a matching <c>GetHashCode</c>, and the
 /// <c>==</c> / <c>!=</c> operators. This is strictly opt-in because element-wise comparison is not valid
-/// for every native type. Records that cannot be compared field-for-field (unions, vtbl/COM types,
-/// bitfields, fixed buffers, anonymous fields) must be left untouched.
+/// for every native type. Eligibility is transitive and covers scalars, pointers, nested records,
+/// bitfield backing storage, non-polymorphic bases, anonymous structs, and InlineArray fixed buffers.
+/// Records that cannot be compared field-for-field (unions, vtbl/COM types, polymorphic bases, and
+/// compatible-mode fixed buffers) must be left untouched.
 /// </summary>
 [Platform("win")]
 public sealed class EqualityMethodsTest : StandaloneBaselineTest
