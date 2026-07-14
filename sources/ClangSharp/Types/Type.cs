@@ -17,6 +17,7 @@ public unsafe class Type : IEquatable<Type>
     private ValueLazy<Type, string> _kindSpelling;
     private ValueLazy<Type, Type> _pointeeType;
     private ValueLazy<Type, TranslationUnit> _translationUnit;
+    private ValueLazy<Type, Type> _unqualifiedType;
 
     protected Type(CXType handle, CXTypeKind expectedKind, CX_TypeClass expectedTypeClass, params ReadOnlySpan<CXTypeKind> additionalExpectedKinds)
     {
@@ -51,6 +52,7 @@ public unsafe class Type : IEquatable<Type>
         _kindSpelling = new ValueLazy<Type, string>(&KindSpellingFactory);
         _pointeeType = new ValueLazy<Type, Type>(&PointeeTypeFactory);
         _translationUnit = new ValueLazy<Type, TranslationUnit>(&TranslationUnitFactory);
+        _unqualifiedType = new ValueLazy<Type, Type>(&UnqualifiedTypeFactory);
     }
 
 #if !NET10_0_OR_GREATER
@@ -141,6 +143,8 @@ public unsafe class Type : IEquatable<Type>
             }
         }
     }
+
+    public Type UnqualifiedType => _unqualifiedType.GetValue(this);
 
     public static bool operator ==(Type? left, Type? right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
 
@@ -243,6 +247,8 @@ public unsafe class Type : IEquatable<Type>
     private static unsafe TranslationUnit TranslationUnitFactory(Type self) => TranslationUnit.GetOrCreate((CXTranslationUnit)self.Handle.data[1]);
 
     private static unsafe Type PointeeTypeFactory(Type self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.PointeeType);
+
+    private static unsafe Type UnqualifiedTypeFactory(Type self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.UnqualifiedType);
 
     private static unsafe string KindSpellingFactory(Type self) => self.Handle.KindSpelling.ToString();
 
