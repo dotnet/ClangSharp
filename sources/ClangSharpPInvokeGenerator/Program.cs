@@ -83,6 +83,7 @@ internal static partial class Program
         var std = s_std.SingleValue;
         var testOutputLocation = s_testOutputLocation.SingleValue;
         var traversalNames = s_traversalNames.GetValues();
+        var withConditional = s_withConditional.SingleValue;
         var withAccessSpecifierNameValuePairs = s_withAccessSpecifierNameValuePairs.GetValues();
         var withAttributeNameValuePairs = s_withAttributeNameValuePairs.GetValues();
         var withCallConvNameValuePairs = s_withCallConvNameValuePairs.GetValues();
@@ -600,6 +601,7 @@ internal static partial class Program
                 WithAttributes = withAttributes,
                 WithCallConvs = withCallConvs,
                 WithClasses = withClasses,
+                WithConditional = withConditional,
                 WithEnumMemberStrip = withEnumMemberStrip,
                 WithGuids = withGuids,
                 WithLengths = withLengths,

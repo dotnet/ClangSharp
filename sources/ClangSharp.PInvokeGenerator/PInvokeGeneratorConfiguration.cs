@@ -14,6 +14,7 @@ public sealed class PInvokeGeneratorConfiguration
     private const string DefaultMethodPrefixToStripValue = "";
     private const string DefaultTypePrefixToStripValue = "";
     private const string DefaultTestOutputLocationValue = "";
+    private const string DefaultWithConditionalValue = "";
 
     private readonly string _language;
     private readonly string _languageStandard;
@@ -23,11 +24,11 @@ public sealed class PInvokeGeneratorConfiguration
     private readonly string _libraryPath;
     private readonly string _outputLocation;
     private readonly PInvokeGeneratorOutputMode _outputMode;
-
     private readonly string _defaultClass;
     private readonly string _methodPrefixToStrip;
     private readonly string _typePrefixToStrip;
     private readonly string _testOutputLocation;
+    private readonly string _withConditional;
 
     internal readonly HashSet<string> _excludedNames;
     private readonly HashSet<string> _forceRemappedNames;
@@ -87,6 +88,7 @@ public sealed class PInvokeGeneratorConfiguration
         _methodPrefixToStrip = DefaultMethodPrefixToStripValue;
         _typePrefixToStrip = DefaultTypePrefixToStripValue;
         _testOutputLocation = DefaultTestOutputLocationValue;
+        _withConditional = DefaultWithConditionalValue;
 
         _excludedNames = new HashSet<string>(QualifiedNameComparer.Default);
         _forceRemappedNames = new HashSet<string>(QualifiedNameComparer.Default);
@@ -505,6 +507,24 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             _testOutputLocation = string.IsNullOrWhiteSpace(value) ? DefaultTestOutputLocationValue : Path.GetFullPath(value);
+        }
+    }
+
+    // The preprocessor symbol that, in single-file C# output, wraps the whole generated file in a
+    // leading `#if <symbol>` and trailing `#endif`. Empty (the default) emits no conditional. This
+    // lets a consumer that can't conditionally exclude files at the project level (e.g. Unity, which
+    // owns the .csproj) generate several variants of a file and select one via a build symbol.
+    [AllowNull]
+    public string WithConditional
+    {
+        get
+        {
+            return _withConditional;
+        }
+
+        init
+        {
+            _withConditional = string.IsNullOrWhiteSpace(value) ? DefaultWithConditionalValue : value.Trim();
         }
     }
 

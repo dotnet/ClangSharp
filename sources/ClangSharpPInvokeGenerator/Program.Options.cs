@@ -35,6 +35,7 @@ internal static partial class Program
     private static readonly string[] s_withAttributeOptionAliases = ["--with-attribute", "-wa"];
     private static readonly string[] s_withCallConvOptionAliases = ["--with-callconv", "-wcc"];
     private static readonly string[] s_withClassOptionAliases = ["--with-class", "-wc"];
+    private static readonly string[] s_withConditionalOptionAliases = ["--with-conditional", "-wcond"];
     private static readonly string[] s_withEnumMemberStripOptionAliases = ["--with-enum-member-strip", "-wems"];
     private static readonly string[] s_withGuidOptionAliases = ["--with-guid", "-wg"];
     private static readonly string[] s_withLengthOptionAliases = ["--with-length", "-wl"];
@@ -81,6 +82,7 @@ internal static partial class Program
     private static readonly CommandLineOption s_withAttributeNameValuePairs = Multi(s_withAttributeOptionAliases, "An attribute to be added to the given remapped declaration name during binding generation. Supports wildcards.");
     private static readonly CommandLineOption s_withCallConvNameValuePairs = Multi(s_withCallConvOptionAliases, "A calling convention to be used for the given declaration during binding generation. Supports wildcards.");
     private static readonly CommandLineOption s_withClassNameValuePairs = Multi(s_withClassOptionAliases, "A class to be used for the given remapped constant or function declaration name during binding generation. Supports wildcards.");
+    private static readonly CommandLineOption s_withConditional = Single(s_withConditionalOptionAliases, "A preprocessor symbol used to wrap single-file C# output in a leading '#if <symbol>' and trailing '#endif'. Useful when files can't be conditionally excluded at the project level (e.g. Unity).", valueName: "symbol");
     private static readonly CommandLineOption s_withEnumMemberStripNameValuePairs = Multi(s_withEnumMemberStripOptionAliases, "How to strip a prefix or suffix from the members of the given remapped enum name during binding generation. Mode is one of `none`, `common-prefix`, `common-suffix`, `type-name`, `prefix:<str>`, or `suffix:<str>`. Supports wildcards.");
     private static readonly CommandLineOption s_withGuidNameValuePairs = Multi(s_withGuidOptionAliases, "A GUID to be used for the given declaration during binding generation. Supports wildcards.");
     private static readonly CommandLineOption s_withLengthNameValuePairs = Multi(s_withLengthOptionAliases, "A length to be used for the given declaration during binding generation. Supports wildcards.");
@@ -129,6 +131,7 @@ internal static partial class Program
         s_withAttributeNameValuePairs,
         s_withCallConvNameValuePairs,
         s_withClassNameValuePairs,
+        s_withConditional,
         s_withEnumMemberStripNameValuePairs,
         s_withGuidNameValuePairs,
         s_withLengthNameValuePairs,
