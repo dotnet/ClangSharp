@@ -176,6 +176,8 @@ Options:
   -r, --remap <remap>                                              A declaration name to be remapped to another name during binding generation. []
   -rt, --remap-type <remap-type>                                   A type (record or enum) declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name. []
   -rf, --remap-field <remap-field>                                 A field declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name. []
+  -rd, --resource-directory <directory>                            The Clang resource directory containing the builtin headers (such as stddef.h). When omitted, an installed and version-matched Clang's resource directory is automatically detected. []
+  --no-resource-directory-detection                                Disable the automatic detection of the Clang resource directory.
   -std, --std <std>                                                Language standard to compile for. []
   -to, --test-output <test-output>                                 The output location to write the generated tests to. []
   -t, --traverse <traverse>                                        A file name included either directly or indirectly by -f that should be traversed during binding generation. []
