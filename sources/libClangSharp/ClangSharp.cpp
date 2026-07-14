@@ -96,7 +96,15 @@ bool isStmtOrExpr(CXCursorKind kind) {
 int64_t getVtblIdx(const GlobalDecl& d)
 {
     const CXXMethodDecl* CMD = static_cast<const CXXMethodDecl*>(d.getDecl());
-    if (VTableContextBase::hasVtableSlot(CMD)) {
+
+    // getMethodVFTableLocation/getMethodVTableIndex assert the decl is present in the vtable layout;
+    // with asserts disabled (release libs) a missing entry dereferences an end() iterator and AVs
+    // (see dotnet/ClangSharp#534, #510). Only query when the parent's vtable is actually computable --
+    // a complete, non-dependent, polymorphic class -- and fall back to the -1 sentinel otherwise.
+    const CXXRecordDecl* RD = CMD->getParent();
+    bool hasComputableVtable = (RD != nullptr) && RD->isCompleteDefinition() && !RD->isDependentContext() && RD->isDynamicClass();
+
+    if (hasComputableVtable && VTableContextBase::hasVtableSlot(CMD)) {
         VTableContextBase* VTC = CMD->getASTContext().getVTableContext();
 
         if (MicrosoftVTableContext* MSVTC = dyn_cast<MicrosoftVTableContext>(VTC)) {
