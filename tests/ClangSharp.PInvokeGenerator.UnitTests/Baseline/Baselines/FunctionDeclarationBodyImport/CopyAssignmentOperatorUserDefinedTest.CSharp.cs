@@ -37,7 +37,7 @@ namespace ClangSharp.Test
                 z = 0.0f,
             };
 
-            cardinalAxis.op_Assign(tmp);
+            cardinalAxis.op_Assign(&tmp);
             return cardinalAxis;
         }
     }

@@ -41,7 +41,7 @@
           z = 0.0f,
       };
 
-      cardinalAxis.op_Assign(tmp);
+      cardinalAxis.op_Assign(&amp;tmp);
       return cardinalAxis;</code>
       </function>
     </class>
