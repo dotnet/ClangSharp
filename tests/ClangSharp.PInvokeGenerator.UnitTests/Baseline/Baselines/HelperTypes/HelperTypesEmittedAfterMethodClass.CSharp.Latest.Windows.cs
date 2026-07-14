@@ -1,6 +1,9 @@
 using System;
+using System.CodeDom.Compiler;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+
+[assembly: GeneratedCode("ClangSharp", "21.1.8.3")]
 
 namespace ClangSharp.Test
 {

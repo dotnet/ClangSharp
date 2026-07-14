@@ -1,18 +1,23 @@
 using System;
-using System.CodeDom.Compiler;
 using System.Diagnostics;
-
-[assembly: GeneratedCode("ClangSharp", "21.1.8.3")]
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
-    public unsafe partial struct SRC_DATA
+    public enum MyEnum
     {
-        [NativeTypeName("const float *")]
-        public float* data_in;
+        MyEnum_Value,
+    }
 
-        [NativeTypeName("long")]
-        public int input_frames;
+    public partial struct MyStruct
+    {
+        public int value;
+    }
+
+    public static unsafe partial class Methods
+    {
+        [DllImport("ClangSharpPInvokeGenerator", CallingConvention = CallingConvention.Cdecl, EntryPoint = "?MyFunction@@YAXP6AXH@Z@Z", ExactSpelling = true)]
+        public static extern void MyFunction([NativeTypeName("MyCallback")] delegate* unmanaged[Cdecl]<int, void> callback);
     }
 
     /// <summary>Defines the type of a member as it was used in the native signature.</summary>

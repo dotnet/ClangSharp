@@ -217,7 +217,7 @@ public partial class PInvokeGenerator
                 WriteCustomAttrs = static context => {
                     (var recordDecl, var generator) = ((RecordDecl, PInvokeGenerator))context;
 
-                    generator.WithAttributes(recordDecl);
+                    generator.WithAttributes(recordDecl, emitGeneratedCodeAttribute: true);
                     generator.WithUsings(recordDecl);
                 },
                 CustomAttrGeneratorData = (recordDecl, this),

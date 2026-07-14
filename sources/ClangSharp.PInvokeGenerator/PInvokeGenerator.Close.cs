@@ -87,6 +87,14 @@ public partial class PInvokeGenerator
                         _ = staticUsingDirectives.Add(staticUsingDirective);
                     }
 
+                    // The method class emits its [GeneratedCode] attribute directly rather than through
+                    // WriteCustomAttribute, so its System.CodeDom.Compiler using is not tracked on the
+                    // builder and must be hoisted here for single-file output.
+                    if (!csharpOutputBuilder.IsTestOutput && _config.GeneratedCodeAttributeMode == GeneratedCodeAttributeMode.Type && csharpOutputBuilder.Contents.Any() && _topLevelClassNames.Contains(csharpOutputBuilder.Name))
+                    {
+                        _ = usingDirectives.Add("System.CodeDom.Compiler");
+                    }
+
                     if (csharpOutputBuilder.IsTestOutput)
                     {
                         testHasAnyContents |= csharpOutputBuilder.Contents.Any();
@@ -118,6 +126,11 @@ public partial class PInvokeGenerator
 
                 _ = usingDirectives.Add("System");
                 _ = usingDirectives.Add("System.Diagnostics");
+
+                if (_config.GeneratedCodeAttributeMode == GeneratedCodeAttributeMode.Assembly)
+                {
+                    _ = usingDirectives.Add("System.CodeDom.Compiler");
+                }
 
                 if (_config.GenerateSetsLastSystemErrorAttribute)
                 {
@@ -167,14 +180,36 @@ public partial class PInvokeGenerator
                         sw.WriteLine();
                     }
 
-                    if (generateHelperTypes && _config.GenerateDisableRuntimeMarshalling)
+                    if (generateHelperTypes)
                     {
-                        // Assembly attributes must precede the namespace declaration, so the
-                        // [assembly: DisableRuntimeMarshalling] attribute is emitted here rather
-                        // than alongside the other helper types.
+                        var emittedAssemblyAttribute = false;
 
-                        sw.WriteLine("[assembly: DisableRuntimeMarshalling]");
-                        sw.WriteLine();
+                        if (_config.GeneratedCodeAttributeMode == GeneratedCodeAttributeMode.Assembly)
+                        {
+                            // Assembly attributes must precede the namespace declaration. The generated
+                            // helper types identify the assembly as containing generated code, so the
+                            // [assembly: GeneratedCode] marker is emitted here rather than per type.
+
+                            sw.Write("[assembly: ");
+                            sw.Write(GeneratedCodeAttribute);
+                            sw.WriteLine(']');
+                            emittedAssemblyAttribute = true;
+                        }
+
+                        if (_config.GenerateDisableRuntimeMarshalling)
+                        {
+                            // Assembly attributes must precede the namespace declaration, so the
+                            // [assembly: DisableRuntimeMarshalling] attribute is emitted here rather
+                            // than alongside the other helper types.
+
+                            sw.WriteLine("[assembly: DisableRuntimeMarshalling]");
+                            emittedAssemblyAttribute = true;
+                        }
+
+                        if (emittedAssemblyAttribute)
+                        {
+                            sw.WriteLine();
+                        }
                     }
                 }
                 else if (_config.OutputMode == PInvokeGeneratorOutputMode.Xml)
@@ -362,6 +397,7 @@ public partial class PInvokeGenerator
                 }
             }
 
+            GenerateGeneratedCodeAssemblyAttribute(this, stream, leaveStreamOpen);
             GenerateDisableRuntimeMarshallingAttribute(this, stream, leaveStreamOpen);
             hasNamespaceContent = GenerateNativeBitfieldAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
             hasNamespaceContent = GenerateNativeInheritanceAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
@@ -411,6 +447,49 @@ public partial class PInvokeGenerator
         _outputBuilderFactory.Clear();
         _uuidsToGenerate.Clear();
         _visitedFiles.Clear();
+
+        static void GenerateGeneratedCodeAssemblyAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
+        {
+            var config = generator.Config;
+
+            if (config.GeneratedCodeAttributeMode != GeneratedCodeAttributeMode.Assembly)
+            {
+                return;
+            }
+
+            if (!config.GenerateMultipleFiles)
+            {
+                // In single-file mode the [assembly: GeneratedCode] attribute is emitted at the top
+                // of the file, before the namespace declaration, since assembly attributes cannot
+                // appear after a namespace.
+                return;
+            }
+
+            if (stream is null)
+            {
+                var outputPath = Path.Combine(config.OutputLocation, "GeneratedCode.cs");
+                stream = generator._outputStreamFactory(outputPath);
+            }
+
+            using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
+            sw.NewLine = "\n";
+
+            if (!string.IsNullOrEmpty(config.HeaderText))
+            {
+                sw.WriteLine(config.HeaderText);
+            }
+
+            sw.WriteLine("using System.CodeDom.Compiler;");
+            sw.WriteLine();
+            sw.Write("[assembly: ");
+            sw.Write(GeneratedCodeAttribute);
+            sw.WriteLine(']');
+
+            if (!leaveStreamOpen)
+            {
+                stream = null;
+            }
+        }
 
         static void GenerateDisableRuntimeMarshallingAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
         {

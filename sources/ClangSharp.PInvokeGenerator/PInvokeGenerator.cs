@@ -42,6 +42,13 @@ public sealed partial class PInvokeGenerator : IDisposable
     private const string AnonymousRecordPrefix = $"{AnonymousNamePrefix}Record_";
     private const string AnonymousTypeKindTag = "_e__";
 
+    // The [GeneratedCode] annotation emitted to mark output as generated. By default it rides on the
+    // assembly (via [assembly: GeneratedCode]) when helper types are generated; --config
+    // generate-generated-code=type instead annotates each generated top-level type, and =none emits
+    // neither. The version is the ClangSharp assembly version (without any prerelease/build metadata) so
+    // it is deterministic within a release and only churns the assembly/helper-type baselines on bump.
+    private static readonly string GeneratedCodeAttribute = $"GeneratedCode(\"ClangSharp\", \"{typeof(PInvokeGenerator).Assembly.GetName().Version?.ToString() ?? ""}\")";
+
     private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
     private static readonly string[] s_doubleColonSeparator = ["::"];
     private static readonly char[] s_doubleQuoteSeparator = ['"'];
@@ -630,6 +637,11 @@ public sealed partial class PInvokeGenerator : IDisposable
                             csharpOutputBuilder.AddUsingDirective(withUsing);
                         }
                     }
+
+                    if (!outputBuilder.IsTestOutput && _config.GeneratedCodeAttributeMode == GeneratedCodeAttributeMode.Type)
+                    {
+                        csharpOutputBuilder.AddUsingDirective("System.CodeDom.Compiler");
+                    }
                 }
 
                 var usingDirectives = new SortedSet<string>(csharpOutputBuilder.UsingDirectives, StringComparer.Ordinal);
@@ -738,6 +750,14 @@ public sealed partial class PInvokeGenerator : IDisposable
                     }
 
                     sw.WriteLine(".</summary>");
+                }
+
+                if (!outputBuilder.IsTestOutput && _config.GeneratedCodeAttributeMode == GeneratedCodeAttributeMode.Type)
+                {
+                    sw.Write(indentationString);
+                    sw.Write('[');
+                    sw.Write(GeneratedCodeAttribute);
+                    sw.WriteLine(']');
                 }
 
                 if (_topLevelClassAttributes.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nonTestName, out var withAttributes))
@@ -2151,10 +2171,15 @@ public sealed partial class PInvokeGenerator : IDisposable
         return declAttrs;
     }
 
-    private void WithAttributes(NamedDecl namedDecl, bool onlySupportedOSPlatform = false, bool isTestOutput = false)
+    private void WithAttributes(NamedDecl namedDecl, bool onlySupportedOSPlatform = false, bool isTestOutput = false, bool emitGeneratedCodeAttribute = false)
     {
         var outputBuilder = isTestOutput ? _testOutputBuilder : _outputBuilder;
         Debug.Assert(outputBuilder is not null);
+
+        if (emitGeneratedCodeAttribute && !isTestOutput && !onlySupportedOSPlatform && _config.GeneratedCodeAttributeMode == GeneratedCodeAttributeMode.Type)
+        {
+            outputBuilder.WriteCustomAttribute(GeneratedCodeAttribute);
+        }
 
         if (TryGetRemappedValue(namedDecl, _config._withAttributes, out var attributes, matchStar: true))
         {

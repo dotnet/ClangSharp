@@ -1,5 +1,8 @@
 using System;
+using System.CodeDom.Compiler;
 using System.Diagnostics;
+
+[assembly: GeneratedCode("ClangSharp", "21.1.8.3")]
 
 namespace ClangSharp.Test;
 

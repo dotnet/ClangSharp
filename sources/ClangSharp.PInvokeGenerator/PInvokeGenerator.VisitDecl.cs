@@ -399,7 +399,7 @@ public partial class PInvokeGenerator
                     WriteCustomAttrs = static context => {
                         (var enumDecl, var generator) = ((EnumDecl, PInvokeGenerator))context;
 
-                        generator.WithAttributes(enumDecl);
+                        generator.WithAttributes(enumDecl, emitGeneratedCodeAttribute: true);
                         generator.WithUsings(enumDecl);
                     },
                     CustomAttrGeneratorData = (enumDecl, this),
@@ -1401,7 +1401,7 @@ public partial class PInvokeGenerator
                     WriteCustomAttrs = static context => {
                         (var typedefDecl, var generator) = ((TypedefDecl, PInvokeGenerator))context;
 
-                        generator.WithAttributes(typedefDecl);
+                        generator.WithAttributes(typedefDecl, emitGeneratedCodeAttribute: true);
                         generator.WithUsings(typedefDecl);
                     },
                     CustomAttrGeneratorData = (typedefDecl, this),

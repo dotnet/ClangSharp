@@ -143,8 +143,12 @@ internal static partial class Program
         var configOptions = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? PInvokeGeneratorConfigurationOptions.None : PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
         var printConfigHelp = false;
 
-        foreach (var configSwitch in configSwitches)
+        foreach (var configSwitchRaw in configSwitches)
         {
+            var separatorIndex = configSwitchRaw.IndexOf('=', StringComparison.Ordinal);
+            var configSwitch = separatorIndex >= 0 ? configSwitchRaw[..separatorIndex] : configSwitchRaw;
+            var configSwitchValue = separatorIndex >= 0 ? configSwitchRaw[(separatorIndex + 1)..] : "";
+
             switch (configSwitch)
             {
                 case "?":
@@ -378,6 +382,40 @@ internal static partial class Program
                 case "generate-fixed-buffer-indexer-overloads":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateFixedBufferIndexerOverloads;
+                    break;
+                }
+
+                case "generate-generated-code":
+                {
+                    switch (configSwitchValue)
+                    {
+                        case "" or "assembly":
+                        {
+                            configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateGeneratedCodeAttributeAsType;
+                            configOptions &= ~PInvokeGeneratorConfigurationOptions.ExcludeGeneratedCodeAttribute;
+                            break;
+                        }
+
+                        case "type":
+                        {
+                            configOptions |= PInvokeGeneratorConfigurationOptions.GenerateGeneratedCodeAttributeAsType;
+                            configOptions &= ~PInvokeGeneratorConfigurationOptions.ExcludeGeneratedCodeAttribute;
+                            break;
+                        }
+
+                        case "none":
+                        {
+                            configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeGeneratedCodeAttribute;
+                            configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateGeneratedCodeAttributeAsType;
+                            break;
+                        }
+
+                        default:
+                        {
+                            errorList.Add($"Error: Unrecognized generate-generated-code value: {configSwitchValue}. Expected 'assembly', 'type', or 'none'.");
+                            break;
+                        }
+                    }
                     break;
                 }
 

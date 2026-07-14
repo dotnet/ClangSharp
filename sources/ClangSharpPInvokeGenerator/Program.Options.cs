@@ -201,6 +201,7 @@ internal static partial class Program
         new HelpRow("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
         new HelpRow("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
         new HelpRow("generate-fixed-buffer-indexer-overloads", "Fixed sized buffer helper types should generate additional uint, nint, and nuint indexer overloads."),
+        new HelpRow("generate-generated-code=<mode>", "Controls the emission of the GeneratedCode attribute. 'assembly' (default) emits a single '[assembly: GeneratedCode]' when helper types are generated; 'type' instead annotates each generated top-level type; 'none' emits neither."),
         new HelpRow("generate-guid-member", "Types with an associated GUID should have a corresponding member generated."),
         new HelpRow("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
         new HelpRow("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),

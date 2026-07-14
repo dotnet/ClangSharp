@@ -295,6 +295,24 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool GenerateFixedBufferIndexerOverloads => (_options & PInvokeGeneratorConfigurationOptions.GenerateFixedBufferIndexerOverloads) != 0;
 
+    public GeneratedCodeAttributeMode GeneratedCodeAttributeMode
+    {
+        get
+        {
+            if ((_options & PInvokeGeneratorConfigurationOptions.ExcludeGeneratedCodeAttribute) != 0)
+            {
+                return GeneratedCodeAttributeMode.None;
+            }
+
+            if ((_options & PInvokeGeneratorConfigurationOptions.GenerateGeneratedCodeAttributeAsType) != 0)
+            {
+                return GeneratedCodeAttributeMode.Type;
+            }
+
+            return GeneratedCodeAttributeMode.Assembly;
+        }
+    }
+
     public bool GenerateGenericPointerWrapper => (_options & PInvokeGeneratorConfigurationOptions.GenerateGenericPointerWrapper) != 0;
 
     public bool GenerateGuidMember => (_options & PInvokeGeneratorConfigurationOptions.GenerateGuidMember) != 0;
