@@ -1094,7 +1094,7 @@ public partial class PInvokeGenerator
 
                 if (!IsAnonymousEnum(enumTypeName))
                 {
-                    escapedName = EscapeAndStripEnumMemberName(name, enumTypeName);
+                    escapedName = EscapeAndStripEnumMemberName(name, enumTypeName, enumConstantDecl.DeclContext as EnumDecl);
                 }
             }
 

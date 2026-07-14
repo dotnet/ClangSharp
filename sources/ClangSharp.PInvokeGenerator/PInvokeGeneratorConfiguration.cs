@@ -46,6 +46,7 @@ public sealed class PInvokeGeneratorConfiguration
     internal readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
     internal readonly Dictionary<string, string> _withCallConvs;
     internal readonly Dictionary<string, string> _withClasses;
+    internal readonly Dictionary<string, string> _withEnumMemberStrip;
     internal readonly Dictionary<string, Guid> _withGuids;
     internal readonly Dictionary<string, string> _withLengths;
     private readonly Dictionary<string, string> _withLibraryPaths;
@@ -104,6 +105,7 @@ public sealed class PInvokeGeneratorConfiguration
         _withAttributes = new Dictionary<string, IReadOnlyList<string>>(QualifiedNameComparer.Default);
         _withCallConvs = new Dictionary<string, string>(QualifiedNameComparer.Default);
         _withClasses = new Dictionary<string, string>(StringComparer.Ordinal);
+        _withEnumMemberStrip = new Dictionary<string, string>(QualifiedNameComparer.Default);
         _withGuids = new Dictionary<string, Guid>(QualifiedNameComparer.Default);
         _withLengths = new Dictionary<string, string>(QualifiedNameComparer.Default);
         _withLibraryPaths = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -574,6 +576,20 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             AddRange(_withClasses, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyDictionary<string, string> WithEnumMemberStrip
+    {
+        get
+        {
+            return _withEnumMemberStrip;
+        }
+
+        init
+        {
+            AddRange(_withEnumMemberStrip, value);
         }
     }
 
