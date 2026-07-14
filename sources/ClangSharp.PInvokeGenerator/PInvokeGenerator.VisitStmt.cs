@@ -495,6 +495,40 @@ public partial class PInvokeGenerator
                         needsComma = true;
                         continue;
                     }
+                    else if (IsStmtAsWritten<CXXThisExpr>(arg, out _) && IsType<PointerType>(callExpr, functionProtoType.ParamTypes[i], out var thisPointerType))
+                    {
+                        // `this` inside a struct instance method is the value itself, but the callee expects a
+                        // pointer. Materialize its address the same way the reference-parameter path above does.
+                        var thisPointerTypeName = GetTypeName(callExpr, context: null, type: functionProtoType.ParamTypes[i], ignoreTransparentStructsWhereRequired: true, isTemplate: false, nativeTypeName: out _);
+
+                        outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                        outputBuilder.Write('(');
+                        outputBuilder.Write(thisPointerTypeName);
+                        outputBuilder.Write(")Unsafe.AsPointer(");
+
+                        if (thisPointerType.PointeeType.IsLocalConstQualified)
+                        {
+                            if (!_config.GenerateLatestCode)
+                            {
+                                outputBuilder.Write("ref Unsafe.AsRef(");
+                            }
+
+                            outputBuilder.Write("in this");
+
+                            if (!_config.GenerateLatestCode)
+                            {
+                                outputBuilder.Write(')');
+                            }
+                        }
+                        else
+                        {
+                            outputBuilder.Write("ref this");
+                        }
+                        outputBuilder.Write(')');
+
+                        needsComma = true;
+                        continue;
+                    }
                 }
 
                 Visit(arg);
