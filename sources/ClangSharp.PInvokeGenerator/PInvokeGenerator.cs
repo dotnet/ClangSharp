@@ -2089,10 +2089,56 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             _outputBuilder.EndUnchecked();
         }
+        else if (EnumConstantInitNeedsCast(targetTypeName, stmt))
+        {
+            _outputBuilder.BeginInnerValue();
+            _outputBuilder.BeginInnerCast();
+            _outputBuilder.WriteCastType(targetTypeName);
+            _outputBuilder.EndInnerCast();
+
+            ParenthesizeStmt(stmt);
+
+            _outputBuilder.EndInnerValue();
+        }
         else
         {
             VisitStmt(stmt);
         }
+    }
+
+    private bool EnumConstantInitNeedsCast(string targetTypeName, Stmt stmt)
+    {
+        // A C# enum member initializer must be implicitly convertible to the enum's underlying
+        // type. The generator forces most enums to `int`, so an unsigned initializer expression
+        // (e.g. `1U << 22`) is not implicitly convertible and needs an explicit cast to the
+        // underlying type to compile. Out-of-range values are handled by the unchecked path.
+
+        if (stmt.DeclContext is not EnumDecl)
+        {
+            return false;
+        }
+
+        // Only cast the top-level initializer, not each nested subexpression, to avoid
+        // recursing back into this path while visiting the parenthesized initializer.
+        if (PreviousContext.Cursor is not EnumConstantDecl)
+        {
+            return false;
+        }
+
+        var expr = stmt as Expr;
+
+        if (expr is ImplicitCastExpr implicitCastExpr)
+        {
+            expr = implicitCastExpr.SubExprAsWritten;
+        }
+
+        if (expr is null)
+        {
+            return false;
+        }
+
+        var sourceTypeName = GetRemappedTypeName(expr, context: null, expr.Type, out _);
+        return IsUnsigned(sourceTypeName) && !IsUnsigned(targetTypeName);
     }
 
     private void Visit(Cursor cursor)
