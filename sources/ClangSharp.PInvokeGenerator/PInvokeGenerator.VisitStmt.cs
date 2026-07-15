@@ -1102,7 +1102,16 @@ public partial class PInvokeGenerator
             {
                 var enumName = GetRemappedCursorName(namedDecl, out _, skipUsing: true);
 
-                if (!_config.DontUseUsingStaticsForEnums)
+                // In C all enum constants share a single ordinary-identifier namespace, so un-stripped member
+                // names are unique across the translation unit and can be imported via `using static` and
+                // referenced unqualified. Stripping breaks that guarantee: two enums can strip to the same
+                // member name, so an unqualified cross-enum reference may bind to a sibling in the referencing
+                // enum (a `BOOLEAN = BOOLEAN` self-cycle) or become ambiguous between two `using static`
+                // imports. When the referenced member's name was actually changed by stripping, qualify the
+                // reference with the enum name instead. See https://github.com/dotnet/ClangSharp/issues/792.
+                var wasStripped = escapedName != EscapeName(name);
+
+                if (!_config.DontUseUsingStaticsForEnums && !wasStripped)
                 {
                     if (IsAnonymousEnum(enumName))
                     {

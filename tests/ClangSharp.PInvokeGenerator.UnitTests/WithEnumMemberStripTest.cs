@@ -177,4 +177,55 @@ enum second_group
 
         return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEnumMemberStrip: new Dictionary<string, string> { ["*"] = "common-prefix" });
     }
+
+    // A cross-enum reference whose stripped name collides with a member of the referencing enum must be
+    // qualified with the referenced enum name; an unqualified reference would bind to the referencing
+    // enum's own member and produce a `Cycle in constant value computation` error. See
+    // https://github.com/dotnet/ClangSharp/issues/792.
+    [Test]
+    public Task CrossEnumReferenceIsQualifiedOnCollision()
+    {
+        var inputContents = @"enum element_type
+{
+    element_type_boolean,
+    element_type_char,
+};
+
+enum serialization_type
+{
+    serialization_type_boolean = element_type_boolean,
+    serialization_type_char = element_type_char,
+};
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEnumMemberStrip: new Dictionary<string, string> { ["*"] = "common-prefix" });
+    }
+
+    // Two enums can strip to the same member name (`boolean`); a third enum referencing either then imports
+    // both via `using static`, so an unqualified `boolean` is ambiguous (CS0229). Cross-enum references to a
+    // stripped member must be qualified with the enum name. See https://github.com/dotnet/ClangSharp/issues/792.
+    [Test]
+    public Task CrossEnumReferenceIsQualifiedOnAmbiguousImport()
+    {
+        var inputContents = @"enum element_type
+{
+    element_type_boolean,
+    element_type_char,
+};
+
+enum other_type
+{
+    other_type_boolean,
+    other_type_wchar,
+};
+
+enum consumer_type
+{
+    consumer_type_a = element_type_boolean,
+    consumer_type_b = other_type_wchar,
+};
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, withEnumMemberStrip: new Dictionary<string, string> { ["*"] = "common-prefix" });
+    }
 }
