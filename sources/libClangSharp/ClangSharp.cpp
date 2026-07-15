@@ -6386,6 +6386,17 @@ CXType clangsharp_Type_getBaseType(CXType CT) {
     return MakeCXType(QualType(), GetTypeTU(CT));
 }
 
+CX_AutoTypeKeyword clangsharp_Type_getAutoTypeKeyword(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const AutoType* AT = dyn_cast<AutoType>(TP)) {
+        return static_cast<CX_AutoTypeKeyword>(static_cast<int>(AT->getKeyword()) + 1);
+    }
+
+    return CX_ATK_Invalid;
+}
+
 CXCursor clangsharp_Type_getColumnExpr(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
@@ -6440,6 +6451,17 @@ CXCursor clangsharp_Type_getDeclaration(CXType CT) {
     return clang_getTypeDeclaration(CT);
 }
 
+unsigned clangsharp_Type_getContainsUnexpandedParameterPack(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->containsUnexpandedParameterPack();
+    }
+
+    return 0;
+}
+
 CXType clangsharp_Type_getDeducedType(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
@@ -6485,6 +6507,17 @@ CXType clangsharp_Type_getElementType(CXType CT) {
     return clang_getElementType(CT);
 }
 
+CX_TypeDependence clangsharp_Type_getDependence(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return static_cast<CX_TypeDependence>(TP->getDependence());
+    }
+
+    return CX_TD_None;
+}
+
 CXType clangsharp_Type_getEquivalentType(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
@@ -6520,6 +6553,74 @@ CXType clangsharp_Type_getInjectedSpecializationType(CXType CT) {
     return MakeCXType(QualType(), GetTypeTU(CT));
 }
 
+CX_ExceptionSpecificationType clangsharp_Type_getExceptionSpecType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const FunctionProtoType* FPT = dyn_cast<FunctionProtoType>(TP)) {
+        return static_cast<CX_ExceptionSpecificationType>(FPT->getExceptionSpecType() + 1);
+    }
+
+    return CX_EST_Invalid;
+}
+
+CXType clangsharp_Type_getExceptionType(CXType C, unsigned i) {
+    QualType T = GetQualType(C);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const FunctionProtoType* FPT = dyn_cast<FunctionProtoType>(TP)) {
+        if (i < FPT->getNumExceptions()) {
+            return MakeCXType(FPT->getExceptionType(i), GetTypeTU(C));
+        }
+    }
+
+    return MakeCXType(QualType(), GetTypeTU(C));
+}
+
+unsigned clangsharp_Type_getHasFloatingRepresentation(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->hasFloatingRepresentation();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getHasIntegerRepresentation(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->hasIntegerRepresentation();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getHasPointerRepresentation(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->hasPointerRepresentation();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getHasTrailingReturn(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const FunctionProtoType* FPT = dyn_cast<FunctionProtoType>(TP)) {
+        return FPT->hasTrailingReturn();
+    }
+
+    return 0;
+}
+
 CXType clangsharp_Type_getInjectedTST(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
@@ -6531,6 +6632,105 @@ CXType clangsharp_Type_getInjectedTST(CXType CT) {
     }
 
     return MakeCXType(QualType(), GetTypeTU(CT));
+}
+
+unsigned clangsharp_Type_getIsAggregateType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isAggregateType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsArithmeticType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isArithmeticType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsConst(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const FunctionProtoType* FPT = dyn_cast<FunctionProtoType>(TP)) {
+        return FPT->getMethodQuals().hasConst();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsConstrained(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const AutoType* AT = dyn_cast<AutoType>(TP)) {
+        return AT->isConstrained();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsDecltypeAuto(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const AutoType* AT = dyn_cast<AutoType>(TP)) {
+        return AT->isDecltypeAuto();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsDependentType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isDependentType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsFloatingType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isFloatingType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsGNUAutoType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const AutoType* AT = dyn_cast<AutoType>(TP)) {
+        return AT->isGNUAutoType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsInstantiationDependentType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isInstantiationDependentType();
+    }
+
+    return 0;
 }
 
 unsigned clangsharp_Type_getIsObjCInstanceType(CXType CT) {
@@ -6580,6 +6780,50 @@ unsigned clangsharp_Type_getIsTypeAlias(CXType CT) {
     return 0;
 }
 
+unsigned clangsharp_Type_getIsObjectType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isObjectType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsParameterPack(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const TemplateTypeParmType* TTPT = dyn_cast<TemplateTypeParmType>(TP)) {
+        return TTPT->isParameterPack();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsRealFloatingType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isRealFloatingType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsScalarType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isScalarType();
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Type_getIsUnsigned(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
@@ -6593,6 +6837,36 @@ unsigned clangsharp_Type_getIsUnsigned(CXType CT) {
     }
 
     return 0;
+}
+
+unsigned clangsharp_Type_getIsVariablyModifiedType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isVariablyModifiedType();
+    }
+
+    return 0;
+}
+
+CX_ElaboratedTypeKeyword clangsharp_Type_getKeyword(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ElaboratedType* ET = dyn_cast<ElaboratedType>(TP)) {
+        return static_cast<CX_ElaboratedTypeKeyword>(static_cast<int>(ET->getKeyword()) + 1);
+    }
+
+    if (const DependentNameType* DNT = dyn_cast<DependentNameType>(TP)) {
+        return static_cast<CX_ElaboratedTypeKeyword>(static_cast<int>(DNT->getKeyword()) + 1);
+    }
+
+    if (const DependentTemplateSpecializationType* DTST = dyn_cast<DependentTemplateSpecializationType>(TP)) {
+        return static_cast<CX_ElaboratedTypeKeyword>(static_cast<int>(DTST->getKeyword()) + 1);
+    }
+
+    return CX_ETK_Invalid;
 }
 
 CXType clangsharp_Type_getModifiedType(CXType CT) {
@@ -6624,6 +6898,18 @@ CXCursor clangsharp_Type_getNumBitsExpr(CXType CT) {
     if (const DependentBitIntType* DEIT = dyn_cast<DependentBitIntType>(TP)) {
         CXCursor C = clang_getTypeDeclaration(CT);
         return MakeCXCursor(DEIT->getNumBitsExpr(), getCursorDecl(C), GetTypeTU(CT));
+    }
+
+    return clang_getNullCursor();
+}
+
+CXCursor clangsharp_Type_getNoexceptExpr(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const FunctionProtoType* FPT = dyn_cast<FunctionProtoType>(TP)) {
+        CXCursor C = clang_getTypeDeclaration(CT);
+        return MakeCXCursor(FPT->getNoexceptExpr(), getCursorDecl(C), GetTypeTU(CT));
     }
 
     return clang_getNullCursor();
@@ -6856,6 +7142,17 @@ CXCursor clangsharp_Type_getUnderlyingExpr(CXType CT) {
     }
 
     return clang_getNullCursor();
+}
+
+CX_VectorKind clangsharp_Type_getVectorKind(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const VectorType* VT = dyn_cast<VectorType>(TP)) {
+        return static_cast<CX_VectorKind>(static_cast<int>(VT->getVectorKind()) + 1);
+    }
+
+    return CX_VECK_Invalid;
 }
 
 CXType clangsharp_Type_getUnderlyingType(CXType CT) {

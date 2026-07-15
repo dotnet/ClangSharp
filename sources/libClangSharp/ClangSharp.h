@@ -156,6 +156,69 @@ enum CX_IfStatementKind {
     CX_ISK_ConstevalNegated = static_cast<int>(clang::IfStatementKind::ConstevalNegated) + 1,
 };
 
+enum CX_TypeDependence {
+    CX_TD_None = clang::TypeDependenceScope::None,
+    CX_TD_UnexpandedPack = clang::TypeDependenceScope::UnexpandedPack,
+    CX_TD_Instantiation = clang::TypeDependenceScope::Instantiation,
+    CX_TD_Dependent = clang::TypeDependenceScope::Dependent,
+    CX_TD_VariablyModified = clang::TypeDependenceScope::VariablyModified,
+    CX_TD_Error = clang::TypeDependenceScope::Error,
+    CX_TD_All = clang::TypeDependenceScope::All,
+
+    CX_TD_DependentInstantiation = clang::TypeDependenceScope::DependentInstantiation,
+};
+
+enum CX_ExceptionSpecificationType {
+    CX_EST_Invalid,
+    CX_EST_None = clang::EST_None + 1,
+    CX_EST_DynamicNone = clang::EST_DynamicNone + 1,
+    CX_EST_Dynamic = clang::EST_Dynamic + 1,
+    CX_EST_MSAny = clang::EST_MSAny + 1,
+    CX_EST_NoThrow = clang::EST_NoThrow + 1,
+    CX_EST_BasicNoexcept = clang::EST_BasicNoexcept + 1,
+    CX_EST_DependentNoexcept = clang::EST_DependentNoexcept + 1,
+    CX_EST_NoexceptFalse = clang::EST_NoexceptFalse + 1,
+    CX_EST_NoexceptTrue = clang::EST_NoexceptTrue + 1,
+    CX_EST_Unevaluated = clang::EST_Unevaluated + 1,
+    CX_EST_Uninstantiated = clang::EST_Uninstantiated + 1,
+    CX_EST_Unparsed = clang::EST_Unparsed + 1,
+};
+
+enum CX_VectorKind {
+    CX_VECK_Invalid,
+    CX_VECK_Generic = static_cast<int>(clang::VectorKind::Generic) + 1,
+    CX_VECK_AltiVecVector = static_cast<int>(clang::VectorKind::AltiVecVector) + 1,
+    CX_VECK_AltiVecPixel = static_cast<int>(clang::VectorKind::AltiVecPixel) + 1,
+    CX_VECK_AltiVecBool = static_cast<int>(clang::VectorKind::AltiVecBool) + 1,
+    CX_VECK_Neon = static_cast<int>(clang::VectorKind::Neon) + 1,
+    CX_VECK_NeonPoly = static_cast<int>(clang::VectorKind::NeonPoly) + 1,
+    CX_VECK_SveFixedLengthData = static_cast<int>(clang::VectorKind::SveFixedLengthData) + 1,
+    CX_VECK_SveFixedLengthPredicate = static_cast<int>(clang::VectorKind::SveFixedLengthPredicate) + 1,
+    CX_VECK_RVVFixedLengthData = static_cast<int>(clang::VectorKind::RVVFixedLengthData) + 1,
+    CX_VECK_RVVFixedLengthMask = static_cast<int>(clang::VectorKind::RVVFixedLengthMask) + 1,
+    CX_VECK_RVVFixedLengthMask_1 = static_cast<int>(clang::VectorKind::RVVFixedLengthMask_1) + 1,
+    CX_VECK_RVVFixedLengthMask_2 = static_cast<int>(clang::VectorKind::RVVFixedLengthMask_2) + 1,
+    CX_VECK_RVVFixedLengthMask_4 = static_cast<int>(clang::VectorKind::RVVFixedLengthMask_4) + 1,
+};
+
+enum CX_AutoTypeKeyword {
+    CX_ATK_Invalid,
+    CX_ATK_Auto = static_cast<int>(clang::AutoTypeKeyword::Auto) + 1,
+    CX_ATK_DecltypeAuto = static_cast<int>(clang::AutoTypeKeyword::DecltypeAuto) + 1,
+    CX_ATK_GNUAutoType = static_cast<int>(clang::AutoTypeKeyword::GNUAutoType) + 1,
+};
+
+enum CX_ElaboratedTypeKeyword {
+    CX_ETK_Invalid,
+    CX_ETK_Struct = static_cast<int>(clang::ElaboratedTypeKeyword::Struct) + 1,
+    CX_ETK_Interface = static_cast<int>(clang::ElaboratedTypeKeyword::Interface) + 1,
+    CX_ETK_Union = static_cast<int>(clang::ElaboratedTypeKeyword::Union) + 1,
+    CX_ETK_Class = static_cast<int>(clang::ElaboratedTypeKeyword::Class) + 1,
+    CX_ETK_Enum = static_cast<int>(clang::ElaboratedTypeKeyword::Enum) + 1,
+    CX_ETK_Typename = static_cast<int>(clang::ElaboratedTypeKeyword::Typename) + 1,
+    CX_ETK_None = static_cast<int>(clang::ElaboratedTypeKeyword::None) + 1,
+};
+
 enum CX_InitializationStyle {
     CX_IS_Invalid,
     CX_IS_CInit = clang::VarDecl::CInit + 1,
@@ -1084,9 +1147,13 @@ CLANGSHARP_LINKAGE CXType clangsharp_Type_getAdjustedType(CXType CT);
 
 CLANGSHARP_LINKAGE CX_AttrKind clangsharp_Type_getAttrKind(CXType CT);
 
+CLANGSHARP_LINKAGE CX_AutoTypeKeyword clangsharp_Type_getAutoTypeKeyword(CXType CT);
+
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getBaseType(CXType CT);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getColumnExpr(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getContainsUnexpandedParameterPack(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getDecayedType(CXType CT);
 
@@ -1094,11 +1161,25 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getDeclaration(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getDeducedType(CXType CT);
 
+CLANGSHARP_LINKAGE CX_TypeDependence clangsharp_Type_getDependence(CXType CT);
+
 CLANGSHARP_LINKAGE int clangsharp_Type_getDepth(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getElementType(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getEquivalentType(CXType CT);
+
+CLANGSHARP_LINKAGE CX_ExceptionSpecificationType clangsharp_Type_getExceptionSpecType(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getExceptionType(CXType C, unsigned i);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getHasFloatingRepresentation(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getHasIntegerRepresentation(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getHasPointerRepresentation(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getHasTrailingReturn(CXType CT);
 
 CLANGSHARP_LINKAGE int clangsharp_Type_getIndex(CXType CT);
 
@@ -1106,7 +1187,33 @@ CLANGSHARP_LINKAGE CXType clangsharp_Type_getInjectedSpecializationType(CXType C
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getInjectedTST(CXType CT);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsAggregateType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsArithmeticType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsConst(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsConstrained(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsDecltypeAuto(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsDependentType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsFloatingType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsGNUAutoType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsInstantiationDependentType(CXType CT);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjCInstanceType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjectType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsParameterPack(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsRealFloatingType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsScalarType(CXType CT);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsSigned(CXType CT);
 
@@ -1116,7 +1223,13 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsTypeAlias(CXType CT);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsUnsigned(CXType CT);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsVariablyModifiedType(CXType CT);
+
+CLANGSHARP_LINKAGE CX_ElaboratedTypeKeyword clangsharp_Type_getKeyword(CXType CT);
+
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getModifiedType(CXType CT);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getNoexceptExpr(CXType CT);
 
 CLANGSHARP_LINKAGE int clangsharp_Type_getNumBits(CXType CT);
 
@@ -1149,6 +1262,8 @@ CLANGSHARP_LINKAGE CX_TypeClass clangsharp_Type_getTypeClass(CXType CT);
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getUnderlyingExpr(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getUnderlyingType(CXType CT);
+
+CLANGSHARP_LINKAGE CX_VectorKind clangsharp_Type_getVectorKind(CXType CT);
 LLVM_CLANG_C_EXTERN_C_END
 
 #endif
