@@ -11,6 +11,7 @@ namespace ClangSharp.UnitTests.Baseline;
 public sealed class StructDeclarationTest : BaselineTest
 {
     private static readonly string[] ExcludeTestExcludedNames = ["MyStruct"];
+    private static readonly string[] ExcludeWildcardTestExcludedNames = ["Foo*", "*Legacy", "B?r"];
     private static readonly string[] GuidTestExcludedNames = ["DECLSPEC_UUID"];
     private static readonly string[] GuidConstTestExcludedNames = ["DECLSPEC_UUID", "GUID"];
 
@@ -193,6 +194,20 @@ struct Derived : Base<T>
         var inputContents = "typedef struct MyStruct MyStruct;";
 
         return ValidateAsync(nameof(ExcludeTest), inputContents, excludedNames: ExcludeTestExcludedNames);
+    }
+
+    [Test]
+    public Task ExcludeWildcardTest()
+    {
+        var inputContents = @"typedef struct Foo1 Foo1;
+typedef struct FooBar FooBar;
+typedef struct KeepLegacy KeepLegacy;
+typedef struct Bar Bar;
+typedef struct Keep Keep;";
+
+        // 'Foo*' matches by prefix, '*Legacy' by suffix, and 'B?r' matches a single character, so
+        // only 'Keep' survives.
+        return ValidateAsync(nameof(ExcludeWildcardTest), inputContents, excludedNames: ExcludeWildcardTestExcludedNames);
     }
 
     [TestCase("double", "double")]
@@ -957,6 +972,35 @@ struct MyStruct3
             ["MyStruct3.Field2"] = AccessSpecifier.Internal,
         };
         return ValidateAsync(nameof(WithAccessSpecifierTest), inputContents, withAccessSpecifiers: withAccessSpecifiers);
+    }
+
+    [Test]
+    public Task WithAccessSpecifierWildcardTest()
+    {
+        var inputContents = @"struct MyStruct1
+{
+    int Field1;
+};
+
+struct MyStruct2
+{
+    int Field1;
+};
+
+struct Other
+{
+    int Field1;
+};
+";
+
+        // Exercises the precedence rules: the bare '*' catch-all makes everything Internal, the
+        // 'MyStruct*' glob narrows those to Private, and the exact 'MyStruct2' key wins over the glob.
+        var withAccessSpecifiers = new Dictionary<string, AccessSpecifier> {
+            ["*"] = AccessSpecifier.Internal,
+            ["MyStruct*"] = AccessSpecifier.Private,
+            ["MyStruct2"] = AccessSpecifier.Public,
+        };
+        return ValidateAsync(nameof(WithAccessSpecifierWildcardTest), inputContents, withAccessSpecifiers: withAccessSpecifiers);
     }
 
     [Test]

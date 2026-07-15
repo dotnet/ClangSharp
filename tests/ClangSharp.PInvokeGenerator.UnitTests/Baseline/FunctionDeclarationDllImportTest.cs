@@ -177,6 +177,51 @@ struct MyStruct
     }
 
     [Test]
+    public Task WithCallConvWildcardTest()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value); extern ""C"" void MyFunctionExtra(int value);";
+
+        // 'MyFunction?' matches a single trailing character, so it applies to MyFunction1 and
+        // MyFunction2 but not MyFunctionExtra.
+        var withCallConvs = new Dictionary<string, string>
+        {
+            ["MyFunction?"] = "Winapi"
+        };
+        return ValidateAsync(nameof(WithCallConvWildcardTest), inputContents, withCallConvs: withCallConvs);
+    }
+
+    [Test]
+    public Task WithCallConvWildcardOverrideTest()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value); extern ""C"" void Other(int value);";
+
+        // Exercises the full precedence chain: the bare '*' catch-all makes everything Winapi, the
+        // 'MyFunction*' glob narrows those to StdCall, and the exact 'MyFunction2' key wins over the
+        // glob with Cdecl.
+        var withCallConvs = new Dictionary<string, string>
+        {
+            ["*"] = "Winapi",
+            ["MyFunction*"] = "StdCall",
+            ["MyFunction2"] = "Cdecl"
+        };
+        return ValidateAsync(nameof(WithCallConvWildcardOverrideTest), inputContents, withCallConvs: withCallConvs);
+    }
+
+    [Test]
+    public Task WithCallConvStarWildcardNegatedTest()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+
+        // '*' applies Winapi to every function; the '*2' glob opt-out opts MyFunction2 back out so it keeps the default.
+        var withCallConvs = new Dictionary<string, string>
+        {
+            ["*"] = "Winapi"
+        };
+        string[] withoutCallConvs = ["*2"];
+        return ValidateAsync(nameof(WithCallConvStarWildcardNegatedTest), inputContents, withCallConvs: withCallConvs, withoutCallConvs: withoutCallConvs);
+    }
+
+    [Test]
     public Task WithSetLastErrorTest()
     {
         var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";

@@ -234,8 +234,28 @@ override an earlier one. The groups worth knowing:
 
 ## Wildcards
 
-Many valued `--with-*` options accept `*` as a catch-all, applying a rule to everything in one line.
-This is written `*=value`, which is how project-wide conventions are applied, for example:
+Most name-matching options accept **glob patterns** built from two wildcards:
+
+* `*` — matches any run of characters, including the `::`/`.` qualification separators.
+* `?` — matches a single character.
+
+`::` and `.` are treated as equivalent separators and matching is case-sensitive, so `NS::Foo*` and
+`NS.Foo*` behave identically. When several entries match one declaration, an **exact match always
+wins over a glob**, and among globs the **most specific** (the one with the most literal, non-wildcard
+characters) wins; ties fall back to the order the patterns were registered. A glob is tested against
+the declaration's qualified, parameter-truncated, and remapped name forms — a match on any form
+counts. For example:
+
+```
+# Make every type whose name ends in "Flags" internal, and give every "PFN" callback the Winapi convention
+--with-access-specifier
+*Flags=Internal
+--with-callconv
+PFN*=Winapi
+```
+
+Many valued `--with-*` options also accept a bare `*` as a catch-all, applying a rule to everything in
+one line. This is written `*=value`, which is how project-wide conventions are applied, for example:
 
 ```
 --with-callconv
@@ -248,18 +268,25 @@ This is written `*=value`, which is how project-wide conventions are applied, fo
 ```
 
 Each such option has a paired `--without-<name>` option that opts a specific declaration back out of
-its `*` catch-all, so opt-in and opt-out are symmetric:
+its `*` catch-all (or out of a glob opt-in), matched by exact name or by glob, so opt-in and opt-out
+are symmetric:
 
 ```
-# Make everything internal, except keep Foo at its default accessibility
+# Make everything internal, except keep Foo (and anything matching Bar*) at its default accessibility
 --with-access-specifier
 *=Internal
 --without-access-specifier
 Foo
+--without-access-specifier
+Bar*
 ```
 
 To opt everything in and then exclude piecemeal (or vice versa) for whole declarations, use the
-`--include` / `--exclude` pair, which is already an opt-in/opt-out pair.
+`--include` / `--exclude` pair, which is already an opt-in/opt-out pair and likewise accepts globs
+(including a bare `*` to match everything).
+
+A few options are narrower: `--with-class` and `--with-namespace` accept only a trailing `*` for
+prefix matching, and `--with-transparent-struct` is matched by exact name only.
 
 ## Incremental regeneration
 
