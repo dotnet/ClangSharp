@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -467,6 +468,39 @@ extern ""C"" const IID IID_IFileDialog;
 
         var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
         return ValidateAsync(nameof(GuidInterfaceConstTest), inputContents, excludedNames: GuidConstTestExcludedNames, remappedNames: remappedNames);
+    }
+
+    [Test]
+    public Task GuidInterfaceWithGuidConstTest()
+    {
+        // Some COM interfaces (e.g. ITextHost, win32metadata #1952) ship a `EXTERN_C const IID IID_Foo;`
+        // global but no `DECLSPEC_UUID` annotation, so the uuid value is not present in the headers. When the
+        // value is supplied out-of-band via `--with-guid`, it composes with the const-GUID global recovery to
+        // emit a single `IID_ITextHost` constant and a `[Guid]` attribute on the interface.
+
+        var inputContents = $@"#define EXTERN_C extern ""C""
+
+struct GUID
+{{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+}};
+
+typedef GUID IID;
+
+struct ITextHost
+{{
+    int x;
+}};
+
+EXTERN_C const IID IID_ITextHost;
+";
+
+        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
+        var withGuids = new Dictionary<string, Guid> { ["ITextHost"] = new Guid("c5bdd8d0-d26e-11ce-a89e-00aa006cadc5") };
+        return ValidateAsync(nameof(GuidInterfaceWithGuidConstTest), inputContents, excludedNames: GuidConstTestExcludedNames, remappedNames: remappedNames, withGuids: withGuids);
     }
 
     [Test]
