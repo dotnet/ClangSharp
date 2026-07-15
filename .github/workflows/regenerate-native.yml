@@ -37,7 +37,6 @@ jobs:
   detect:
     runs-on: ubuntu-latest
     outputs:
-      llvm-version: ${{ steps.detect.outputs.llvm-version }}
       libclang: ${{ steps.detect.outputs.libclang }}
       libclangsharp: ${{ steps.detect.outputs.libclangsharp }}
     steps:
@@ -48,97 +47,22 @@ jobs:
       shell: bash
       run: |
         set -euo pipefail
-
-        parse_version() { sed -n 's/^project(ClangSharp VERSION \([0-9.]*\)).*/\1/p' "$1"; }
-
-        # The top-level CMakeLists.txt is the source of truth for the tracked LLVM version.
-        version="$(parse_version CMakeLists.txt)"
-        if [ -z "${version}" ]; then echo "could not parse LLVM version from CMakeLists.txt" >&2; exit 1; fi
-        major_minor="${version%.*}"
-        echo "llvm-version=${version}" >> "$GITHUB_OUTPUT"
-
-        libclang=false
-        libclangsharp=false
-
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          if [ "${{ inputs.libclang }}" = "true" ]; then libclang=true; fi
-          if [ "${{ inputs.libclangsharp }}" = "true" ]; then libclangsharp=true; fi
+          # Manual runs pick the families explicitly.
+          echo "libclang=${{ inputs.libclang }}" >> "$GITHUB_OUTPUT"
+          echo "libclangsharp=${{ inputs.libclangsharp }}" >> "$GITHUB_OUTPUT"
         else
-          before="${{ github.event.before }}"
-          if [ -z "${before}" ] || [ "${before}" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${before}^{commit}" 2>/dev/null; then
-            # No usable baseline to diff against (new/recreated branch, force-push,
-            # unfetched history); regenerate everything conservatively.
-            libclang=true
-            libclangsharp=true
-          else
-            # libclang regenerates when the tracked LLVM major.minor changes.
-            prev_version="$(git show "${before}:CMakeLists.txt" 2>/dev/null | sed -n 's/^project(ClangSharp VERSION \([0-9.]*\)).*/\1/p')"
-            prev_major_minor="${prev_version%.*}"
-            if [ "${major_minor}" != "${prev_major_minor}" ]; then
-              libclang=true
-            fi
-
-            # libClangSharp regenerates for the same reason or when its sources change.
-            if [ "${libclang}" = "true" ] || ! git diff --quiet "${before}" HEAD -- sources/libClangSharp/; then
-              libclangsharp=true
-            fi
-          fi
+          # Pushes diff against the prior commit; the script owns the change-detection
+          # logic so it stays reproducible and testable locally.
+          ./scripts/build.sh --detectchanges --base "${{ github.event.before }}" | tee -a "$GITHUB_OUTPUT"
         fi
-
-        echo "libclang=${libclang}" >> "$GITHUB_OUTPUT"
-        echo "libclangsharp=${libclangsharp}" >> "$GITHUB_OUTPUT"
-        echo "Resolved: llvm=${version} (major.minor=${major_minor}) libclang=${libclang} libclangsharp=${libclangsharp}"
     - name: Verify package versions match the tracked LLVM version
       # Guards against bumping CMakeLists.txt without updating the nuspec/runtime.json
-      # versions. libclang versions must equal the LLVM version exactly; libClangSharp
-      # versions must be that version plus an independent build revision (e.g. 21.1.8.2).
+      # versions before regenerating. The check lives in the build script so it is
+      # reproducible locally (./scripts/build.sh --verifypackages).
+      if: steps.detect.outputs.libclang == 'true' || steps.detect.outputs.libclangsharp == 'true'
       shell: bash
-      run: |
-        set -euo pipefail
-        version="${{ steps.detect.outputs.llvm-version }}"
-        rc=0
-
-        nuspec_version() { sed -n 's:.*<version>\([^<]*\)</version>.*:\1:p' "$1" | head -n1; }
-        nuspec_branch()  { sed -n 's:.*<repository[^>]*branch="\([^"]*\)".*:\1:p' "$1" | head -n1; }
-        json_versions()  { grep -oE '"[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?"' "$1" | tr -d '"'; }
-
-        fail() { echo "::error file=$1::$2"; rc=1; }
-
-        if [ "${{ steps.detect.outputs.libclang }}" = "true" ]; then
-          for f in packages/libclang/libclang/libclang.nuspec packages/libclang/libclang.runtime.*/*.nuspec; do
-            v="$(nuspec_version "$f")"
-            [ "${v}" = "${version}" ] || fail "$f" "version '${v}' does not match LLVM version '${version}'"
-            b="$(nuspec_branch "$f")"
-            if [ -n "${b}" ] && [ "${b}" != "llvmorg-${version}" ]; then
-              fail "$f" "repository branch '${b}' does not match 'llvmorg-${version}'"
-            fi
-          done
-          for v in $(json_versions packages/libclang/libclang/runtime.json); do
-            [ "${v}" = "${version}" ] || fail "packages/libclang/libclang/runtime.json" "mapped version '${v}' does not match LLVM version '${version}'"
-          done
-        fi
-
-        if [ "${{ steps.detect.outputs.libclangsharp }}" = "true" ]; then
-          for f in packages/libClangSharp/libClangSharp/libClangSharp.nuspec packages/libClangSharp/libClangSharp.runtime.*/*.nuspec; do
-            v="$(nuspec_version "$f")"
-            case "${v}" in
-              "${version}".*) : ;;
-              *) fail "$f" "version '${v}' is not 'llvm-version.<revision>' (expected '${version}.<n>')" ;;
-            esac
-          done
-          for v in $(json_versions packages/libClangSharp/libClangSharp/runtime.json); do
-            case "${v}" in
-              "${version}".*) : ;;
-              *) fail "packages/libClangSharp/libClangSharp/runtime.json" "mapped version '${v}' is not '${version}.<revision>'" ;;
-            esac
-          done
-        fi
-
-        if [ "${rc}" -ne 0 ]; then
-          echo "Update the package versions to match the tracked LLVM version (${version}) before regenerating." >&2
-          exit 1
-        fi
-        echo "Package versions verified against LLVM ${version}"
+      run: ./scripts/build.sh --verifypackages
 
   # -------- libclang: lift the prebuilt libclang out of the matching LLVM release --------
 
@@ -158,6 +82,7 @@ jobs:
         New-Item -ItemType Directory -Force -Path out | Out-Null
         foreach ($rid in @("win-x64", "win-arm64", "linux-x64", "linux-arm64", "osx-arm64")) {
           ./scripts/build.ps1 -regeneratenative -target libclang -rid $rid
+          if ($LASTEXITCODE -ne 0) { throw "build.ps1 failed for $rid" }
           Copy-Item "artifacts/native/$rid/*" "packages/libclang/libclang.runtime.$rid/"
           nuget pack "packages/libclang/libclang.runtime.$rid/libclang.runtime.$rid.nuspec" -OutputDirectory out
           if ($LASTEXITCODE -ne 0) { throw "nuget pack failed for $rid" }

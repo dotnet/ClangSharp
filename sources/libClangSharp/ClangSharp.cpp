@@ -1997,12 +1997,12 @@ CXType clangsharp_Cursor_getInjectedSpecializationType(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
-        if (ClassTemplateDecl* CTD = const_cast<ClassTemplateDecl*>(dyn_cast<ClassTemplateDecl>(D))) {
-            return MakeCXType(CTD->getInjectedClassNameSpecialization(), getCursorTU(C));
+        if (const ClassTemplateDecl* CTD = dyn_cast<ClassTemplateDecl>(D)) {
+            return MakeCXType(CTD->getCanonicalInjectedSpecializationType(D->getASTContext()), getCursorTU(C));
         }
 
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
-            return MakeCXType(CTPSD->getInjectedSpecializationType(), getCursorTU(C));
+            return MakeCXType(CTPSD->getCanonicalInjectedSpecializationType(D->getASTContext()), getCursorTU(C));
         }
     }
 
@@ -5495,7 +5495,7 @@ CXCursor clangsharp_Type_getDeclaration(CXType CT) {
     }
 
     if (const UsingType* UT = dyn_cast<UsingType>(TP)) {
-        return MakeCXCursor(UT->getFoundDecl(), GetTypeTU(CT));
+        return MakeCXCursor(UT->getDecl(), GetTypeTU(CT));
     }
 
     return clang_getTypeDeclaration(CT);
@@ -5573,7 +5573,9 @@ CXType clangsharp_Type_getInjectedSpecializationType(CXType CT) {
     const Type* TP = T.getTypePtrOrNull();
 
     if (const InjectedClassNameType* ICNT = dyn_cast<InjectedClassNameType>(TP)) {
-        return MakeCXType(ICNT->getInjectedSpecializationType(), GetTypeTU(CT));
+        ASTContext& ctx = getASTUnit(GetTypeTU(CT))->getASTContext();
+        QualType QT = ctx.getCanonicalTemplateSpecializationType(ElaboratedTypeKeyword::None, ICNT->getTemplateName(ctx), ICNT->getTemplateArgs(ctx));
+        return MakeCXType(QT, GetTypeTU(CT));
     }
 
     return MakeCXType(QualType(), GetTypeTU(CT));
@@ -5584,7 +5586,8 @@ CXType clangsharp_Type_getInjectedTST(CXType CT) {
     const Type* TP = T.getTypePtrOrNull();
 
     if (const InjectedClassNameType* ICNT = dyn_cast<InjectedClassNameType>(TP)) {
-        QualType QT = QualType(ICNT->getInjectedTST(), 0);
+        ASTContext& ctx = getASTUnit(GetTypeTU(CT))->getASTContext();
+        QualType QT = ctx.getCanonicalTemplateSpecializationType(ElaboratedTypeKeyword::None, ICNT->getTemplateName(ctx), ICNT->getTemplateArgs(ctx));
         return MakeCXType(QT, GetTypeTU(CT));
     }
 
@@ -5765,8 +5768,10 @@ CXCursor clangsharp_Type_getOwnedTagDecl(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
 
-    if (const ElaboratedType* ET = dyn_cast<ElaboratedType>(TP)) {
-        return MakeCXCursor(ET->getOwnedTagDecl(), GetTypeTU(CT));
+    if (const TagType* TT = dyn_cast<TagType>(TP)) {
+        if (TT->isTagOwned()) {
+            return MakeCXCursor(TT->getDecl(), GetTypeTU(CT));
+        }
     }
 
     return clang_getNullCursor();
@@ -5838,13 +5843,6 @@ CX_TemplateArgument clangsharp_Type_getTemplateArgument(CXType CT, unsigned i) {
         }
     }
 
-    if (const DependentTemplateSpecializationType* DTST = dyn_cast<DependentTemplateSpecializationType>(TP)) {
-        ArrayRef<TemplateArgument> templateArguments = DTST->template_arguments();
-        if (i < templateArguments.size()) {
-            return MakeCXTemplateArgument(&templateArguments[i], GetTypeTU(CT));
-        }
-    }
-
     if (const SubstTemplateTypeParmPackType* STTPPT = dyn_cast<SubstTemplateTypeParmPackType>(TP)) {
         if (i == 0) {
             const TemplateArgument* TA = new TemplateArgument(STTPPT->getArgumentPack());
@@ -5880,7 +5878,8 @@ CX_TemplateName clangsharp_Type_getTemplateName(CXType CT) {
     }
 
     if (const InjectedClassNameType* ICNT = dyn_cast<InjectedClassNameType>(TP)) {
-        TemplateName TN = ICNT->getTemplateName();
+        ASTContext& ctx = getASTUnit(GetTypeTU(CT))->getASTContext();
+        TemplateName TN = ICNT->getTemplateName(ctx);
         return MakeCXTemplateName(TN, GetTypeTU(CT));
     }
 

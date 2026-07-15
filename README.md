@@ -146,6 +146,8 @@ The tracked LLVM version is the `project(ClangSharp VERSION X.Y.Z)` value in the
 ./scripts/build.sh --regeneratenative --target libClangSharp --rid linux-x64
 ```
 
+The change-detection and version-verification the workflow gates on live in the same scripts, so they can be reproduced locally: `./scripts/build.sh --detectchanges --base <ref>` prints which families a range of commits regenerates, and `./scripts/build.sh --verifypackages` checks the nuspec/`runtime.json` versions match the tracked LLVM version.
+
 The staged binary is written to `artifacts/native/<rid>/`. The LLVM release distribution bundles both the prebuilt `libclang` and the `lib/cmake/{llvm,clang}` config, headers, and import libraries used as `PATH_TO_LLVM` when building `libClangSharp`, so no from-source LLVM build is required (the manual [Building Native](#building-native) steps remain the way to reproduce a build locally). Because lifting `libclang` is just unpacking prebuilt binaries, the workflow does all five runtimes on a single Windows runner (its bundled `bsdtar` handles `.tar.xz`); `libClangSharp` is compiled per-runtime on native runners.
 
 The jobs run when:
