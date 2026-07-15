@@ -1395,9 +1395,10 @@ public partial class PInvokeGenerator
                 continue;
             }
 
-            var typeName = GetRemappedTypeName(varDecl, context: null, varDecl.Type, out _, skipUsing: true);
-
-            if (!typeName.Equals("Guid", StringComparison.Ordinal))
+            // Resolve the managed type via the canonical record decl name rather than the full type
+            // string machinery, which is not safe to run during this pre-scan (it happens before normal
+            // visitation and can fault on incomplete/deduced types).
+            if (varDecl.Type.CanonicalType is not RecordType recordType || !GetRemappedCursorName(recordType.Decl).Equals("Guid", StringComparison.Ordinal))
             {
                 continue;
             }

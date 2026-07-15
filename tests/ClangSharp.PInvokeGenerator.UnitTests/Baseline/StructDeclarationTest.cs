@@ -363,6 +363,41 @@ struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyStruct2
     }
 
     [Test]
+    public Task GuidCoclassForwardDeclConstTest()
+    {
+        if (Variant.Os != BaselineOs.Windows)
+        {
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
+
+        // Real COM headers (e.g. ShObjIdl_core.h) declare the coclass as a forward declaration and pair
+        // it with an `EXTERN_C const CLSID CLSID_Foo;` global. The uuid is recovered into a single
+        // `CLSID_FileOpenDialog` constant even though only a forward declaration is present.
+
+        var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+#define EXTERN_C extern ""C""
+
+struct GUID
+{{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+}};
+
+typedef GUID CLSID;
+
+EXTERN_C const CLSID CLSID_FileOpenDialog;
+
+class DECLSPEC_UUID(""dc1c5a9c-e88a-4dde-a5a1-60f82a20aef7"") FileOpenDialog;
+";
+
+        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
+        return ValidateAsync(nameof(GuidCoclassForwardDeclConstTest), inputContents, excludedNames: GuidConstTestExcludedNames, remappedNames: remappedNames);
+    }
+
+    [Test]
     public Task GuidCoclassConstTest()
     {
         if (Variant.Os != BaselineOs.Windows)
