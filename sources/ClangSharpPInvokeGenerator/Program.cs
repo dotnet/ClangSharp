@@ -472,6 +472,12 @@ internal static partial class Program
                     break;
                 }
 
+                case "generate-objective-c-bindings":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateObjectiveCBindings;
+                    break;
+                }
+
                 case "generate-generic-pointer-wrapper":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateGenericPointerWrapper;

@@ -107,6 +107,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private int _outputBuilderUsers;
     private CXXRecordDecl? _cxxRecordDeclContext;
     private bool _disposed;
+    private bool _generatedObjCBindings;
 
     public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream>? outputStreamFactory = null)
     {

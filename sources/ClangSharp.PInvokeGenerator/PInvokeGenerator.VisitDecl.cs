@@ -107,11 +107,40 @@ public partial class PInvokeGenerator
 
             // case CX_DeclKind_NamespaceAlias:
             // case CX_DeclKind_ObjCCompatibleAlias:
-            // case CX_DeclKind_ObjCCategory:
+
+            case CX_DeclKind_ObjCCategory:
+            {
+                if (_config.GenerateObjectiveCBindings)
+                {
+                    VisitObjCCategoryDecl((ObjCCategoryDecl)decl);
+                    break;
+                }
+                goto default;
+            }
+
             // case CX_DeclKind_ObjCCategoryImpl:
             // case CX_DeclKind_ObjCImplementation:
-            // case CX_DeclKind_ObjCInterface:
-            // case CX_DeclKind_ObjCProtocol:
+
+            case CX_DeclKind_ObjCInterface:
+            {
+                if (_config.GenerateObjectiveCBindings)
+                {
+                    VisitObjCInterfaceDecl((ObjCInterfaceDecl)decl);
+                    break;
+                }
+                goto default;
+            }
+
+            case CX_DeclKind_ObjCProtocol:
+            {
+                if (_config.GenerateObjectiveCBindings)
+                {
+                    VisitObjCProtocolDecl((ObjCProtocolDecl)decl);
+                    break;
+                }
+                goto default;
+            }
+
             // case CX_DeclKind_ObjCMethod:
             // case CX_DeclKind_ObjCProperty:
             // case CX_DeclKind_BuiltinTemplate:

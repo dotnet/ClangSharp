@@ -99,5 +99,7 @@ public enum PInvokeGeneratorConfigurationOptions : long
 
     GenerateExternVariables = 1L << 44,
 
-    GenerateNativeAlignmentAttribute = 1L << 45,
+    GenerateObjectiveCBindings = 1L << 45,
+
+    GenerateNativeAlignmentAttribute = 1L << 46,
 }
