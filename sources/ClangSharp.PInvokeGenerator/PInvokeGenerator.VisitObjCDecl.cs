@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using ClangSharp.Abstractions;
+using ClangSharp.CSharp;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
@@ -64,19 +65,123 @@ public partial class PInvokeGenerator
                 _outputBuilder.WriteRegularField("void*", "isa");
                 _outputBuilder.EndField(in fieldDesc);
 
-                EmitObjCMessageMembers(objCProtocolDecl, escapedName);
+                EmitObjCMessageMembers(objCProtocolDecl, escapedName, supportsClassMembers: false);
             }
             _outputBuilder.EndStruct(in desc);
         }
         StopUsingOutputBuilder();
     }
 
-    // Emits the raw `Selectors` cache plus the friendly `objc_msgSend` members (methods and
+    private void VisitObjCInterfaceDecl(ObjCInterfaceDecl objCInterfaceDecl)
+    {
+        // Forward `@class Foo;` references carry no members; only the definition is emitted.
+        if (!objCInterfaceDecl.IsThisDeclarationADefinition)
+        {
+            return;
+        }
+
+        var nativeName = GetCursorName(objCInterfaceDecl);
+        var name = GetRemappedCursorName(objCInterfaceDecl);
+        var escapedName = EscapeName(name);
+
+        var superClass = objCInterfaceDecl.SuperClass;
+
+        _generatedObjCBindings = true;
+
+        // Record the full native declaration (superclass + adopted protocols) so the relationship is
+        // not lost. The generated structs are all `{ void* isa }` with identical layout, so an
+        // `{escapedName}*` can simply be reinterpreted as a superclass pointer to send inherited
+        // messages -- inherited members are intentionally not re-emitted (unlike a COM vtbl, dispatch
+        // is dynamic, so flattening would only bloat the output).
+        var nativeType = new StringBuilder($"@interface {nativeName}");
+
+        if (superClass is not null)
+        {
+            _ = nativeType.Append(" : ").Append(GetCursorName(superClass));
+        }
+
+        if (objCInterfaceDecl.Protocols.Count != 0)
+        {
+            _ = nativeType.Append(" <");
+
+            for (var i = 0; i < objCInterfaceDecl.Protocols.Count; i++)
+            {
+                if (i != 0)
+                {
+                    _ = nativeType.Append(", ");
+                }
+
+                _ = nativeType.Append(GetCursorName(objCInterfaceDecl.Protocols[i]));
+            }
+
+            _ = nativeType.Append('>');
+        }
+
+        StartUsingOutputBuilder(name, includeTestOutput: false);
+        {
+            Debug.Assert(_outputBuilder is not null);
+
+            var desc = new StructDesc {
+                AccessSpecifier = GetAccessSpecifier(objCInterfaceDecl, matchStar: true),
+                EscapedName = escapedName,
+                IsUnsafe = true,
+                NativeType = nativeType.ToString(),
+                NativeInheritance = (_config.GenerateNativeInheritanceAttribute && superClass is not null) ? GetRemappedCursorName(superClass) : null,
+                Location = objCInterfaceDecl.Location,
+                IsNested = false,
+                WriteCustomAttrs = static context => {
+                    (var objCInterfaceDecl, var generator) = ((ObjCInterfaceDecl, PInvokeGenerator))context;
+
+                    generator.WithAttributes(objCInterfaceDecl, emitGeneratedCodeAttribute: true);
+                    generator.WithUsings(objCInterfaceDecl);
+                },
+                CustomAttrGeneratorData = (objCInterfaceDecl, this),
+            };
+
+            _outputBuilder.BeginStruct(in desc);
+            {
+                // Raw layer: the object's first field (`isa`), a byte-for-byte match of
+                // `struct objc_object` and of every other generated Objective-C struct, which is what
+                // makes the pointer reinterpret to a superclass valid.
+                var fieldDesc = new FieldDesc {
+                    AccessSpecifier = AccessSpecifier.Public,
+                    NativeTypeName = "Class",
+                    EscapedName = "isa",
+                    ParentName = escapedName,
+                    Offset = null,
+                    NeedsNewKeyword = false,
+                };
+
+                _outputBuilder.BeginField(in fieldDesc);
+                _outputBuilder.WriteRegularField("void*", "isa");
+                _outputBuilder.EndField(in fieldDesc);
+
+                // The backing class object, used as the receiver for class (`+`) members and exposed
+                // for hand-rolled sends. Resolved once by name via the runtime.
+                var classOutput = _outputBuilder.BeginCSharpCode();
+                classOutput.WriteNewline();
+                classOutput.WriteIndented($"public static readonly void* Class = ObjectiveC.objc_getClass(\"{nativeName}\");");
+                classOutput.WriteNewline();
+                _outputBuilder.EndCSharpCode(classOutput);
+
+                EmitObjCMessageMembers(objCInterfaceDecl, escapedName, supportsClassMembers: true);
+            }
+            _outputBuilder.EndStruct(in desc);
+        }
+        StopUsingOutputBuilder();
+    }
     // properties) that fall within the v1 scalar/pointer/void subset. Anything outside that subset
     // is diagnosed rather than emitted with a wrong ABI.
-    private void EmitObjCMessageMembers(ObjCProtocolDecl objCProtocolDecl, string escapedParentName)
+    //
+    // Instance members dispatch on `this`; class members dispatch on the backing class object and
+    // are only emitted when the container has one (i.e. an `@interface`, via `supportsClassMembers`).
+    // A `@protocol` has no backing class, so its class-method/-property requirements are diagnosed
+    // and skipped rather than wired to a receiver that does not exist.
+    private void EmitObjCMessageMembers(ObjCContainerDecl container, string escapedParentName, bool supportsClassMembers)
     {
         Debug.Assert(_outputBuilder is not null);
+
+        var containerDesc = $"{(container is ObjCProtocolDecl ? "@protocol" : "@interface")} {GetCursorName(container)}";
 
         var selectors = new List<(string Field, string NativeSelector)>();
         var seenSelectors = new HashSet<string>(StringComparer.Ordinal);
@@ -91,25 +196,25 @@ public partial class PInvokeGenerator
             }
         }
 
-        foreach (var method in objCProtocolDecl.InstanceMethods)
+        void ProcessMethod(ObjCMethodDecl method, bool isClassMember)
         {
-            // Property accessors are surfaced through their `@property` below; class methods,
-            // variadics, and by-value aggregate returns/parameters need dispatch machinery that is
-            // deliberately out of scope for the first slice.
+            // Property accessors are surfaced through their `@property` below.
             if (method.IsPropertyAccessor)
             {
-                continue;
+                return;
             }
 
+            // Variadics and by-value aggregate returns/parameters need dispatch machinery
+            // (`objc_msgSend_stret`/promotion) that is deliberately out of scope for now.
             if (!IsInObjCMessageSubset(method, out var reason))
             {
-                AddDiagnostic(DiagnosticLevel.Warning, $"Objective-C method '{method.Selector}' on '@protocol {GetCursorName(objCProtocolDecl)}' is not supported: {reason}. It was skipped.", method);
-                continue;
+                AddDiagnostic(DiagnosticLevel.Warning, $"Objective-C method '{method.Selector}' on '{containerDesc}' is not supported: {reason}. It was skipped.", method);
+                return;
             }
 
             var nativeSelector = method.Selector;
             var memberName = EscapeName(nativeSelector.Replace(':', '_'));
-            var returnTypeName = IsTypeVoid(method, method.ReturnType) ? "void" : GetRemappedTypeName(method, objCProtocolDecl, method.ReturnType, out _);
+            var returnTypeName = IsTypeVoid(method, method.ReturnType) ? "void" : GetRemappedTypeName(method, container, method.ReturnType, out _);
 
             var parameters = new List<(string TypeName, string EscapedName)>();
 
@@ -121,19 +226,19 @@ public partial class PInvokeGenerator
             }
 
             AddSelector(memberName, nativeSelector);
-            methods.Add(new ObjCMessageMember(memberName, returnTypeName, parameters));
+            methods.Add(new ObjCMessageMember(memberName, returnTypeName, parameters, isClassMember, method.Handle.IsObjCOptional));
         }
 
-        foreach (var property in objCProtocolDecl.InstanceProperties)
+        void ProcessProperty(ObjCPropertyDecl property, bool isClassMember)
         {
             if (IsAggregateType(property.Type))
             {
-                AddDiagnostic(DiagnosticLevel.Warning, $"Objective-C property '{GetCursorName(property)}' on '@protocol {GetCursorName(objCProtocolDecl)}' is not supported: by-value aggregate types are not yet supported. It was skipped.", property);
-                continue;
+                AddDiagnostic(DiagnosticLevel.Warning, $"Objective-C property '{GetCursorName(property)}' on '{containerDesc}' is not supported: by-value aggregate types are not yet supported. It was skipped.", property);
+                return;
             }
 
             var propertyName = EscapeName(GetRemappedCursorName(property));
-            var typeName = GetRemappedTypeName(property, objCProtocolDecl, property.Type, out _);
+            var typeName = GetRemappedTypeName(property, container, property.Type, out _);
 
             var getterSelector = property.GetterMethodDecl.Selector;
             var getterField = EscapeName(getterSelector.Replace(':', '_'));
@@ -149,7 +254,42 @@ public partial class PInvokeGenerator
                 AddSelector(setterField, setterSelector);
             }
 
-            properties.Add(new ObjCPropertyMember(propertyName, typeName, getterField, setterField));
+            properties.Add(new ObjCPropertyMember(propertyName, typeName, getterField, setterField, isClassMember, property.Handle.IsObjCOptional));
+        }
+
+        foreach (var method in container.InstanceMethods)
+        {
+            ProcessMethod(method, isClassMember: false);
+        }
+
+        foreach (var property in container.InstanceProperties)
+        {
+            ProcessProperty(property, isClassMember: false);
+        }
+
+        if (supportsClassMembers)
+        {
+            foreach (var method in container.ClassMethods)
+            {
+                ProcessMethod(method, isClassMember: true);
+            }
+
+            foreach (var property in container.ClassProperties)
+            {
+                ProcessProperty(property, isClassMember: true);
+            }
+        }
+        else
+        {
+            foreach (var method in container.ClassMethods)
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Objective-C class method '{method.Selector}' on '{containerDesc}' is not supported: a protocol has no backing class object to dispatch on. It was skipped.", method);
+            }
+
+            foreach (var property in container.ClassProperties)
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Objective-C class property '{GetCursorName(property)}' on '{containerDesc}' is not supported: a protocol has no backing class object to dispatch on. It was skipped.", property);
+            }
         }
 
         if (selectors.Count == 0)
@@ -176,11 +316,13 @@ public partial class PInvokeGenerator
         }
         output.WriteBlockEnd();
 
-        // Friendly layer: named members that hide the selector lookup and the `objc_msgSend` cast,
-        // dispatched on `this` exactly like the COM vtbl helpers dispatch on `lpVtbl`.
+        // Friendly layer: named members that hide the selector lookup and the `objc_msgSend` cast.
+        // Instance members dispatch on `this` (like COM vtbl helpers dispatch on `lpVtbl`); class
+        // members are `static` and dispatch on the backing class object.
         foreach (var member in methods)
         {
             output.WriteNewline();
+            WriteObjCOptionalNote(output, member.IsOptional);
 
             var prototype = new StringBuilder();
 
@@ -196,28 +338,31 @@ public partial class PInvokeGenerator
                 _ = prototype.Append(typeName).Append(' ').Append(parmName);
             }
 
-            var msgSend = BuildObjCMsgSend(escapedParentName, member.MemberName, member.ReturnTypeName, member.Parameters);
+            var msgSend = BuildObjCMsgSend(member.IsClassMember, escapedParentName, member.MemberName, member.ReturnTypeName, member.Parameters);
+            var staticModifier = member.IsClassMember ? "static " : "";
 
-            output.WriteIndented($"public {member.ReturnTypeName} {member.MemberName}({prototype}) => {msgSend};");
+            output.WriteIndented($"public {staticModifier}{member.ReturnTypeName} {member.MemberName}({prototype}) => {msgSend};");
             output.WriteNewline();
         }
 
         foreach (var property in properties)
         {
             output.WriteNewline();
+            WriteObjCOptionalNote(output, property.IsOptional);
 
-            var getter = BuildObjCMsgSend(escapedParentName, property.GetterField, property.TypeName, []);
+            var getter = BuildObjCMsgSend(property.IsClassMember, escapedParentName, property.GetterField, property.TypeName, []);
+            var staticModifier = property.IsClassMember ? "static " : "";
 
             if (property.SetterField is null)
             {
-                output.WriteIndented($"public {property.TypeName} {property.PropertyName} => {getter};");
+                output.WriteIndented($"public {staticModifier}{property.TypeName} {property.PropertyName} => {getter};");
                 output.WriteNewline();
             }
             else
             {
-                var setter = BuildObjCMsgSend(escapedParentName, property.SetterField, "void", [(property.TypeName, "value")]);
+                var setter = BuildObjCMsgSend(property.IsClassMember, escapedParentName, property.SetterField, "void", [(property.TypeName, "value")]);
 
-                output.WriteIndentedLine($"public {property.TypeName} {property.PropertyName}");
+                output.WriteIndentedLine($"public {staticModifier}{property.TypeName} {property.PropertyName}");
                 output.WriteBlockStart();
                 {
                     output.WriteIndented($"get => {getter};");
@@ -232,15 +377,29 @@ public partial class PInvokeGenerator
         _outputBuilder.EndCSharpCode(output);
     }
 
-    // Builds the friendly-member body: a per-call-site cast of the cached `objc_msgSend` pointer to
-    // the selector's signature, invoked on `this` with the registered selector.
-    private static string BuildObjCMsgSend(string escapedParentName, string selectorField, string returnTypeName, IReadOnlyList<(string TypeName, string ArgExpr)> args)
+    // Optional protocol members may be unimplemented by a conforming object, so sending the message
+    // blindly can trap; flag them so callers know to guard with `respondsToSelector:`.
+    private static void WriteObjCOptionalNote(CSharpOutputBuilder output, bool isOptional)
     {
+        if (isOptional)
+        {
+            output.WriteIndentedLine("// @optional; guard with respondsToSelector: before sending.");
+        }
+    }
+
+    // Builds the friendly-member body: a per-call-site cast of the cached `objc_msgSend` pointer to
+    // the selector's signature. Instance members dispatch on `this`; class members dispatch on the
+    // backing class object exposed as the `Class` field.
+    private static string BuildObjCMsgSend(bool isClassMember, string escapedParentName, string selectorField, string returnTypeName, IReadOnlyList<(string TypeName, string ArgExpr)> args)
+    {
+        var receiverType = isClassMember ? "void*" : $"{escapedParentName}*";
+        var receiverExpr = isClassMember ? "Class" : $"({escapedParentName}*)Unsafe.AsPointer(ref this)";
+
         var fnPtrArgs = new StringBuilder();
         var callArgs = new StringBuilder();
 
-        _ = fnPtrArgs.Append(escapedParentName).Append("*, SEL");
-        _ = callArgs.Append('(').Append(escapedParentName).Append("*)Unsafe.AsPointer(ref this), Selectors.").Append(selectorField);
+        _ = fnPtrArgs.Append(receiverType).Append(", SEL");
+        _ = callArgs.Append(receiverExpr).Append(", Selectors.").Append(selectorField);
 
         foreach (var (typeName, argExpr) in args)
         {
@@ -287,18 +446,22 @@ public partial class PInvokeGenerator
         return type.CanonicalType.Kind is CXTypeKind.CXType_Record;
     }
 
-    private readonly struct ObjCMessageMember(string memberName, string returnTypeName, List<(string TypeName, string EscapedName)> parameters)
+    private readonly struct ObjCMessageMember(string memberName, string returnTypeName, List<(string TypeName, string EscapedName)> parameters, bool isClassMember, bool isOptional)
     {
         public string MemberName { get; } = memberName;
         public string ReturnTypeName { get; } = returnTypeName;
         public List<(string TypeName, string EscapedName)> Parameters { get; } = parameters;
+        public bool IsClassMember { get; } = isClassMember;
+        public bool IsOptional { get; } = isOptional;
     }
 
-    private readonly struct ObjCPropertyMember(string propertyName, string typeName, string getterField, string? setterField)
+    private readonly struct ObjCPropertyMember(string propertyName, string typeName, string getterField, string? setterField, bool isClassMember, bool isOptional)
     {
         public string PropertyName { get; } = propertyName;
         public string TypeName { get; } = typeName;
         public string GetterField { get; } = getterField;
         public string? SetterField { get; } = setterField;
+        public bool IsClassMember { get; } = isClassMember;
+        public bool IsOptional { get; } = isOptional;
     }
 }
