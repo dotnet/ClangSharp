@@ -183,22 +183,24 @@ Usage:
 Options:
   -a, --additional <additional>                                    An argument to pass to Clang when parsing the input files. []
   -c, --config <config>                                            A configuration option that controls how the bindings are generated. Specify 'help' to see the available options. []
+  -g, --generate <generate>                                        A feature to generate, e.g. 'aggressive-inlining', 'tests-nunit', or 'generated-code=type'. Append '=false' to opt a feature back out. Specify '--config help' to see the available names. []
+  -lg, --log <log>                                                 A diagnostic log to emit during generation: 'exclusions', 'potential-typedef-remappings', or 'visited-files'. []
   -D, --define-macro <define-macro>                                Define <macro> to <value> (or 1 if <value> omitted). []
   -e, --exclude <exclude>                                          A declaration name to exclude from binding generation. []
   -f, --file <file>                                                A file to parse and generate bindings for. []
   -F, --file-directory <file-directory>                            The base path for files to parse. []
-  -hf, --headerFile <headerFile>                                   A file which contains the header to prefix every generated file with. []
+  -hf, --header-file <header-file>                                 A file which contains the header to prefix every generated file with. []
   -i, --include <include>                                          A declaration name to include in binding generation. []
   -I, --include-directory <include-directory>                      Add directory to include search path. []
-  -x, --language <c|c++>                                           Treat subsequent input files as having type <language>. [default: c++]
-  -l, --libraryPath <libraryPath>                                  The string to use in the DllImport attribute used when generating bindings. []
-  -m, --methodClassName <methodClassName>                          The name of the static class that will contain the generated method bindings. [default: Methods]
+  -x, --language <c|c++|objective-c|objective-c++>                 Treat subsequent input files as having type <language>. [default: c++]
+  -l, --library-path <library-path>                                The string to use in the DllImport attribute used when generating bindings. []
+  -m, --method-class-name <method-class-name>                      The name of the static class that will contain the generated method bindings. [default: Methods]
   -n, --namespace <namespace>                                      The namespace in which to place the generated bindings. []
   -om, --output-mode <CSharp|Xml>                                  The mode describing how the information collected from the headers are presented in the resultant bindings. [default: CSharp]
   -o, --output <output>                                            The output location to write the generated bindings to. []
-  -p, --prefixStrip <prefixStrip>                                  The prefix to strip from the generated method bindings. []
-  -tp, --typePrefixStrip <typePrefixStrip>                         The prefix to strip from the generated enum, struct, and union type bindings (and their enum member names). []
-  --nativeTypeNamesToStrip <nativeTypeNamesToStrip>                The contents to strip from the generated NativeTypeName attributes. []
+  -p, --prefix-strip <prefix-strip>                                The prefix to strip from the generated method bindings. []
+  -tp, --type-prefix-strip <type-prefix-strip>                     The prefix to strip from the generated enum, struct, and union type bindings (and their enum member names). []
+  --native-type-names-to-strip <native-type-names-to-strip>        The contents to strip from the generated NativeTypeName attributes. []
   -r, --remap <remap>                                              A declaration name to be remapped to another name during binding generation. []
   -rt, --remap-type <remap-type>                                   A type (record or enum) declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name. []
   -rf, --remap-field <remap-field>                                 A field declaration name to be remapped to another name during binding generation. Takes precedence over --remap and is useful when a type and field share a name. []
@@ -212,11 +214,12 @@ Options:
   -wa, --with-attribute <with-attribute>                           An attribute to be added to the given remapped declaration name during binding generation. Supports wildcards. []
   -wcc, --with-callconv <with-callconv>                            A calling convention to be used for the given declaration during binding generation. Supports wildcards. []
   -wc, --with-class <with-class>                                   A class to be used for the given remapped constant or function declaration name during binding generation. Supports wildcards. []
+  -wcond, --with-conditional <symbol>                              A preprocessor symbol used to wrap single-file C# output in a leading '#if <symbol>' and trailing '#endif'. Useful when files can't be conditionally excluded at the project level (e.g. Unity). []
   -wems, --with-enum-member-strip <with-enum-member-strip>         How to strip a prefix or suffix from the members of the given remapped enum name during binding generation. Mode is one of `none`, `common-prefix`, `common-suffix`, `type-name`, `prefix:<str>`, or `suffix:<str>`. Supports wildcards. []
   -wem, --with-equality-members <with-equality-members>            Generate IEquatable<T> with field-wise Equals, GetHashCode, and the == and != operators for the given struct. Opt-in and not valid for every native type; a named struct also opts in the nested and base structs it compares. Supports wildcards. []
   -wg, --with-guid <with-guid>                                     A GUID to be used for the given declaration during binding generation. Supports wildcards. []
   -wl, --with-length <with-length>                                 A length to be used for the given declaration during binding generation. Supports wildcards. []
-  -wlb, --with-librarypath <with-librarypath>                      A library path to be used for the given declaration during binding generation. Supports wildcards. []
+  -wlb, --with-library-path <with-library-path>                    A library path to be used for the given declaration during binding generation. Supports wildcards. []
   -wmi, --with-manual-import <with-manual-import>                  A remapped function name to be treated as a manual import during binding generation. Supports wildcards. []
   -wn, --with-namespace <with-namespace>                           A namespace to be used for the given remapped declaration name during binding generation. Supports wildcards. []
   -wp, --with-packing <with-packing>                               Overrides the StructLayoutAttribute.Pack property for the given type. Supports wildcards. []
@@ -224,12 +227,26 @@ Options:
   -wsle, --with-setlasterror <with-setlasterror>                   Add the SetLastError=true modifier or SetsSystemLastError attribute to a given DllImport or UnmanagedFunctionPointer. Supports wildcards. []
   -wsgct, --with-suppressgctransition <with-suppressgctransition>  Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer. Supports wildcards. []
   -wts, --with-transparent-struct <with-transparent-struct>        A remapped type name to be treated as a transparent wrapper during binding generation. Supports wildcards. []
-  -wt, --with-type <with-type>                                     A type to be used for the given enum declaration during binding generation. Supports wildcards. []
+  -wt, --with-type <with-type>                                     A type to be used for the given enum declaration, macro constant, or struct field (using the qualified `Type.field`) during binding generation. Supports wildcards. []
   -wu, --with-using <with-using>                                   A using directive to be included for the given remapped declaration name during binding generation. Supports wildcards. []
+  --without-access-specifier <without-access-specifier>            A declaration name to opt back out of a '--with-access-specifier *' catch-all. []
+  --without-attribute <without-attribute>                          A declaration name to opt back out of a '--with-attribute *' catch-all. []
+  --without-callconv <without-callconv>                            A declaration name to opt back out of a '--with-callconv *' catch-all. []
+  --without-enum-member-strip <without-enum-member-strip>          An enum name to opt back out of a '--with-enum-member-strip *' catch-all. []
+  --without-equality-members <without-equality-members>            A struct name to opt back out of a '--with-equality-members *' catch-all. []
+  --without-library-path <without-library-path>                    A declaration name to opt back out of a '--with-library-path *' catch-all. []
+  --without-readonly <without-readonly>                            A method name to opt back out of a '--with-readonly *' catch-all. []
+  --without-setlasterror <without-setlasterror>                    A declaration name to opt back out of a '--with-setlasterror *' catch-all. []
+  --without-suppressgctransition <without-suppressgctransition>    A declaration name to opt back out of a '--with-suppressgctransition *' catch-all. []
+  --without-type <without-type>                                    A declaration name to opt back out of a '--with-type *' catch-all. []
+  --without-using <without-using>                                  A declaration name to opt back out of a '--with-using *' catch-all. []
   -?, -h, --help                                                   Show help and usage information
 
 Wildcards:
-You can use * as catch-all rule for remapping procedures. For example if you want make all of your generated code internal you can use --with-access-specifier *=Internal.
+Many `--with-*` options accept `*` as a catch-all that applies a rule to everything; for value options it is written `*=value` (e.g. --with-access-specifier *=Internal makes all generated code internal). Each such option has a paired `--without-<name>` option that opts a specific declaration back out of its `*` catch-all (e.g. --with-access-specifier *=Internal --without-access-specifier Foo). To opt everything in and exclude piecemeal, use the include (-i) and exclude (-e) options together; they are already an opt-in/opt-out pair.
+
+More information:
+See https://github.com/dotnet/ClangSharp/blob/main/docs/generating-bindings-best-practices.md for a guide on structuring a generation project and using these options.
 ```
 
 The available configuration options (visible with `-c help`) are:
@@ -237,79 +254,98 @@ The available configuration options (visible with `-c help`) are:
 --config, -c	A configuration option that controls how the bindings are generated. Specify 'help' to see the available options.
 
 Options:
-  ?, h, help                               Show help and usage information for -c, --config
+  ?, h, help                                  Show help and usage information for -c, --config, --generate, and --log
 
-  # Codegen Options
+  # -c, --config now carries only the four mode families below (plus this help). The
+  # feature switches moved to --generate <name> and the diagnostics to --log <name>.
+  # Boolean --generate features accept an optional '=true'/'=false' ('=true' is implied
+  # when omitted), so a later response file can override an earlier one. Valued switches
+  # take the value shown as name=<value>.
 
-  compatible-codegen                       Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation.
-  default-codegen                          Bindings should be generated for the current LTS version of .NET/C#. This is currently .NET 8/C# 12.
-  latest-codegen                           Bindings should be generated for the current STS version of .NET/C#. This is currently .NET 10/C# 14.
-  preview-codegen                          Bindings should be generated for the preview version of .NET/C#. This is currently .NET 10/C# 14.
+  # Mode Families (-c <name>=<value>)
 
-  # File Options
+  codegen=<value>                             Which .NET/C# level to target: 'compatible' (.NET Standard 2.0), 'default' (current LTS; .NET 8/C# 12), 'latest' (current STS; .NET 10/C# 14), or 'preview'. Defaults to 'default'.
+  file=<value>                                How output is split: 'single' (one output file; the default) or 'multi' (approximately one type per file).
+  types=<value>                               Which platform defaults to assume: 'windows' or 'unix'. Defaults to the host platform.
+  vtbls=<value>                               How VTBLs are generated: 'explicit' (a named field per entry), 'implicit' (the default; reduces metadata bloat), or 'trimmable' (defined but unused in helpers to reduce bloat when trimming).
 
-  single-file                              Bindings should be generated to a single output file. This is the default.
-  multi-file                               Bindings should be generated so there is approximately one type per file.
+  # Test Generation (--generate <name>)
 
-  # Type Options
+  tests-nunit                                 Basic tests validating size, blittability, and associated metadata should be generated for NUnit.
+  tests-xunit                                 Basic tests validating size, blittability, and associated metadata should be generated for XUnit.
 
-  unix-types                               Bindings should be generated assuming Unix defaults. This is the default on Unix platforms.
-  windows-types                            Bindings should be generated assuming Windows defaults. This is the default on Windows platforms.
+  # Generation Features (--generate <name>[=false])
 
-  # Exclusion Options
+  aggressive-inlining                         [MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions.
+  anonymous-field-helpers                     The helper ref properties for fields in nested anonymous structs and unions should be generated. On by default; use =false to opt out.
+  callconv-member-function                    Instance function pointers should use [CallConvMemberFunction] where applicable.
+  com-proxies                                 Types recognized as COM proxies should have bindings generated. These are currently function declarations ending with _UserFree, _UserMarshal, _UserSize, _UserUnmarshal, _Proxy, or _Stub. On by default; use =false to opt out.
+  cpp-attributes                              [CppAttributeList("")] should be generated to document the encountered C++ attributes.
+  default-remappings                          Default remappings for well known types should be added. This currently includes intptr_t, ptrdiff_t, size_t, ssize_t, uintptr_t, and the exact-width stdint types (int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, and uint64_t). When targeting Windows, the pointer-width Windows types (INT_PTR, LONG_PTR, SSIZE_T, DWORD_PTR, SIZE_T, UINT_PTR, and ULONG_PTR) and _GUID are also included. On by default; use =false to opt out.
+  disable-runtime-marshalling                 [assembly: DisableRuntimeMarshalling] should be generated.
+  doc-includes                                <include> xml documentation tags should be generated for declarations.
+  empty-records                               Bindings for records that contain no members should be generated. These are commonly encountered for opaque handle like types such as HWND. On by default; use =false to opt out.
+  enum-member-type-name                       The enum type name should be kept at the beginning of its member names. On by default; use =false to strip it.
+  enum-operators                              Bindings for operators over enum types should be generated. These are largely unnecessary in C# as the operators are available by default. On by default; use =false to opt out.
+  extern-variables                            Top-level extern/extern const global variables should be surfaced as settable pointer fields on a <Class>ManualImports struct for the consumer to resolve (like --with-manual-import). Opt-in; pointer and primitive types only.
+  file-scoped-namespaces                      Namespaces should be scoped to the file to reduce nesting.
+  fixed-buffer-indexer-overloads              Fixed sized buffer helper types should generate additional uint, nint, and nuint indexer overloads.
+  fnptr-codegen                               Generated bindings for latest or preview codegen should use function pointers. On by default; use =false to opt out.
+  funcs-with-body                             Bindings for functions with bodies should be generated. On by default; use =false to opt out.
+  generated-code=<mode>                       Controls the emission of the GeneratedCode attribute. 'assembly' (default) emits a single '[assembly: GeneratedCode]' when helper types are generated; 'type' instead annotates each generated top-level type; 'none' emits neither.
+  generic-pointer-wrapper                     Pointer<T> should be used for limited generic type support.
+  guid-member                                 Types with an associated GUID should have a corresponding member generated.
+  helper-types                                Code files should be generated for various helper attributes and declared transparent structs.
+  macro-bindings                              Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones.
+  marker-interfaces                           Bindings for marker interfaces representing native inheritance hierarchies should be generated.
+  native-alignment-attribute                  [NativeAlignment(#)] attribute should be generated to document the requested over-alignment (__declspec(align) / DECLSPEC_ALIGN) that .NET cannot honor.
+  native-bitfield-attribute                   [NativeBitfield("", offset: #, length: #)] attribute should be generated to document the encountered bitfield layout.
+  native-inheritance-attribute                [NativeInheritance("")] attribute should be generated to document the encountered C++ base type.
+  nint-codegen                                Generated bindings should use nint/nuint where applicable. On by default; use =false to opt out.
+  objective-c-bindings                        Bindings for Objective-C declarations (currently @protocol types) should be generated. This is experimental and requires the Objective-C runtime (libobjc) at runtime.
+  setslastsystemerror-attribute               [SetsLastSystemError] attribute should be generated rather than using SetLastError = true.
+  template-bindings                           Bindings for template-definitions should be generated. This is currently experimental.
+  unmanaged-constants                         Unmanaged constants should be generated using static ref readonly properties. This is currently experimental.
+  using-statics-for-enums                     Enum usages should include a corresponding 'using static EnumName;' rather than being fully qualified. On by default; use =false to opt out.
+  using-statics-for-guid-members              GUID member usages should include a corresponding 'using static' rather than being fully qualified. On by default; use =false to opt out.
+  vtbl-index-attribute                        [VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method.
 
-  exclude-anonymous-field-helpers          The helper ref properties generated for fields in nested anonymous structs and unions should not be generated.
-  exclude-com-proxies                      Types recognized as COM proxies should not have bindings generated. These are currently function declarations ending with _UserFree, _UserMarshal, _UserSize, _UserUnmarshal, _Proxy, or _Stub.
-  exclude-default-remappings               Default remappings for well known types should not be added. This currently includes intptr_t, ptrdiff_t, size_t, and uintptr_t
-  exclude-empty-records                    Bindings for records that contain no members should not be generated. These are commonly encountered for opaque handle like types such as HWND.
-  exclude-enum-operators                   Bindings for operators over enum types should not be generated. These are largely unnecessary in C# as the operators are available by default.
-  exclude-fnptr-codegen                    Generated bindings for latest or preview codegen should not use function pointers.
-  exclude-funcs-with-body                  Bindings for functions with bodies should not be generated.
-  exclude-using-statics-for-enums          Enum usages should be fully qualified and should not include a corresponding 'using static EnumName;'
+  # Diagnostic Logs (--log <name>)
 
-  # Vtbl Options
+  exclusions                                  A list of excluded declaration types should be generated. This will also log if the exclusion was due to an exact or partial match.
+  potential-typedef-remappings                A list of potential typedef remappings should be generated. This can help identify missing remappings.
+  visited-files                               A list of the visited files should be generated. This can help identify traversal issues.
 
-  explicit-vtbls                           VTBLs should have an explicit type generated with named fields per entry.
-  implicit-vtbls                           VTBLs should be implicit to reduce metadata bloat. This is the current default
-  trimmable-vtbls                          VTBLs should be defined but not used in helper methods to reduce metadata bloat when trimming.
+  # Legacy/Deprecated -c spellings (still accepted, but each emits a deprecation warning)
 
-  # Test Options
-
-  generate-tests-nunit                     Basic tests validating size, blittability, and associated metadata should be generated for NUnit.
-  generate-tests-xunit                     Basic tests validating size, blittability, and associated metadata should be generated for XUnit.
-
-  # Generation Options
-
-  generate-aggressive-inlining             [MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions.
-  generate-callconv-member-function        Instance function pointers should use [CallConvMemberFunction] where applicable.
-  generate-cpp-attributes                  [CppAttributeList("")] should be generated to document the encountered C++ attributes.
-  generate-disable-runtime-marshalling     [assembly: DisableRuntimeMarshalling] should be generated.
-  generate-doc-includes                    <include> xml documentation tags should be generated for declarations.
-  generate-extern-variables                Top-level extern/extern const global variables should be surfaced as settable pointer fields on a <Class>ManualImports struct for the consumer to resolve (like --with-manual-import). Opt-in; pointer and primitive types only.
-  generate-file-scoped-namespaces          Namespaces should be scoped to the file to reduce nesting.
-  generate-fixed-buffer-indexer-overloads  Fixed sized buffer helper types should generate additional uint, nint, and nuint indexer overloads.
-  generate-guid-member                     Types with an associated GUID should have a corresponding member generated.
-  generate-helper-types                    Code files should be generated for various helper attributes and declared transparent structs.
-  generate-macro-bindings                  Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones.
-  generate-marker-interfaces               Bindings for marker interfaces representing native inheritance hierarchies should be generated.
-  generate-native-alignment-attribute      [NativeAlignment(#)] attribute should be generated to document the requested over-alignment (__declspec(align) / DECLSPEC_ALIGN) that .NET cannot honor.
-  generate-native-bitfield-attribute       [NativeBitfield("", offset: #, length: #)] attribute should be generated to document the encountered bitfield layout.
-  generate-native-inheritance-attribute    [NativeInheritance("")] attribute should be generated to document the encountered C++ base type.
-  generate-generic-pointer-wrapper         Pointer<T> should be used for limited generic type support.
-  generate-setslastsystemerror-attribute   [SetsLastSystemError] attribute should be generated rather than using SetLastError = true.
-  generate-template-bindings               Bindings for template-definitions should be generated. This is currently experimental.
-  generate-unmanaged-constants             Unmanaged constants should be generated using static ref readonly properties. This is currently experimental.
-  generate-vtbl-index-attribute            [VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method.
-
-  # Stripping Options
-
-  strip-enum-member-type-name              Strips the enum type name from the beginning of its member names.
-
-  # Logging Options
-
-  log-exclusions                           A list of excluded declaration types should be generated. This will also log if the exclusion was due to an exact or partial match.
-  log-potential-typedef-remappings         A list of potential typedef remappings should be generated. This can help identify missing remappings.
-  log-visited-files                        A list of the visited files should be generated. This can help identify traversal issues.
+  -c compatible-codegen                       Use -c codegen=compatible.
+  -c default-codegen                          Use -c codegen=default.
+  -c latest-codegen                           Use -c codegen=latest.
+  -c preview-codegen                          Use -c codegen=preview.
+  -c single-file                              Use -c file=single.
+  -c multi-file                               Use -c file=multi.
+  -c windows-types                            Use -c types=windows.
+  -c unix-types                               Use -c types=unix.
+  -c explicit-vtbls                           Use -c vtbls=explicit.
+  -c implicit-vtbls                           Use -c vtbls=implicit.
+  -c trimmable-vtbls                          Use -c vtbls=trimmable.
+  -c generate-*                               Use --generate * (e.g. -c generate-helper-types becomes --generate helper-types).
+  -c log-*                                    Use --log * (e.g. -c log-visited-files becomes --log visited-files).
+  -c exclude-anonymous-field-helpers          Use --generate anonymous-field-helpers=false.
+  -c exclude-com-proxies                      Use --generate com-proxies=false.
+  -c exclude-default-remappings               Use --generate default-remappings=false.
+  -c no-default-remappings                    Use --generate default-remappings=false.
+  -c default-remappings                       Use --generate default-remappings (or =true).
+  -c exclude-empty-records                    Use --generate empty-records=false.
+  -c exclude-enum-operators                   Use --generate enum-operators=false.
+  -c exclude-fnptr-codegen                    Use --generate fnptr-codegen=false.
+  -c exclude-funcs-with-body                  Use --generate funcs-with-body=false.
+  -c exclude-nint-codegen                     Use --generate nint-codegen=false.
+  -c exclude-using-statics-for-enums          Use --generate using-statics-for-enums=false.
+  -c dont-use-using-statics-for-enums         Use --generate using-statics-for-enums=false.
+  -c exclude-using-statics-for-guid-members   Use --generate using-statics-for-guid-members=false.
+  -c dont-use-using-statics-for-guid-members  Use --generate using-statics-for-guid-members=false.
+  -c strip-enum-member-type-name              Use --generate enum-member-type-name=false.
 ```
 
 ### Using as a Library

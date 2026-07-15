@@ -41,6 +41,20 @@ public sealed class PInvokeGeneratorConfiguration
     internal readonly HashSet<string> _withSetLastErrors;
     internal readonly HashSet<string> _withSuppressGCTransitions;
 
+    // Companion opt-out sets that subtract specific names from a '*' catch-all for the paired
+    // --with-* option (populated by the --without-* options).
+    internal readonly HashSet<string> _withoutAccessSpecifiers;
+    internal readonly HashSet<string> _withoutAttributes;
+    internal readonly HashSet<string> _withoutCallConvs;
+    internal readonly HashSet<string> _withoutEnumMemberStrip;
+    internal readonly HashSet<string> _withoutEqualityMembers;
+    internal readonly HashSet<string> _withoutLibraryPaths;
+    internal readonly HashSet<string> _withoutReadonlys;
+    internal readonly HashSet<string> _withoutSetLastErrors;
+    internal readonly HashSet<string> _withoutSuppressGCTransitions;
+    internal readonly HashSet<string> _withoutTypes;
+    internal readonly HashSet<string> _withoutUsings;
+
     internal readonly Dictionary<string, string> _remappedNames;
     internal readonly Dictionary<string, string> _remappedTypeNames;
     internal readonly Dictionary<string, string> _remappedFieldNames;
@@ -101,6 +115,18 @@ public sealed class PInvokeGeneratorConfiguration
         _withReadonlys = new HashSet<string>(QualifiedNameComparer.Default);
         _withSetLastErrors = new HashSet<string>(QualifiedNameComparer.Default);
         _withSuppressGCTransitions = new HashSet<string>(QualifiedNameComparer.Default);
+
+        _withoutAccessSpecifiers = new HashSet<string>(QualifiedNameComparer.Default);
+        _withoutAttributes = new HashSet<string>(QualifiedNameComparer.Default);
+        _withoutCallConvs = new HashSet<string>(QualifiedNameComparer.Default);
+        _withoutEnumMemberStrip = new HashSet<string>(QualifiedNameComparer.Default);
+        _withoutEqualityMembers = new HashSet<string>(QualifiedNameComparer.Default);
+        _withoutLibraryPaths = new HashSet<string>(StringComparer.Ordinal);
+        _withoutReadonlys = new HashSet<string>(QualifiedNameComparer.Default);
+        _withoutSetLastErrors = new HashSet<string>(QualifiedNameComparer.Default);
+        _withoutSuppressGCTransitions = new HashSet<string>(QualifiedNameComparer.Default);
+        _withoutTypes = new HashSet<string>(QualifiedNameComparer.Default);
+        _withoutUsings = new HashSet<string>(QualifiedNameComparer.Default);
 
         _remappedNames = new Dictionary<string, string>(QualifiedNameComparer.Default);
         _remappedTypeNames = new Dictionary<string, string>(QualifiedNameComparer.Default);
@@ -800,6 +826,160 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             AddRange(_withPackings, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutAccessSpecifiers
+    {
+        get
+        {
+            return _withoutAccessSpecifiers;
+        }
+
+        init
+        {
+            AddRange(_withoutAccessSpecifiers, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutAttributes
+    {
+        get
+        {
+            return _withoutAttributes;
+        }
+
+        init
+        {
+            AddRange(_withoutAttributes, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutCallConvs
+    {
+        get
+        {
+            return _withoutCallConvs;
+        }
+
+        init
+        {
+            AddRange(_withoutCallConvs, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutEnumMemberStrip
+    {
+        get
+        {
+            return _withoutEnumMemberStrip;
+        }
+
+        init
+        {
+            AddRange(_withoutEnumMemberStrip, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutEqualityMembers
+    {
+        get
+        {
+            return _withoutEqualityMembers;
+        }
+
+        init
+        {
+            AddRange(_withoutEqualityMembers, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutLibraryPaths
+    {
+        get
+        {
+            return _withoutLibraryPaths;
+        }
+
+        init
+        {
+            AddRange(_withoutLibraryPaths, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutReadonlys
+    {
+        get
+        {
+            return _withoutReadonlys;
+        }
+
+        init
+        {
+            AddRange(_withoutReadonlys, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutSetLastErrors
+    {
+        get
+        {
+            return _withoutSetLastErrors;
+        }
+
+        init
+        {
+            AddRange(_withoutSetLastErrors, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutSuppressGCTransitions
+    {
+        get
+        {
+            return _withoutSuppressGCTransitions;
+        }
+
+        init
+        {
+            AddRange(_withoutSuppressGCTransitions, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutTypes
+    {
+        get
+        {
+            return _withoutTypes;
+        }
+
+        init
+        {
+            AddRange(_withoutTypes, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutUsings
+    {
+        get
+        {
+            return _withoutUsings;
+        }
+
+        init
+        {
+            AddRange(_withoutUsings, value);
         }
     }
 

@@ -9,9 +9,9 @@ namespace ClangSharp.UnitTests;
 /// <summary>
 /// Regression tests for https://github.com/dotnet/ClangSharp/issues/333 and
 /// https://github.com/dotnet/ClangSharp/issues/461.
-/// <c>--typePrefixStrip</c> strips a library-wide prefix from enum, struct, and union type names
+/// <c>--type-prefix-strip</c> strips a library-wide prefix from enum, struct, and union type names
 /// (and their enum member names), at both the declaration and every reference, analogous to how
-/// <c>--prefixStrip</c> works for methods.
+/// <c>--prefix-strip</c> works for methods.
 /// </summary>
 [Platform("win")]
 public sealed class TypePrefixStripTest : StandaloneBaselineTest
@@ -39,7 +39,7 @@ void abc_use(abc_some_struct* s, abc_some_enum e, abc_2d_point* p);
 ";
 
     // The prefix is stripped from the type declarations and every reference to them. Methods are left
-    // untouched (they have their own `--prefixStrip`), and a strip that would leave a leading digit keeps
+    // untouched (they have their own `--prefix-strip`), and a strip that would leave a leading digit keeps
     // an underscore so the result stays a valid C# identifier (`abc_2d_point` -> `_2d_point`).
     [Test]
     public Task PrefixIsStrippedFromTypes()

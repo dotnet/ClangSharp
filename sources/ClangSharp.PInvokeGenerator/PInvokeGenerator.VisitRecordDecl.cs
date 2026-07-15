@@ -194,7 +194,7 @@ public partial class PInvokeGenerator
                 baseTypeNames = [.. baseTypeNamesBuilder];
             }
 
-            if (!TryGetRemappedValue(recordDecl, _config._withPackings, out var pack))
+            if (!TryGetRemappedValue(recordDecl, _config._withPackings, optOuts: null, out var pack))
             {
                 pack = alignment < maxAlignm ? alignment.ToString(CultureInfo.InvariantCulture) : null;
             }

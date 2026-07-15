@@ -23,7 +23,7 @@ files as C# generation:
 ClangSharpPInvokeGenerator -om Xml -n MyNamespace -m Methods -o bindings.xml -f header.h
 ```
 
-Everything that shapes the C# output — `--methodClassName`, remappings, `--config` options, etc. —
+Everything that shapes the C# output — `--method-class-name`, remappings, `--config` options, etc. —
 applies identically here; only the serialization differs.
 
 ## Document structure
@@ -48,11 +48,11 @@ the static method class are represented as nesting `<namespace>` and `<class>` e
 ```
 
 * `<bindings>` — the document root.
-* `<comment>` — emitted immediately inside `<bindings>` when a `--headerFile` / header text is
+* `<comment>` — emitted immediately inside `<bindings>` when a `--header-file` / header text is
   configured; it carries that verbatim header text.
 * `<namespace name="...">` — the output namespace (from `-n`).
 * `<class name="..." access="public" static="true">` — the static holder for free functions (from
-  `-m` / `--methodClassName`). Types such as structs and enums are emitted directly under
+  `-m` / `--method-class-name`). Types such as structs and enums are emitted directly under
   `<namespace>` rather than inside this class. It gains `unsafe="true"` when the class contains unsafe
   members.
 

@@ -1143,7 +1143,7 @@ public partial class PInvokeGenerator
 
                         if (arraySize == 1)
                         {
-                            if (TryGetRemappedValue(indirectFieldDecl, _config._withLengths, out var length))
+                            if (TryGetRemappedValue(indirectFieldDecl, _config._withLengths, optOuts: null, out var length))
                             {
                                 code.Write(length);
                             }

@@ -40,7 +40,7 @@ public partial class PInvokeGenerator
             return false;
         }
 
-        if (HasRemapping(recordDecl, _config._withEqualityMembers, matchStar: true))
+        if (HasRemapping(recordDecl, _config._withEqualityMembers, _config._withoutEqualityMembers, matchStar: true))
         {
             return true;
         }
