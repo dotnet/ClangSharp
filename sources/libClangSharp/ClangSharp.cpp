@@ -5811,6 +5811,207 @@ CXCursor clangsharp_Cursor_getTypedefNameForAnonDecl(CXCursor C) {
     return clang_getNullCursor();
 }
 
+CX_ObjCMessageReceiverKind clangsharp_Cursor_getObjCMessageReceiverKind(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCMessageExpr* OCME = dyn_cast<ObjCMessageExpr>(S)) {
+            return static_cast<CX_ObjCMessageReceiverKind>(OCME->getReceiverKind() + 1);
+        }
+    }
+
+    return CX_OMRK_Invalid;
+}
+
+CXType clangsharp_Cursor_getObjCMessageReceiverType(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCMessageExpr* OCME = dyn_cast<ObjCMessageExpr>(S)) {
+            return MakeCXType(OCME->getReceiverType(), getCursorTU(C));
+        }
+    }
+
+    return MakeCXType(QualType(), getCursorTU(C));
+}
+
+unsigned clangsharp_Cursor_getIsDelegateInitCall(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCMessageExpr* OCME = dyn_cast<ObjCMessageExpr>(S)) {
+            return OCME->isDelegateInitCall();
+        }
+    }
+
+    return 0;
+}
+
+int clangsharp_Cursor_getNumObjCLiteralElements(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCArrayLiteral* OCAL = dyn_cast<ObjCArrayLiteral>(S)) {
+            return OCAL->getNumElements();
+        }
+
+        if (const ObjCDictionaryLiteral* OCDL = dyn_cast<ObjCDictionaryLiteral>(S)) {
+            return OCDL->getNumElements();
+        }
+    }
+
+    return -1;
+}
+
+CXCursor clangsharp_Cursor_getObjCDictionaryKey(CXCursor C, unsigned i) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCDictionaryLiteral* OCDL = dyn_cast<ObjCDictionaryLiteral>(S)) {
+            if (i < OCDL->getNumElements()) {
+                return MakeCXCursor(OCDL->getKeyValueElement(i).Key, getCursorDecl(C), getCursorTU(C));
+            }
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
+CXCursor clangsharp_Cursor_getObjCDictionaryValue(CXCursor C, unsigned i) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCDictionaryLiteral* OCDL = dyn_cast<ObjCDictionaryLiteral>(S)) {
+            if (i < OCDL->getNumElements()) {
+                return MakeCXCursor(OCDL->getKeyValueElement(i).Value, getCursorDecl(C), getCursorTU(C));
+            }
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
+unsigned clangsharp_Cursor_getIsMessagingGetter(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCPropertyRefExpr* OCPRE = dyn_cast<ObjCPropertyRefExpr>(S)) {
+            return OCPRE->isMessagingGetter();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsMessagingSetter(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCPropertyRefExpr* OCPRE = dyn_cast<ObjCPropertyRefExpr>(S)) {
+            return OCPRE->isMessagingSetter();
+        }
+    }
+
+    return 0;
+}
+
+CX_ObjCPropertyRefReceiverKind clangsharp_Cursor_getObjCPropertyRefReceiverKind(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCPropertyRefExpr* OCPRE = dyn_cast<ObjCPropertyRefExpr>(S)) {
+            if (OCPRE->isObjectReceiver()) {
+                return CX_OPRK_Object;
+            }
+
+            if (OCPRE->isSuperReceiver()) {
+                return CX_OPRK_Super;
+            }
+
+            if (OCPRE->isClassReceiver()) {
+                return CX_OPRK_Class;
+            }
+        }
+    }
+
+    return CX_OPRK_Invalid;
+}
+
+CXCursor clangsharp_Cursor_getObjCPropertyRefClassReceiver(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCPropertyRefExpr* OCPRE = dyn_cast<ObjCPropertyRefExpr>(S)) {
+            if (OCPRE->isClassReceiver()) {
+                return MakeCXCursor(OCPRE->getClassReceiver(), getCursorTU(C));
+            }
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
+CXCursor clangsharp_Cursor_getSetAtIndexMethodDecl(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCSubscriptRefExpr* OCSRE = dyn_cast<ObjCSubscriptRefExpr>(S)) {
+            return MakeCXCursor(OCSRE->setAtIndexMethodDecl(), getCursorTU(C));
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
+unsigned clangsharp_Cursor_getHasObjCAvailabilityVersion(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCAvailabilityCheckExpr* OCACE = dyn_cast<ObjCAvailabilityCheckExpr>(S)) {
+            return OCACE->hasVersion();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getObjCAvailabilityVersion(CXCursor C, llvm::VersionTuple* version) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCAvailabilityCheckExpr* OCACE = dyn_cast<ObjCAvailabilityCheckExpr>(S)) {
+            *version = OCACE->getVersion();
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int clangsharp_Cursor_getNumCatchStmts(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCAtTryStmt* OCATS = dyn_cast<ObjCAtTryStmt>(S)) {
+            return OCATS->getNumCatchStmts();
+        }
+    }
+
+    return -1;
+}
+
+unsigned clangsharp_Cursor_getHasCatchAll(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ObjCAtCatchStmt* OCACS = dyn_cast<ObjCAtCatchStmt>(S)) {
+            return OCACS->hasEllipsis();
+        }
+    }
+
+    return 0;
+}
+
 CXType clangsharp_Cursor_getTypeOperand(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -7240,6 +7441,141 @@ CXCursor clangsharp_Type_getUnderlyingExpr(CXType CT) {
     if (const TypeOfExprType* TOET = dyn_cast<TypeOfExprType>(TP)) {
         CXCursor C = clang_getTypeDeclaration(CT);
         return MakeCXCursor(TOET->getUnderlyingExpr(), getCursorDecl(C), GetTypeTU(CT));
+    }
+
+    return clang_getNullCursor();
+}
+
+unsigned clangsharp_Type_getIsObjCIdType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isObjCIdType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsObjCClassType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isObjCClassType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsObjCQualifiedIdType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isObjCQualifiedIdType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsObjCQualifiedClassType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (TP) {
+        return TP->isObjCQualifiedClassType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsObjCKindOfType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ObjCObjectType* OCOT = dyn_cast<ObjCObjectType>(TP)) {
+        return OCOT->isKindOfType();
+    }
+
+    if (const ObjCObjectPointerType* OCOPT = dyn_cast<ObjCObjectPointerType>(TP)) {
+        return OCOPT->isKindOfType();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsObjCKindOfTypeAsWritten(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ObjCObjectType* OCOT = dyn_cast<ObjCObjectType>(TP)) {
+        return OCOT->isKindOfTypeAsWritten();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsObjCObjectSpecialized(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ObjCObjectType* OCOT = dyn_cast<ObjCObjectType>(TP)) {
+        return OCOT->isSpecialized();
+    }
+
+    if (const ObjCObjectPointerType* OCOPT = dyn_cast<ObjCObjectPointerType>(TP)) {
+        return OCOPT->isSpecialized();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Type_getIsObjCObjectSpecializedAsWritten(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ObjCObjectType* OCOT = dyn_cast<ObjCObjectType>(TP)) {
+        return OCOT->isSpecializedAsWritten();
+    }
+
+    if (const ObjCObjectPointerType* OCOPT = dyn_cast<ObjCObjectPointerType>(TP)) {
+        return OCOPT->isSpecializedAsWritten();
+    }
+
+    return 0;
+}
+
+CXType clangsharp_Type_getObjCSuperClassType(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ObjCObjectType* OCOT = dyn_cast<ObjCObjectType>(TP)) {
+        return MakeCXType(OCOT->getSuperClassType(), GetTypeTU(CT));
+    }
+
+    return MakeCXType(QualType(), GetTypeTU(CT));
+}
+
+int clangsharp_Type_getNumObjCTypeParamProtocols(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ObjCTypeParamType* OCTPT = dyn_cast<ObjCTypeParamType>(TP)) {
+        return OCTPT->getNumProtocols();
+    }
+
+    return -1;
+}
+
+CXCursor clangsharp_Type_getObjCTypeParamProtocol(CXType CT, unsigned i) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ObjCTypeParamType* OCTPT = dyn_cast<ObjCTypeParamType>(TP)) {
+        if (i < OCTPT->getNumProtocols()) {
+            return MakeCXCursor(OCTPT->getProtocol(i), GetTypeTU(CT));
+        }
     }
 
     return clang_getNullCursor();

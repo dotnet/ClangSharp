@@ -219,6 +219,21 @@ enum CX_ElaboratedTypeKeyword {
     CX_ETK_None = static_cast<int>(clang::ElaboratedTypeKeyword::None) + 1,
 };
 
+enum CX_ObjCMessageReceiverKind {
+    CX_OMRK_Invalid,
+    CX_OMRK_Class = static_cast<int>(clang::ObjCMessageExpr::Class) + 1,
+    CX_OMRK_Instance = static_cast<int>(clang::ObjCMessageExpr::Instance) + 1,
+    CX_OMRK_SuperClass = static_cast<int>(clang::ObjCMessageExpr::SuperClass) + 1,
+    CX_OMRK_SuperInstance = static_cast<int>(clang::ObjCMessageExpr::SuperInstance) + 1,
+};
+
+enum CX_ObjCPropertyRefReceiverKind {
+    CX_OPRK_Invalid,
+    CX_OPRK_Object,
+    CX_OPRK_Super,
+    CX_OPRK_Class,
+};
+
 enum CX_InitializationStyle {
     CX_IS_Invalid,
     CX_IS_CInit = clang::VarDecl::CInit + 1,
@@ -1065,6 +1080,36 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTrailingRequiresClause(CXCursor
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTypedefNameForAnonDecl(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasCatchAll(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasObjCAvailabilityVersion(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsDelegateInitCall(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsMessagingGetter(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsMessagingSetter(CXCursor C);
+
+CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumCatchStmts(CXCursor C);
+
+CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumObjCLiteralElements(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getObjCAvailabilityVersion(CXCursor C, llvm::VersionTuple* version);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getObjCDictionaryKey(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getObjCDictionaryValue(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE CX_ObjCMessageReceiverKind clangsharp_Cursor_getObjCMessageReceiverKind(CXCursor C);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getObjCMessageReceiverType(CXCursor C);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getObjCPropertyRefClassReceiver(CXCursor C);
+
+CLANGSHARP_LINKAGE CX_ObjCPropertyRefReceiverKind clangsharp_Cursor_getObjCPropertyRefReceiverKind(CXCursor C);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getSetAtIndexMethodDecl(CXCursor C);
+
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getTypeOperand(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTypeParam(CXCursor C, unsigned i);
@@ -1282,6 +1327,28 @@ CLANGSHARP_LINKAGE CX_TemplateName clangsharp_Type_getTemplateName(CXType C);
 CLANGSHARP_LINKAGE CX_TypeClass clangsharp_Type_getTypeClass(CXType CT);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getUnderlyingExpr(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjCClassType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjCIdType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjCKindOfType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjCKindOfTypeAsWritten(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjCObjectSpecialized(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjCObjectSpecializedAsWritten(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjCQualifiedClassType(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjCQualifiedIdType(CXType CT);
+
+CLANGSHARP_LINKAGE int clangsharp_Type_getNumObjCTypeParamProtocols(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getObjCSuperClassType(CXType CT);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getObjCTypeParamProtocol(CXType CT, unsigned i);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getUnderlyingType(CXType CT);
 
