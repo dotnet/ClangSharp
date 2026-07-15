@@ -172,7 +172,7 @@ function Build-Libclangsharp([string] $runtime, [string] $source, [string] $dest
   $nativeBuildDir = Join-Path -Path $ArtifactsDir -ChildPath "bin\native\$runtime"
   $pathToLlvm = (Resolve-Path -Path $source).Path
 
-  & cmake -B "$nativeBuildDir" -S "$RepoRoot" -G "Visual Studio 17 2022" -A "$arch" "-Thost=$arch" "-DPATH_TO_LLVM=$pathToLlvm"
+  & cmake -B "$nativeBuildDir" -S "$RepoRoot" -A "$arch" "-Thost=$arch" "-DPATH_TO_LLVM=$pathToLlvm"
 
   if ($LastExitCode -ne 0) {
     throw "'cmake' configure failed for '$runtime'"
