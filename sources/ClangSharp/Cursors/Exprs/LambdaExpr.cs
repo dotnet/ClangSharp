@@ -8,7 +8,16 @@ namespace ClangSharp;
 
 public sealed class LambdaExpr : Expr
 {
-    internal LambdaExpr(CXCursor handle) : base(handle, CXCursor_LambdaExpr, CX_StmtClass_LambdaExpr)
+    private ValueLazy<LambdaExpr, CXXMethodDecl> _callOperator;
+
+    internal unsafe LambdaExpr(CXCursor handle) : base(handle, CXCursor_LambdaExpr, CX_StmtClass_LambdaExpr)
     {
+        _callOperator = new ValueLazy<LambdaExpr, CXXMethodDecl>(&CallOperatorFactory);
     }
+
+    public CXXMethodDecl CallOperator => _callOperator.GetValue(this);
+
+    public bool IsMutable => !CallOperator.IsConst;
+
+    private static unsafe CXXMethodDecl CallOperatorFactory(LambdaExpr self) => self.TranslationUnit.GetOrCreate<CXXMethodDecl>(self.Type.AsCXXRecordDecl!.Handle.LambdaCallOperator);
 }

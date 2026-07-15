@@ -107,6 +107,8 @@ public unsafe class Type : IEquatable<Type>
 
     public bool IsBooleanType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind == CXType_Bool;
 
+    public bool IsCharType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind is CXType_Char_U or CXType_UChar or CXType_Char_S or CXType_SChar;
+
     public bool IsEnumeralType => CanonicalType is EnumType;
 
     public bool IsFunctionType => CanonicalType is FunctionType;
@@ -130,6 +132,8 @@ public unsafe class Type : IEquatable<Type>
     public bool IsLocalRestrictQualified => Handle.IsRestrictQualified;
 
     public bool IsLocalVolatileQualified => Handle.IsVolatileQualified;
+
+    public bool IsMatrixType => CanonicalType is MatrixType;
 
     public bool IsMemberPointerType => CanonicalType is MemberPointerType;
 

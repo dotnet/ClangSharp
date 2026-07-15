@@ -102,6 +102,72 @@ using MemPtrT = int S::*;
     }
 
     [Test]
+    public void CharTypeTest()
+    {
+        var inputContents = """
+using CharT = char;
+using UCharT = unsigned char;
+using SCharT = signed char;
+using WCharT = wchar_t;
+using IntT = int;
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var typedefs = translationUnit.TranslationUnitDecl.Decls.OfType<TypedefNameDecl>()
+                                      .ToDictionary((typedef) => typedef.Name, (typedef) => typedef.UnderlyingType, StringComparer.Ordinal);
+
+        Assert.That(typedefs["CharT"].IsCharType, Is.True);
+        Assert.That(typedefs["UCharT"].IsCharType, Is.True);
+        Assert.That(typedefs["SCharT"].IsCharType, Is.True);
+        Assert.That(typedefs["WCharT"].IsCharType, Is.False);
+        Assert.That(typedefs["IntT"].IsCharType, Is.False);
+    }
+
+    [Test]
+    public void MatrixTypeTest()
+    {
+        var inputContents = """
+typedef float Matrix4x4 __attribute__((matrix_type(4, 4)));
+using IntT = int;
+""";
+
+        string[] commandLineArgs = ["-std=c++17", "-Wno-pragma-once-outside-header", "-fenable-matrix"];
+
+        using var translationUnit = CreateTranslationUnit(inputContents, commandLineArgs: commandLineArgs);
+
+        var typedefs = translationUnit.TranslationUnitDecl.Decls.OfType<TypedefNameDecl>()
+                                      .ToDictionary((typedef) => typedef.Name, (typedef) => typedef.UnderlyingType, StringComparer.Ordinal);
+
+        Assert.That(typedefs["Matrix4x4"].IsMatrixType, Is.True);
+        Assert.That(typedefs["IntT"].IsMatrixType, Is.False);
+    }
+
+    [Test]
+    public void MemberPointerKindTest()
+    {
+        var inputContents = """
+struct S { int field; void method(); };
+using MemDataT = int S::*;
+using MemFuncT = void (S::*)();
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var memDataT = translationUnit.TranslationUnitDecl.Decls.OfType<TypedefNameDecl>().Single((typedef) => typedef.Name.Equals("MemDataT", StringComparison.Ordinal));
+        var memFuncT = translationUnit.TranslationUnitDecl.Decls.OfType<TypedefNameDecl>().Single((typedef) => typedef.Name.Equals("MemFuncT", StringComparison.Ordinal));
+
+        var memberDataPointer = (MemberPointerType)memDataT.UnderlyingType.CanonicalType;
+        var memberFunctionPointer = (MemberPointerType)memFuncT.UnderlyingType.CanonicalType;
+
+        Assert.That(memberDataPointer.IsMemberDataPointer, Is.True);
+        Assert.That(memberDataPointer.IsMemberFunctionPointer, Is.False);
+
+        Assert.That(memberFunctionPointer.IsMemberFunctionPointer, Is.True);
+        Assert.That(memberFunctionPointer.IsMemberDataPointer, Is.False);
+    }
+
+    [Test]
     public void TemplateNameTest()
     {
         var inputContents = """
