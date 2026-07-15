@@ -106,7 +106,7 @@ so the correct platform-specific runtime package is restored:
 
   <ItemGroup>
     <!-- The native libClang/libClangSharp runtimes come in transitively -->
-    <PackageReference Include="ClangSharp" Version="21.1.8.3" />
+    <PackageReference Include="ClangSharp" Version="21.1.8.4" />
   </ItemGroup>
 
 </Project>
