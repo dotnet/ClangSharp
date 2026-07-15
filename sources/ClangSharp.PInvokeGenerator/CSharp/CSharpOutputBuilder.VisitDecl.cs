@@ -796,6 +796,11 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
             AddNativeInheritanceAttribute(desc.NativeInheritance);
         }
 
+        if (desc.NativeAlignment is not null)
+        {
+            AddNativeAlignmentAttribute(desc.NativeAlignment.Value);
+        }
+
         if (desc.Location is {} location)
         {
             WriteSourceLocation(location, false);

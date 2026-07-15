@@ -706,6 +706,35 @@ struct MyStruct
     }
 
     [Test]
+    public Task OverAlignmentTest()
+    {
+        var inputContents = @"struct __attribute__((aligned(16))) MyStruct
+{
+    int x;
+};
+";
+
+        return ValidateAsync(nameof(OverAlignmentTest), inputContents, expectedDiagnostics: OverAlignmentExpectedDiagnostics());
+    }
+
+    [Test]
+    public Task OverAlignmentWithNativeAlignmentAttributeTest()
+    {
+        var inputContents = @"struct __attribute__((aligned(16))) MyStruct
+{
+    int x;
+};
+";
+
+        return ValidateAsync(nameof(OverAlignmentWithNativeAlignmentAttributeTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateNativeAlignmentAttribute, expectedDiagnostics: OverAlignmentExpectedDiagnostics());
+    }
+
+    private static Diagnostic[] OverAlignmentExpectedDiagnostics()
+    {
+        return [new Diagnostic(DiagnosticLevel.Warning, "Struct 'MyStruct' requests 16 byte alignment which .NET cannot honor; over-alignment can only lower, never raise, alignment, so the runtime will align it to 4 bytes.", "Line 1, Column 37 in ClangUnsavedFile.h")];
+    }
+
+    [Test]
     public Task PackTest()
     {
         return ValidateAsync(nameof(PackTest), @"struct MyStruct1 {

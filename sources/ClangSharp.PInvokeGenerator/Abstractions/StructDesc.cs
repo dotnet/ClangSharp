@@ -13,6 +13,7 @@ internal struct StructDesc
     public string EscapedName { get; set; }
     public string? NativeType { get; set; }
     public string? NativeInheritance { get; set; }
+    public int? NativeAlignment { get; set; }
     public LayoutDesc Layout { get; set; }
     public Guid? Uuid { get; set; }
     public StructFlags Flags { get; set; }

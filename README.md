@@ -292,6 +292,7 @@ Options:
   generate-helper-types                    Code files should be generated for various helper attributes and declared transparent structs.
   generate-macro-bindings                  Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones.
   generate-marker-interfaces               Bindings for marker interfaces representing native inheritance hierarchies should be generated.
+  generate-native-alignment-attribute      [NativeAlignment(#)] attribute should be generated to document the requested over-alignment (__declspec(align) / DECLSPEC_ALIGN) that .NET cannot honor.
   generate-native-bitfield-attribute       [NativeBitfield("", offset: #, length: #)] attribute should be generated to document the encountered bitfield layout.
   generate-native-inheritance-attribute    [NativeInheritance("")] attribute should be generated to document the encountered C++ base type.
   generate-generic-pointer-wrapper         Pointer<T> should be used for limited generic type support.

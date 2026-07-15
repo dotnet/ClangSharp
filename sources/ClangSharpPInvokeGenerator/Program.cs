@@ -454,6 +454,12 @@ internal static partial class Program
                     break;
                 }
 
+                case "generate-native-alignment-attribute":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateNativeAlignmentAttribute;
+                    break;
+                }
+
                 case "generate-native-bitfield-attribute":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute;

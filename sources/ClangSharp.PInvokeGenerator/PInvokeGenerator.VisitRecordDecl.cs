@@ -199,6 +199,20 @@ public partial class PInvokeGenerator
                 pack = alignment < maxAlignm ? alignment.ToString(CultureInfo.InvariantCulture) : null;
             }
 
+            var requestedAlignment = (int)(recordDecl.MaxAlignment / 8);
+            int? nativeAlignment = null;
+
+            if (requestedAlignment > maxAlignm)
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Struct '{name}' requests {requestedAlignment} byte alignment which .NET cannot honor; over-alignment can only lower, never raise, alignment, so the runtime will align it to {maxAlignm} bytes.", recordDecl);
+
+                if (_config.GenerateNativeAlignmentAttribute)
+                {
+                    nativeAlignment = requestedAlignment;
+                    pack ??= requestedAlignment.ToString(CultureInfo.InvariantCulture);
+                }
+            }
+
             var desc = new StructDesc {
                 AccessSpecifier = GetAccessSpecifier(recordDecl, matchStar: true),
                 EscapedName = escapedName,
@@ -218,6 +232,7 @@ public partial class PInvokeGenerator
                 Uuid = nullableUuid,
                 NativeType = nativeNameWithExtras,
                 NativeInheritance = _config.GenerateNativeInheritanceAttribute ? nativeInheritance : null,
+                NativeAlignment = nativeAlignment,
                 Location = recordDecl.Location,
                 IsNested = recordDecl.DeclContext is TagDecl,
                 WriteCustomAttrs = static context => {
@@ -278,6 +293,12 @@ public partial class PInvokeGenerator
                 {
                     withAttributes.Add($"NativeInheritance(\"{desc.NativeInheritance}\")");
                     _ = withUsings.Add(GetNamespace("NativeInheritanceAttribute"));
+                }
+
+                if (_config.GenerateNativeAlignmentAttribute && (desc.NativeAlignment is not null))
+                {
+                    withAttributes.Add($"NativeAlignment({desc.NativeAlignment.GetValueOrDefault().ToString(CultureInfo.InvariantCulture)})");
+                    _ = withUsings.Add(GetNamespace("NativeAlignmentAttribute"));
                 }
 
                 if (_config.GenerateSourceLocationAttribute && (desc.Location is not null))

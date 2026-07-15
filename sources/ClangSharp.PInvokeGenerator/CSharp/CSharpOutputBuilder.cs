@@ -305,6 +305,41 @@ internal sealed partial class CSharpOutputBuilder(string name, PInvokeGenerator 
         }
     }
 
+    private void AddNativeAlignmentAttribute(int alignment, string? prefix = null, string? postfix = null, string? attributePrefix = null)
+    {
+        if (prefix is null)
+        {
+            WriteIndentation();
+        }
+        else
+        {
+            WriteNewlineIfNeeded();
+            Write(prefix);
+        }
+
+        Write('[');
+
+        if (attributePrefix != null)
+        {
+            Write(attributePrefix);
+        }
+
+        Write("NativeAlignment");
+        Write('(');
+        Write(alignment.ToString(CultureInfo.InvariantCulture));
+        Write(')');
+        Write(']');
+
+        if (postfix is null)
+        {
+            NeedsNewline = true;
+        }
+        else
+        {
+            Write(postfix);
+        }
+    }
+
     private void AddVtblIndexAttribute(long vtblIndex, string? prefix = null, string? postfix = null, string? attributePrefix = null)
     {
         if (prefix is null)
