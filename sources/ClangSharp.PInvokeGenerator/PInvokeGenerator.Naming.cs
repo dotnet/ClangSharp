@@ -429,6 +429,18 @@ public sealed partial class PInvokeGenerator
             return (CXXRecordDecl)recordType.Decl;
         }
 
+        // A dependent base (such as `Base<T>` used within a class template) has no resolved
+        // record type. Its canonical type is still a template specialization, so resolve it to
+        // the record templated by the underlying class template. Casting the referenced cursor
+        // directly would throw, as it is the `ClassTemplateDecl` (or, for an alias-template base,
+        // a `TypeAliasTemplateDecl`) rather than a `CXXRecordDecl`. Canonicalization also unwraps
+        // any alias template to the aliased class template, so both cases resolve here.
+        if (baseType.CanonicalType is TemplateSpecializationType templateSpecializationType &&
+            templateSpecializationType.TemplateName.AsTemplateDecl is ClassTemplateDecl classTemplateDecl)
+        {
+            return classTemplateDecl.TemplatedDecl;
+        }
+
         AddDiagnostic(DiagnosticLevel.Error, "Failed to retrieve record type for CXX base specifier. Falling back to referenced type.", cxxBaseSpecifier);
         return (CXXRecordDecl)cxxBaseSpecifier.Referenced;
     }
