@@ -217,6 +217,7 @@ internal static partial class Program
         new HelpRow("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
         new HelpRow("generate-disable-runtime-marshalling", "[assembly: DisableRuntimeMarshalling] should be generated."),
         new HelpRow("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
+        new HelpRow("generate-extern-variables", "Top-level extern/extern const global variables should be surfaced as settable pointer fields on a <Class>ManualImports struct for the consumer to resolve (like --with-manual-import). Opt-in; pointer and primitive types only."),
         new HelpRow("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
         new HelpRow("generate-fixed-buffer-indexer-overloads", "Fixed sized buffer helper types should generate additional uint, nint, and nuint indexer overloads."),
         new HelpRow("generate-generated-code=<mode>", "Controls the emission of the GeneratedCode attribute. 'assembly' (default) emits a single '[assembly: GeneratedCode]' when helper types are generated; 'type' instead annotates each generated top-level type; 'none' emits neither."),

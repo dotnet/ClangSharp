@@ -81,6 +81,12 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly Dictionary<CXFile, (nuint Address, nuint Length)> _fileContents;
     private readonly Dictionary<CXFile, (string Name, string FullName)> _fileNames;
     private readonly HashSet<string> _topLevelClassNames;
+
+    // Top-level method-class output builders that should be emitted as a `struct` rather than a `class`.
+    // Used by `generate-extern-variables` to render the synthesized `<Class>ManualImports` holder as a
+    // struct, reusing the method-class wrapper without mutating the immutable configuration.
+    private readonly HashSet<string> _topLevelStructNames;
+
     private readonly HashSet<string> _usedRemappings;
     private readonly HashSet<RecordDecl> _declashedRecordNames;
     private readonly Dictionary<EnumDecl, (EnumMemberStripKind Kind, string Text)> _enumMemberStrips;
@@ -194,6 +200,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             _topLevelClassHasGuidMember = new Dictionary<string, bool>(StringComparer.Ordinal);
             _topLevelClassIsUnsafe = new Dictionary<string, bool>(StringComparer.Ordinal);
             _topLevelClassNames = new HashSet<string>(StringComparer.Ordinal);
+            _topLevelStructNames = new HashSet<string>(StringComparer.Ordinal);
             _topLevelClassAttributes = new Dictionary<string, List<string>>(StringComparer.Ordinal);
             _fileContents = [];
             _fileNames = [];
@@ -740,7 +747,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if (isMethodClass)
             {
-                var isTopLevelStruct = _config._withTypes.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nonTestName, out var withType) && withType.Equals("struct", StringComparison.Ordinal);
+                var isTopLevelStruct = _topLevelStructNames.GetAlternateLookup<ReadOnlySpan<char>>().Contains(nonTestName) || (_config._withTypes.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nonTestName, out var withType) && withType.Equals("struct", StringComparison.Ordinal));
 
                 if (outputBuilder.IsTestOutput)
                 {

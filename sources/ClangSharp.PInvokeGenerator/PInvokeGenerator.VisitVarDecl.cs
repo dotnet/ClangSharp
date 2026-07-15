@@ -33,6 +33,13 @@ public partial class PInvokeGenerator
         {
             if (!varDecl.HasInit)
             {
+                // A top level declaration without an initializer is normally dropped (there is nothing to
+                // constant-fold), but an opt-in extern binding can still resolve it at runtime.
+                if (TryVisitExternVariable(varDecl, GetCursorName(varDecl)))
+                {
+                    return;
+                }
+
                 // Nothing to do if a top level const declaration doesn't have an initializer
                 return;
             }
