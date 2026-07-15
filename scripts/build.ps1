@@ -5,9 +5,13 @@ Param(
   [switch] $ci,
   [ValidateSet("Debug", "Release")][string] $configuration = "Debug",
   [switch] $help,
+  [string] $llvm = "",
   [switch] $pack,
+  [switch] $regeneratenative,
   [switch] $restore,
+  [ValidateSet("", "win-x64", "win-arm64", "linux-x64", "linux-arm64", "osx-arm64")][string] $rid = "",
   [string] $solution = "",
+  [ValidateSet("", "libclang", "libClangSharp")][string] $target = "",
   [switch] $test,
   [switch] $testwin32metadata,
   [ValidateSet("quiet", "minimal", "normal", "detailed", "diagnostic")][string] $verbosity = "minimal",
@@ -44,6 +48,8 @@ function Help() {
     Write-Host -Object "  -build                  Build solution"
     Write-Host -Object "  -test                   Run all tests in the solution"
     Write-Host -Object "  -pack                   Package build artifacts"
+    Write-Host -Object "  -regeneratenative       Download the matching LLVM release and stage a native binary"
+    Write-Host -Object "                          (use with -target and -rid)"
     Write-Host -Object ""
     Write-Host -Object "Advanced settings:"
     Write-Host -Object "  -solution <value>       Path to solution to build"
@@ -80,6 +86,132 @@ function Restore() {
 
   if ($LastExitCode -ne 0) {
     throw "'Restore' failed for '$solution'"
+  }
+}
+
+function Get-LlvmVersion() {
+  if ($llvm -ne "") {
+    return $llvm
+  }
+
+  $cmakeLists = Join-Path -Path $RepoRoot -ChildPath "CMakeLists.txt"
+  $match = Select-String -Path $cmakeLists -Pattern 'project\(ClangSharp VERSION ([0-9.]+)\)' | Select-Object -First 1
+
+  if (-not $match) {
+    throw "Could not parse the LLVM version from '$cmakeLists'"
+  }
+
+  return $match.Matches[0].Groups[1].Value
+}
+
+function Download-Llvm([string] $version, [string] $runtime, [string] $destination) {
+  $asset = switch ($runtime) {
+    "win-x64"     { "clang+llvm-$version-x86_64-pc-windows-msvc.tar.xz" }
+    "win-arm64"   { "clang+llvm-$version-aarch64-pc-windows-msvc.tar.xz" }
+    "linux-x64"   { "LLVM-$version-Linux-X64.tar.xz" }
+    "linux-arm64" { "LLVM-$version-Linux-ARM64.tar.xz" }
+    "osx-arm64"   { "LLVM-$version-macOS-ARM64.tar.xz" }
+    default       { throw "Unsupported runtime identifier '$runtime'" }
+  }
+
+  $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-$version/$asset"
+  $archive = Join-Path -Path $ArtifactsDir -ChildPath "llvm-$runtime.tar.xz"
+
+  Create-Directory -Path $destination
+
+  # Windows ships bsdtar (libarchive) as tar.exe, which handles .tar.xz.
+  & curl.exe -fSL $url -o $archive
+
+  if ($LastExitCode -ne 0) {
+    throw "'curl' failed to download '$url'"
+  }
+
+  & tar -xf $archive -C $destination --strip-components=1
+
+  if ($LastExitCode -ne 0) {
+    throw "'tar' failed to extract '$archive'"
+  }
+}
+
+function Extract-Libclang([string] $runtime, [string] $source, [string] $destination) {
+  $pattern = switch -Wildcard ($runtime) {
+    "win-*"   { "libclang.dll" }
+    "linux-*" { "libclang.so*" }
+    "osx-*"   { "libclang.dylib" }
+  }
+
+  $name = switch -Wildcard ($runtime) {
+    "win-*"   { "libclang.dll" }
+    "linux-*" { "libclang.so" }
+    "osx-*"   { "libclang.dylib" }
+  }
+
+  # The Linux release ships a versioned real .so alongside symlinks, so pick the real
+  # file (largest) to get actual contents, matching the 'find -type f' in build.sh.
+  $lib = Get-ChildItem -Recurse -Path $source -Filter $pattern -File | Sort-Object -Property "Length" -Descending | Select-Object -First 1
+
+  if (-not $lib) {
+    throw "'$name' was not found in the LLVM release for '$runtime'"
+  }
+
+  Copy-Item -Path $lib.FullName -Destination (Join-Path -Path $destination -ChildPath $name)
+}
+
+function Build-Libclangsharp([string] $runtime, [string] $source, [string] $destination) {
+  $arch = switch ($runtime) {
+    "win-x64"   { "x64" }
+    "win-arm64" { "ARM64" }
+    default     { throw "'$runtime' cannot build libClangSharp on Windows; use build.sh on the matching runner" }
+  }
+
+  $nativeBuildDir = Join-Path -Path $ArtifactsDir -ChildPath "bin\native\$runtime"
+  $pathToLlvm = (Resolve-Path -Path $source).Path
+
+  & cmake -B "$nativeBuildDir" -S "$RepoRoot" -G "Visual Studio 17 2022" -A "$arch" "-Thost=$arch" "-DPATH_TO_LLVM=$pathToLlvm"
+
+  if ($LastExitCode -ne 0) {
+    throw "'cmake' configure failed for '$runtime'"
+  }
+
+  & cmake --build "$nativeBuildDir" --config Release --target ClangSharp
+
+  if ($LastExitCode -ne 0) {
+    throw "'cmake' build failed for '$runtime'"
+  }
+
+  $lib = Get-ChildItem -Recurse -Path $nativeBuildDir -Filter "libClangSharp.dll" -File | Select-Object -First 1
+
+  if (-not $lib) {
+    throw "'libClangSharp.dll' was not produced for '$runtime'"
+  }
+
+  Copy-Item -Path $lib.FullName -Destination (Join-Path -Path $destination -ChildPath "libClangSharp.dll")
+}
+
+function Regenerate-Native() {
+  if ($rid -eq "") {
+    throw "-rid is required with -regeneratenative"
+  }
+
+  if ($target -eq "") {
+    throw "-target is required with -regeneratenative"
+  }
+
+  $version = Get-LlvmVersion
+  $llvmDir = Join-Path -Path $ArtifactsDir -ChildPath "llvm\$rid"
+  $stagingDir = Join-Path -Path $ArtifactsDir -ChildPath "native\$rid"
+
+  Download-Llvm -version "$version" -runtime "$rid" -destination "$llvmDir"
+  Create-Directory -Path $stagingDir
+
+  if ($target -eq "libclang") {
+    Extract-Libclang -runtime "$rid" -source "$llvmDir" -destination "$stagingDir"
+  }
+  elseif ($target -eq "libClangSharp") {
+    Build-Libclangsharp -runtime "$rid" -source "$llvmDir" -destination "$stagingDir"
+  }
+  else {
+    throw "Unsupported target '$target'"
   }
 }
 
@@ -206,6 +338,10 @@ try {
 
   if ($pack) {
     Pack
+  }
+
+  if ($regeneratenative) {
+    Regenerate-Native
   }
 }
 catch {

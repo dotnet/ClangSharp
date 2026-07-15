@@ -1,0 +1,270 @@
+name: regenerate-native
+
+# Regenerates the native runtime packages:
+#   * libclang.runtime.*        (the prebuilt libclang lifted from the matching LLVM release)
+#   * libClangSharp.runtime.*   (our helper library, compiled against that same LLVM release)
+#
+# libclang regenerates when the tracked LLVM major.minor version changes (the version in the
+# top-level CMakeLists.txt, which maps to the llvmorg-<version> release tag). libClangSharp
+# regenerates for that same reason or whenever sources/libClangSharp changes. Both can also be
+# forced via workflow_dispatch. See the "Regenerating native binaries" section in README.md.
+#
+# The jobs upload the resulting .nupkg files as build artifacts and sign them via the
+# separate sign-nuget leg; publishing to NuGet is manual.
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      libclang:
+        description: "Force regenerating the libclang runtime packages"
+        type: boolean
+        default: false
+      libclangsharp:
+        description: "Force regenerating the libClangSharp runtime packages"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: regenerate-native-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      llvm-version: ${{ steps.detect.outputs.llvm-version }}
+      libclang: ${{ steps.detect.outputs.libclang }}
+      libclangsharp: ${{ steps.detect.outputs.libclangsharp }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - id: detect
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        parse_version() { sed -n 's/^project(ClangSharp VERSION \([0-9.]*\)).*/\1/p' "$1"; }
+
+        # The top-level CMakeLists.txt is the source of truth for the tracked LLVM version.
+        version="$(parse_version CMakeLists.txt)"
+        if [ -z "${version}" ]; then echo "could not parse LLVM version from CMakeLists.txt" >&2; exit 1; fi
+        major_minor="${version%.*}"
+        echo "llvm-version=${version}" >> "$GITHUB_OUTPUT"
+
+        libclang=false
+        libclangsharp=false
+
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "${{ inputs.libclang }}" = "true" ]; then libclang=true; fi
+          if [ "${{ inputs.libclangsharp }}" = "true" ]; then libclangsharp=true; fi
+        else
+          before="${{ github.event.before }}"
+          if [ -z "${before}" ] || [ "${before}" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${before}^{commit}" 2>/dev/null; then
+            # No usable baseline to diff against (new/recreated branch, force-push,
+            # unfetched history); regenerate everything conservatively.
+            libclang=true
+            libclangsharp=true
+          else
+            # libclang regenerates when the tracked LLVM major.minor changes.
+            prev_version="$(git show "${before}:CMakeLists.txt" 2>/dev/null | sed -n 's/^project(ClangSharp VERSION \([0-9.]*\)).*/\1/p')"
+            prev_major_minor="${prev_version%.*}"
+            if [ "${major_minor}" != "${prev_major_minor}" ]; then
+              libclang=true
+            fi
+
+            # libClangSharp regenerates for the same reason or when its sources change.
+            if [ "${libclang}" = "true" ] || ! git diff --quiet "${before}" HEAD -- sources/libClangSharp/; then
+              libclangsharp=true
+            fi
+          fi
+        fi
+
+        echo "libclang=${libclang}" >> "$GITHUB_OUTPUT"
+        echo "libclangsharp=${libclangsharp}" >> "$GITHUB_OUTPUT"
+        echo "Resolved: llvm=${version} (major.minor=${major_minor}) libclang=${libclang} libclangsharp=${libclangsharp}"
+    - name: Verify package versions match the tracked LLVM version
+      # Guards against bumping CMakeLists.txt without updating the nuspec/runtime.json
+      # versions. libclang versions must equal the LLVM version exactly; libClangSharp
+      # versions must be that version plus an independent build revision (e.g. 21.1.8.2).
+      shell: bash
+      run: |
+        set -euo pipefail
+        version="${{ steps.detect.outputs.llvm-version }}"
+        rc=0
+
+        nuspec_version() { sed -n 's:.*<version>\([^<]*\)</version>.*:\1:p' "$1" | head -n1; }
+        nuspec_branch()  { sed -n 's:.*<repository[^>]*branch="\([^"]*\)".*:\1:p' "$1" | head -n1; }
+        json_versions()  { grep -oE '"[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?"' "$1" | tr -d '"'; }
+
+        fail() { echo "::error file=$1::$2"; rc=1; }
+
+        if [ "${{ steps.detect.outputs.libclang }}" = "true" ]; then
+          for f in packages/libclang/libclang/libclang.nuspec packages/libclang/libclang.runtime.*/*.nuspec; do
+            v="$(nuspec_version "$f")"
+            [ "${v}" = "${version}" ] || fail "$f" "version '${v}' does not match LLVM version '${version}'"
+            b="$(nuspec_branch "$f")"
+            if [ -n "${b}" ] && [ "${b}" != "llvmorg-${version}" ]; then
+              fail "$f" "repository branch '${b}' does not match 'llvmorg-${version}'"
+            fi
+          done
+          for v in $(json_versions packages/libclang/libclang/runtime.json); do
+            [ "${v}" = "${version}" ] || fail "packages/libclang/libclang/runtime.json" "mapped version '${v}' does not match LLVM version '${version}'"
+          done
+        fi
+
+        if [ "${{ steps.detect.outputs.libclangsharp }}" = "true" ]; then
+          for f in packages/libClangSharp/libClangSharp/libClangSharp.nuspec packages/libClangSharp/libClangSharp.runtime.*/*.nuspec; do
+            v="$(nuspec_version "$f")"
+            case "${v}" in
+              "${version}".*) : ;;
+              *) fail "$f" "version '${v}' is not 'llvm-version.<revision>' (expected '${version}.<n>')" ;;
+            esac
+          done
+          for v in $(json_versions packages/libClangSharp/libClangSharp/runtime.json); do
+            case "${v}" in
+              "${version}".*) : ;;
+              *) fail "packages/libClangSharp/libClangSharp/runtime.json" "mapped version '${v}' is not '${version}.<revision>'" ;;
+            esac
+          done
+        fi
+
+        if [ "${rc}" -ne 0 ]; then
+          echo "Update the package versions to match the tracked LLVM version (${version}) before regenerating." >&2
+          exit 1
+        fi
+        echo "Package versions verified against LLVM ${version}"
+
+  # -------- libclang: lift the prebuilt libclang out of the matching LLVM release --------
+
+  libclang:
+    needs: detect
+    if: ${{ needs.detect.outputs.libclang == 'true' }}
+    # Extraction just unpacks prebuilt binaries, so a single Windows runner (its
+    # bundled bsdtar handles .tar.xz) can produce every runtime's package.
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: NuGet/setup-nuget@v2
+    - name: Extract libclang and pack packages
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = "Stop"
+        New-Item -ItemType Directory -Force -Path out | Out-Null
+        foreach ($rid in @("win-x64", "win-arm64", "linux-x64", "linux-arm64", "osx-arm64")) {
+          ./scripts/build.ps1 -regeneratenative -target libclang -rid $rid
+          Copy-Item "artifacts/native/$rid/*" "packages/libclang/libclang.runtime.$rid/"
+          nuget pack "packages/libclang/libclang.runtime.$rid/libclang.runtime.$rid.nuspec" -OutputDirectory out
+          if ($LASTEXITCODE -ne 0) { throw "nuget pack failed for $rid" }
+        }
+        nuget pack "packages/libclang/libclang/libclang.nuspec" -OutputDirectory out
+        if ($LASTEXITCODE -ne 0) { throw "nuget pack failed for the libclang meta package" }
+    - uses: actions/upload-artifact@v4
+      with:
+        name: libclang-packages
+        path: out/*.nupkg
+        if-no-files-found: error
+
+  # -------- libClangSharp: compile our helper against that same LLVM release --------
+
+  libclangsharp-build:
+    needs: detect
+    if: ${{ needs.detect.outputs.libclangsharp == 'true' }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - { rid: win-x64,     os: windows-latest }
+        - { rid: win-arm64,   os: windows-11-arm }
+        - { rid: linux-x64,   os: ubuntu-latest }
+        - { rid: linux-arm64, os: ubuntu-24.04-arm }
+        - { rid: osx-arm64,   os: macos-latest }
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build libClangSharp (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: ./scripts/build.ps1 -regeneratenative -target libClangSharp -rid ${{ matrix.rid }}
+    - name: Build libClangSharp (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: ./scripts/build.sh --regeneratenative --target libClangSharp --rid ${{ matrix.rid }}
+    - uses: actions/upload-artifact@v4
+      with:
+        name: libclangsharp-native-${{ matrix.rid }}
+        path: artifacts/native/${{ matrix.rid }}/*
+        if-no-files-found: error
+
+  libclangsharp-pack:
+    needs: [ detect, libclangsharp-build ]
+    if: ${{ needs.detect.outputs.libclangsharp == 'true' }}
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: NuGet/setup-nuget@v2
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: libclangsharp-native-*
+        path: staging
+    - name: Pack libClangSharp packages
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p out
+        for rid in win-x64 win-arm64 linux-x64 linux-arm64 osx-arm64; do
+          cp staging/"libclangsharp-native-${rid}"/* "packages/libClangSharp/libClangSharp.runtime.${rid}/"
+          nuget pack "packages/libClangSharp/libClangSharp.runtime.${rid}/libClangSharp.runtime.${rid}.nuspec" -OutputDirectory out
+        done
+        nuget pack "packages/libClangSharp/libClangSharp/libClangSharp.nuspec" -OutputDirectory out
+    - uses: actions/upload-artifact@v4
+      with:
+        name: libClangSharp-packages
+        path: out/*.nupkg
+        if-no-files-found: error
+
+  # -------- sign the native packages (separate leg, native-specific file list) --------
+
+  sign-nuget:
+    needs: [ libclang, libclangsharp-pack ]
+    # Sign on pushes to main whenever the legs that actually ran succeeded. A leg that
+    # was version-gated out is 'skipped' (not a failure), so a libClangSharp-only
+    # regeneration still gets signed; a real failure or cancellation blocks signing.
+    if: >-
+      ${{ github.event_name == 'push'
+          && !cancelled()
+          && needs.libclang.result != 'failure'
+          && needs.libclangsharp-pack.result != 'failure'
+          && (needs.libclang.result == 'success' || needs.libclangsharp-pack.result == 'success') }}
+    runs-on: windows-latest
+    permissions:
+      id-token: write
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
+      with:
+        merge-multiple: true
+        path: ./artifacts/pkg
+        pattern: "lib*-packages"
+    - uses: actions/setup-dotnet@v4
+      with:
+        global-json-file: ./global.json
+    - run: dotnet tool install --tool-path ./artifacts/tools --prerelease sign
+    - uses: azure/login@v2
+      with:
+        allow-no-subscriptions: true
+        client-id: "${{ secrets.AZURE_CLIENT_ID }}"
+        tenant-id: "${{ secrets.AZURE_TENANT_ID }}"
+    - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileListNative.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-credential-type "azure-cli" --azure-key-vault-url "${{ secrets.KEY_VAULT_URL }}" --azure-key-vault-certificate "${{ secrets.KEY_VAULT_CERTIFICATE_ID }}"
+      shell: pwsh
+    - uses: actions/upload-artifact@v4
+      with:
+        name: sign_nuget_native
+        path: |
+          ./artifacts/pkg/**/*
+        if-no-files-found: error
