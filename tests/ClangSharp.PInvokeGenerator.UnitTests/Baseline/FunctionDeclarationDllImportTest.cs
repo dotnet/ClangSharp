@@ -195,6 +195,31 @@ struct MyStruct
     }
 
     [Test]
+    public Task WithSetLastErrorStarNegatedTest()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+
+        // '*' opts every function in; '--without-setlasterror MyFunction2' opts that one back out.
+        string[] withSetLastErrors = ["*"];
+        string[] withoutSetLastErrors = ["MyFunction2"];
+        return ValidateAsync(nameof(WithSetLastErrorStarNegatedTest), inputContents, withSetLastErrors: withSetLastErrors, withoutSetLastErrors: withoutSetLastErrors);
+    }
+
+    [Test]
+    public Task WithCallConvStarNegatedTest()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+
+        // '*' applies Winapi to every function; '--without-callconv MyFunction2' opts that one back out so it keeps the default.
+        var withCallConvs = new Dictionary<string, string>
+        {
+            ["*"] = "Winapi"
+        };
+        string[] withoutCallConvs = ["MyFunction2"];
+        return ValidateAsync(nameof(WithCallConvStarNegatedTest), inputContents, withCallConvs: withCallConvs, withoutCallConvs: withoutCallConvs);
+    }
+
+    [Test]
     public Task SourceLocationTest()
         => ValidateAsync(nameof(SourceLocationTest), @"extern ""C"" void MyFunction(float value);", additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
 

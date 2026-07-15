@@ -732,7 +732,7 @@ public sealed partial class PInvokeGenerator
     {
         if (cxxMethodDecl is not null)
         {
-            return cxxMethodDecl.IsConst || HasRemapping(cxxMethodDecl, _config._withReadonlys, matchStar: true);
+            return cxxMethodDecl.IsConst || HasRemapping(cxxMethodDecl, _config._withReadonlys, _config._withoutReadonlys, matchStar: true);
         }
         return false;
     }

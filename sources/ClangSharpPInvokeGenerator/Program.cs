@@ -11,6 +11,7 @@ using ClangSharp.Interop;
 using static ClangSharp.Interop.CXDiagnosticSeverity;
 using static ClangSharp.Interop.CXErrorCode;
 using static ClangSharp.Interop.CXTranslationUnit_Flags;
+using static ClangSharp.PInvokeGeneratorConfigurationOptions;
 
 namespace ClangSharp;
 
@@ -24,10 +25,88 @@ internal static partial class Program
     private static readonly string Version = GetVersion();
 
     private const string WildcardsTitle = "Wildcards:";
-    private const string Wildcards = "You can use * as catch-all rule for remapping procedures. For example if you want make all of your generated code internal you can use --with-access-specifier *=Internal.";
+    private const string Wildcards = "Many `--with-*` options accept `*` as a catch-all that applies a rule to everything; for value options it is written `*=value` (e.g. --with-access-specifier *=Internal makes all generated code internal). Each such option has a paired `--without-<name>` option that opts a specific declaration back out of its `*` catch-all (e.g. --with-access-specifier *=Internal --without-access-specifier Foo). To opt everything in and exclude piecemeal, use the include (-i) and exclude (-e) options together; they are already an opt-in/opt-out pair.";
 
     private const string MoreInfoTitle = "More information:";
     private const string MoreInfo = "See https://github.com/dotnet/ClangSharp/blob/main/docs/generating-bindings-best-practices.md for a guide on structuring a generation project and using these options.";
+
+    // Canonical boolean `-c` switches. `Inverted` means the underlying flag records the *opposite*
+    // of the switch's sense, so `generate-x=false` sets the flag (the legacy `exclude-*`/`dont-*`
+    // behavior) and `generate-x=true` (or bare `generate-x`) clears it.
+    private static readonly Dictionary<string, (PInvokeGeneratorConfigurationOptions Flag, bool Inverted)> s_booleanConfigSwitches = new(StringComparer.Ordinal)
+    {
+        ["generate-aggressive-inlining"] = (GenerateAggressiveInlining, false),
+        ["generate-callconv-member-function"] = (GenerateCallConvMemberFunction, false),
+        ["generate-cpp-attributes"] = (GenerateCppAttributes, false),
+        ["generate-disable-runtime-marshalling"] = (GenerateDisableRuntimeMarshalling, false),
+        ["generate-doc-includes"] = (GenerateDocIncludes, false),
+        ["generate-extern-variables"] = (GenerateExternVariables, false),
+        ["generate-file-scoped-namespaces"] = (GenerateFileScopedNamespaces, false),
+        ["generate-fixed-buffer-indexer-overloads"] = (GenerateFixedBufferIndexerOverloads, false),
+        ["generate-guid-member"] = (GenerateGuidMember, false),
+        ["generate-helper-types"] = (GenerateHelperTypes, false),
+        ["generate-macro-bindings"] = (GenerateMacroBindings, false),
+        ["generate-marker-interfaces"] = (GenerateMarkerInterfaces, false),
+        ["generate-native-alignment-attribute"] = (GenerateNativeAlignmentAttribute, false),
+        ["generate-native-bitfield-attribute"] = (GenerateNativeBitfieldAttribute, false),
+        ["generate-native-inheritance-attribute"] = (GenerateNativeInheritanceAttribute, false),
+        ["generate-generic-pointer-wrapper"] = (GenerateGenericPointerWrapper, false),
+        ["generate-objective-c-bindings"] = (GenerateObjectiveCBindings, false),
+        ["generate-setslastsystemerror-attribute"] = (GenerateSetsLastSystemErrorAttribute, false),
+        ["generate-template-bindings"] = (GenerateTemplateBindings, false),
+        ["generate-unmanaged-constants"] = (GenerateUnmanagedConstants, false),
+        ["generate-vtbl-index-attribute"] = (GenerateVtblIndexAttribute, false),
+
+        // Inverted: the flag records an exclusion/opt-out, so `=false` opts the feature out.
+        ["generate-anonymous-field-helpers"] = (ExcludeAnonymousFieldHelpers, true),
+        ["generate-com-proxies"] = (ExcludeComProxies, true),
+        ["generate-default-remappings"] = (NoDefaultRemappings, true),
+        ["generate-empty-records"] = (ExcludeEmptyRecords, true),
+        ["generate-enum-operators"] = (ExcludeEnumOperators, true),
+        ["generate-enum-member-type-name"] = (StripEnumMemberTypeName, true),
+        ["generate-fnptr-codegen"] = (ExcludeFnptrCodegen, true),
+        ["generate-funcs-with-body"] = (ExcludeFunctionsWithBody, true),
+        ["generate-nint-codegen"] = (ExcludeNIntCodegen, true),
+        ["generate-using-statics-for-enums"] = (DontUseUsingStaticsForEnums, true),
+        ["generate-using-statics-for-guid-members"] = (DontUseUsingStaticsForGuidMember, true),
+
+        // Diagnostics; positive booleans that keep their `log-` prefix.
+        ["log-exclusions"] = (LogExclusions, false),
+        ["log-potential-typedef-remappings"] = (LogPotentialTypedefRemappings, false),
+        ["log-visited-files"] = (LogVisitedFiles, false),
+    };
+
+    // Legacy `-c` spellings mapped to their canonical replacement. Still accepted, but emit a
+    // deprecation warning and are hidden from the `-c help` listing.
+    private static readonly Dictionary<string, string> s_deprecatedConfigSwitches = new(StringComparer.Ordinal)
+    {
+        ["compatible-codegen"] = "codegen=compatible",
+        ["default-codegen"] = "codegen=default",
+        ["latest-codegen"] = "codegen=latest",
+        ["preview-codegen"] = "codegen=preview",
+        ["single-file"] = "file=single",
+        ["multi-file"] = "file=multi",
+        ["windows-types"] = "types=windows",
+        ["unix-types"] = "types=unix",
+        ["explicit-vtbls"] = "vtbls=explicit",
+        ["implicit-vtbls"] = "vtbls=implicit",
+        ["trimmable-vtbls"] = "vtbls=trimmable",
+        ["exclude-anonymous-field-helpers"] = "generate-anonymous-field-helpers=false",
+        ["exclude-com-proxies"] = "generate-com-proxies=false",
+        ["exclude-default-remappings"] = "generate-default-remappings=false",
+        ["no-default-remappings"] = "generate-default-remappings=false",
+        ["default-remappings"] = "generate-default-remappings=true",
+        ["exclude-empty-records"] = "generate-empty-records=false",
+        ["exclude-enum-operators"] = "generate-enum-operators=false",
+        ["exclude-fnptr-codegen"] = "generate-fnptr-codegen=false",
+        ["exclude-funcs-with-body"] = "generate-funcs-with-body=false",
+        ["exclude-nint-codegen"] = "generate-nint-codegen=false",
+        ["exclude-using-statics-for-enums"] = "generate-using-statics-for-enums=false",
+        ["dont-use-using-statics-for-enums"] = "generate-using-statics-for-enums=false",
+        ["exclude-using-statics-for-guid-members"] = "generate-using-statics-for-guid-members=false",
+        ["dont-use-using-statics-for-guid-members"] = "generate-using-statics-for-guid-members=false",
+        ["strip-enum-member-type-name"] = "generate-enum-member-type-name=false",
+    };
 
     public static int Main(params string[] args)
     {
@@ -59,9 +138,12 @@ internal static partial class Program
     public static int Run()
     {
         var errorList = new List<string>(s_parser.Errors);
+        var warningList = new List<string>(s_parser.Warnings);
 
         var additionalArgs = s_additionalOption.GetValues();
         var configSwitches = s_configOption.GetValues();
+        var generateSwitches = s_generateOption.GetValues();
+        var logSwitches = s_logOption.GetValues();
         var defineMacros = s_defineMacros.GetValues();
         var excludedNames = s_excludedNames.GetValues();
         var files = s_files.GetValues();
@@ -102,6 +184,17 @@ internal static partial class Program
         var withTypeNameValuePairs = s_withTypeNameValuePairs.GetValues();
         var withUsingNameValuePairs = s_withUsingNameValuePairs.GetValues();
         var withPackingNameValuePairs = s_withPackingNameValuePairs.GetValues();
+        var withoutAccessSpecifiers = s_withoutAccessSpecifiers.GetValues();
+        var withoutAttributes = s_withoutAttributes.GetValues();
+        var withoutCallConvs = s_withoutCallConvs.GetValues();
+        var withoutEnumMemberStrip = s_withoutEnumMemberStrip.GetValues();
+        var withoutEqualityMembers = s_withoutEqualityMembers.GetValues();
+        var withoutLibraryPaths = s_withoutLibraryPaths.GetValues();
+        var withoutReadonlys = s_withoutReadonlys.GetValues();
+        var withoutSetLastErrors = s_withoutSetLastErrors.GetValues();
+        var withoutSuppressGCTransitions = s_withoutSuppressGCTransitions.GetValues();
+        var withoutTypes = s_withoutTypes.GetValues();
+        var withoutUsings = s_withoutUsings.GetValues();
 
         if (!Enum.TryParse<PInvokeGeneratorOutputMode>(s_outputMode.SingleValue, ignoreCase: true, out var outputMode))
         {
@@ -148,11 +241,26 @@ internal static partial class Program
         var configOptions = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? PInvokeGeneratorConfigurationOptions.None : PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
         var printConfigHelp = false;
 
+        // `--generate` and `--log` are the canonical homes for the feature and diagnostic switches;
+        // the name is the `-c generate-*`/`log-*` token with its prefix stripped.
+        foreach (var generateSwitchRaw in generateSwitches)
+        {
+            var (name, value, hasValue) = SplitConfigSwitch(generateSwitchRaw);
+            configOptions = ApplyFullConfigSwitch($"generate-{name}", value, configOptions, testOutputLocation, errorList, warningList);
+        }
+
+        foreach (var logSwitchRaw in logSwitches)
+        {
+            var (name, value, hasValue) = SplitConfigSwitch(logSwitchRaw);
+            configOptions = ApplyFullConfigSwitch($"log-{name}", value, configOptions, testOutputLocation, errorList, warningList);
+        }
+
+        // `-c` now only carries the four mode families (codegen/file/types/vtbls) plus `help`. The
+        // old feature/diagnostic and legacy spellings are still accepted, but route to the dedicated
+        // `--generate`/`--log` options with a deprecation warning.
         foreach (var configSwitchRaw in configSwitches)
         {
-            var separatorIndex = configSwitchRaw.IndexOf('=', StringComparison.Ordinal);
-            var configSwitch = separatorIndex >= 0 ? configSwitchRaw[..separatorIndex] : configSwitchRaw;
-            var configSwitchValue = separatorIndex >= 0 ? configSwitchRaw[(separatorIndex + 1)..] : "";
+            var (configSwitch, configSwitchValue, hasValue) = SplitConfigSwitch(configSwitchRaw);
 
             switch (configSwitch)
             {
@@ -164,389 +272,50 @@ internal static partial class Program
                     break;
                 }
 
-                // Codegen Options
-
-                case "compatible-codegen":
+                case "codegen":
+                case "file":
+                case "types":
+                case "vtbls":
                 {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateLatestCode;
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
-                    break;
-                }
-
-                case "default-codegen":
-                {
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateLatestCode;
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
-                    break;
-                }
-
-                case "latest-codegen":
-                {
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateLatestCode;
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
-                    break;
-                }
-
-                case "preview-codegen":
-                {
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateLatestCode;
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
-                    break;
-                }
-
-                // File Options
-
-                case "single-file":
-                {
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
-                    break;
-                }
-
-                case "multi-file":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
-                    break;
-                }
-
-                // Type Options
-
-                case "unix-types":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
-                    break;
-                }
-
-                case "windows-types":
-                {
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
-                    break;
-                }
-
-                // Exclusion Options
-
-                case "exclude-anonymous-field-helpers":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeAnonymousFieldHelpers;
-                    break;
-                }
-
-                case "exclude-com-proxies":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeComProxies;
-                    break;
-                }
-
-                case "exclude-default-remappings":
-                case "no-default-remappings":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
-                    break;
-                }
-
-                case "exclude-empty-records":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeEmptyRecords;
-                    break;
-                }
-
-                case "exclude-enum-operators":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeEnumOperators;
-                    break;
-                }
-
-                case "exclude-fnptr-codegen":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeFnptrCodegen;
-                    break;
-                }
-
-                case "exclude-funcs-with-body":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeFunctionsWithBody;
-                    break;
-                }
-
-                case "exclude-nint-codegen":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeNIntCodegen;
-                    break;
-                }
-
-                case "exclude-using-statics-for-enums":
-                case "dont-use-using-statics-for-enums":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForEnums;
-                    break;
-                }
-
-                case "exclude-using-statics-for-guid-members":
-                case "dont-use-using-statics-for-guid-members":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForGuidMember;
-                    break;
-                }
-
-                // VTBL Options
-
-                case "explicit-vtbls":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateTrimmableVtbls;
-                    break;
-                }
-
-                case "implicit-vtbls":
-                {
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateTrimmableVtbls;
-                    break;
-                }
-
-                case "trimmable-vtbls":
-                {
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateTrimmableVtbls;
-                    break;
-                }
-
-                // Test Options
-
-                case "generate-tests-nunit":
-                {
-                    if (string.IsNullOrWhiteSpace(testOutputLocation))
-                    {
-                        errorList.Add("Error: No test output file location provided. Use --test-output or -to");
-                    }
-
-                    if ((configOptions & PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit) != 0)
-                    {
-                        errorList.Add("Cannot generate both NUnit and XUnit tests.");
-                    }
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit;
-                    break;
-                }
-
-                case "generate-tests-xunit":
-                {
-                    if (string.IsNullOrWhiteSpace(testOutputLocation))
-                    {
-                        errorList.Add("Error: No test output file location provided. Use --test-output or -to");
-                    }
-
-                    if ((configOptions & PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) != 0)
-                    {
-                        errorList.Add("Cannot generate both NUnit and XUnit tests.");
-                    }
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit;
-                    break;
-                }
-
-                // Generation Options
-
-                case "generate-aggressive-inlining":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateAggressiveInlining;
-                    break;
-                }
-
-                case "generate-callconv-member-function":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCallConvMemberFunction;
-                    break;
-                }
-
-                case "generate-cpp-attributes":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCppAttributes;
-                    break;
-                }
-
-                case "generate-disable-runtime-marshalling":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateDisableRuntimeMarshalling;
-                    break;
-                }
-
-                case "generate-doc-includes":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateDocIncludes;
-                    break;
-                }
-
-                case "generate-file-scoped-namespaces":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces;
-                    break;
-                }
-
-                case "generate-fixed-buffer-indexer-overloads":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateFixedBufferIndexerOverloads;
-                    break;
-                }
-
-                case "generate-generated-code":
-                {
-                    switch (configSwitchValue)
-                    {
-                        case "" or "assembly":
-                        {
-                            configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateGeneratedCodeAttributeAsType;
-                            configOptions &= ~PInvokeGeneratorConfigurationOptions.ExcludeGeneratedCodeAttribute;
-                            break;
-                        }
-
-                        case "type":
-                        {
-                            configOptions |= PInvokeGeneratorConfigurationOptions.GenerateGeneratedCodeAttributeAsType;
-                            configOptions &= ~PInvokeGeneratorConfigurationOptions.ExcludeGeneratedCodeAttribute;
-                            break;
-                        }
-
-                        case "none":
-                        {
-                            configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeGeneratedCodeAttribute;
-                            configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateGeneratedCodeAttributeAsType;
-                            break;
-                        }
-
-                        default:
-                        {
-                            errorList.Add($"Error: Unrecognized generate-generated-code value: {configSwitchValue}. Expected 'assembly', 'type', or 'none'.");
-                            break;
-                        }
-                    }
-                    break;
-                }
-
-                case "generate-guid-member":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateGuidMember;
-                    break;
-                }
-
-                case "generate-extern-variables":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateExternVariables;
-                    break;
-                }
-
-                case "generate-helper-types":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateHelperTypes;
-                    break;
-                }
-
-                case "generate-macro-bindings":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
-                    break;
-                }
-
-                case "generate-marker-interfaces":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces;
-                    break;
-                }
-
-                case "generate-native-alignment-attribute":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateNativeAlignmentAttribute;
-                    break;
-                }
-
-                case "generate-native-bitfield-attribute":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute;
-                    break;
-                }
-
-                case "generate-native-inheritance-attribute":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute;
-                    break;
-                }
-
-                case "generate-objective-c-bindings":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateObjectiveCBindings;
-                    break;
-                }
-
-                case "generate-generic-pointer-wrapper":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateGenericPointerWrapper;
-                    break;
-                }
-
-                case "generate-setslastsystemerror-attribute":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateSetsLastSystemErrorAttribute;
-                    break;
-                }
-
-                case "generate-template-bindings":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateTemplateBindings;
-                    break;
-                }
-
-                case "generate-unmanaged-constants":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateUnmanagedConstants;
-                    break;
-                }
-
-                case "generate-vtbl-index-attribute":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute;
-                    break;
-                }
-
-                // Logging Options
-
-                case "log-exclusions":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.LogExclusions;
-                    break;
-                }
-
-                case "log-potential-typedef-remappings":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.LogPotentialTypedefRemappings;
-                    break;
-                }
-
-                case "log-visited-files":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.LogVisitedFiles;
-                    break;
-                }
-
-                // Strip Options
-
-                case "strip-enum-member-type-name":
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.StripEnumMemberTypeName;
-                    break;
-                }
-
-                // Legacy Options
-
-                case "default-remappings":
-                {
-                    configOptions &= ~PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
+                    configOptions = ApplyFullConfigSwitch(configSwitch, configSwitchValue, configOptions, testOutputLocation, errorList, warningList);
                     break;
                 }
 
                 default:
                 {
-                    errorList.Add($"Error: Unrecognized config switch: {configSwitch}.");
+                    // Resolve any legacy spelling so we can classify the canonical target and point
+                    // the user at the new option in a single warning.
+                    var canonicalSwitch = configSwitch;
+                    var canonicalValue = configSwitchValue;
+
+                    if (s_deprecatedConfigSwitches.TryGetValue(configSwitch, out var canonical))
+                    {
+                        var canonicalSeparator = canonical.IndexOf('=', StringComparison.Ordinal);
+                        canonicalSwitch = canonicalSeparator >= 0 ? canonical[..canonicalSeparator] : canonical;
+                        canonicalValue = canonicalSeparator >= 0 ? canonical[(canonicalSeparator + 1)..] : "";
+                        hasValue = canonicalSeparator >= 0;
+                    }
+
+                    if (canonicalSwitch.StartsWith("generate-", StringComparison.Ordinal))
+                    {
+                        var name = canonicalSwitch["generate-".Length..];
+                        var suggestion = hasValue ? $"--generate {name}={canonicalValue}" : $"--generate {name}";
+                        warningList.Add($"Warning: Config option '-c {configSwitch}' is deprecated and will be removed in a future release. Use '{suggestion}' instead.");
+                        configOptions = ApplyFullConfigSwitch(canonicalSwitch, canonicalValue, configOptions, testOutputLocation, errorList, warningList);
+                    }
+                    else if (canonicalSwitch.StartsWith("log-", StringComparison.Ordinal))
+                    {
+                        var name = canonicalSwitch["log-".Length..];
+                        var suggestion = hasValue ? $"--log {name}={canonicalValue}" : $"--log {name}";
+                        warningList.Add($"Warning: Config option '-c {configSwitch}' is deprecated and will be removed in a future release. Use '{suggestion}' instead.");
+                        configOptions = ApplyFullConfigSwitch(canonicalSwitch, canonicalValue, configOptions, testOutputLocation, errorList, warningList);
+                    }
+                    else
+                    {
+                        // A canonical/legacy mode family (or an unrecognized switch); ApplyConfigSwitch
+                        // reports the legacy-spelling warning or the unrecognized-switch error.
+                        configOptions = ApplyFullConfigSwitch(configSwitch, configSwitchValue, configOptions, testOutputLocation, errorList, warningList);
+                    }
                     break;
                 }
             }
@@ -561,6 +330,12 @@ internal static partial class Program
         {
             CommandLineParser.WriteOptionHelp(Console.Out, s_configOption, s_configOptions);
             return -1;
+        }
+
+        foreach (var warning in warningList)
+        {
+            Console.Error.Write(warning);
+            Console.Error.Write(Environment.NewLine);
         }
 
         if (errorList.Count != 0)
@@ -635,6 +410,17 @@ internal static partial class Program
                 WithTypes = withTypes,
                 WithUsings = withUsings,
                 WithPackings = withPackings,
+                WithoutAccessSpecifiers = withoutAccessSpecifiers,
+                WithoutAttributes = withoutAttributes,
+                WithoutCallConvs = withoutCallConvs,
+                WithoutEnumMemberStrip = withoutEnumMemberStrip,
+                WithoutEqualityMembers = withoutEqualityMembers,
+                WithoutLibraryPaths = withoutLibraryPaths,
+                WithoutReadonlys = withoutReadonlys,
+                WithoutSetLastErrors = withoutSetLastErrors,
+                WithoutSuppressGCTransitions = withoutSuppressGCTransitions,
+                WithoutTypes = withoutTypes,
+                WithoutUsings = withoutUsings,
             };
         }
         catch (ArgumentException e)
@@ -741,6 +527,303 @@ internal static partial class Program
 
         return exitCode;
     }
+
+    // Splits a `name` or `name=value` switch token. HasValue distinguishes a bare switch from one
+    // that carried an explicit value, which callers use when suggesting the replacement spelling.
+    private static (string Name, string Value, bool HasValue) SplitConfigSwitch(string raw)
+    {
+        var separatorIndex = raw.IndexOf('=', StringComparison.Ordinal);
+        return separatorIndex >= 0
+            ? (raw[..separatorIndex], raw[(separatorIndex + 1)..], true)
+            : (raw, "", false);
+    }
+
+    // Applies a `-c`/`--generate`/`--log` switch, handling the two test-generation switches that
+    // need the test output location and delegating everything else to ApplyConfigSwitch.
+    internal static PInvokeGeneratorConfigurationOptions ApplyFullConfigSwitch(string configSwitch, string configSwitchValue, PInvokeGeneratorConfigurationOptions configOptions, string? testOutputLocation, List<string> errorList, List<string> warningList)
+    {
+        switch (configSwitch)
+        {
+            case "generate-tests-nunit":
+            {
+                if (!TryParseConfigBool(configSwitch, configSwitchValue, errorList, out var enable))
+                {
+                    return configOptions;
+                }
+
+                if (!enable)
+                {
+                    return configOptions & ~GenerateTestsNUnit;
+                }
+
+                if (string.IsNullOrWhiteSpace(testOutputLocation))
+                {
+                    errorList.Add("Error: No test output file location provided. Use --test-output or -to");
+                }
+
+                if ((configOptions & GenerateTestsXUnit) != 0)
+                {
+                    errorList.Add("Cannot generate both NUnit and XUnit tests.");
+                }
+
+                return configOptions | GenerateTestsNUnit;
+            }
+
+            case "generate-tests-xunit":
+            {
+                if (!TryParseConfigBool(configSwitch, configSwitchValue, errorList, out var enable))
+                {
+                    return configOptions;
+                }
+
+                if (!enable)
+                {
+                    return configOptions & ~GenerateTestsXUnit;
+                }
+
+                if (string.IsNullOrWhiteSpace(testOutputLocation))
+                {
+                    errorList.Add("Error: No test output file location provided. Use --test-output or -to");
+                }
+
+                if ((configOptions & GenerateTestsNUnit) != 0)
+                {
+                    errorList.Add("Cannot generate both NUnit and XUnit tests.");
+                }
+
+                return configOptions | GenerateTestsXUnit;
+            }
+
+            default:
+            {
+                return ApplyConfigSwitch(configSwitch, configSwitchValue, configOptions, errorList, warningList);
+            }
+        }
+    }
+
+    // Applies a single non-test, non-help `-c` switch, resolving deprecated spellings to their
+    // canonical form first. Returns the updated options; recognized-but-invalid input is reported
+    // via errorList and leaves the options otherwise unchanged.
+    internal static PInvokeGeneratorConfigurationOptions ApplyConfigSwitch(string configSwitch, string configSwitchValue, PInvokeGeneratorConfigurationOptions configOptions, List<string> errorList, List<string> warningList)
+    {
+        if (s_deprecatedConfigSwitches.TryGetValue(configSwitch, out var canonical))
+        {
+            warningList.Add($"Warning: Config option '{configSwitch}' is deprecated and will be removed in a future release. Use '{canonical}' instead.");
+
+            var canonicalSeparator = canonical.IndexOf('=', StringComparison.Ordinal);
+            configSwitch = canonicalSeparator >= 0 ? canonical[..canonicalSeparator] : canonical;
+            configSwitchValue = canonicalSeparator >= 0 ? canonical[(canonicalSeparator + 1)..] : "";
+        }
+
+        switch (configSwitch)
+        {
+            case "codegen":
+            {
+                switch (configSwitchValue)
+                {
+                    case "compatible":
+                    {
+                        configOptions |= GenerateCompatibleCode;
+                        configOptions &= ~(GenerateLatestCode | GeneratePreviewCode);
+                        break;
+                    }
+
+                    case "" or "default":
+                    {
+                        configOptions &= ~(GenerateCompatibleCode | GenerateLatestCode | GeneratePreviewCode);
+                        break;
+                    }
+
+                    case "latest":
+                    {
+                        configOptions |= GenerateLatestCode;
+                        configOptions &= ~(GenerateCompatibleCode | GeneratePreviewCode);
+                        break;
+                    }
+
+                    case "preview":
+                    {
+                        configOptions |= GeneratePreviewCode;
+                        configOptions &= ~(GenerateCompatibleCode | GenerateLatestCode);
+                        break;
+                    }
+
+                    default:
+                    {
+                        errorList.Add($"Error: Unrecognized codegen value: {configSwitchValue}. Expected 'compatible', 'default', 'latest', or 'preview'.");
+                        break;
+                    }
+                }
+                return configOptions;
+            }
+
+            case "file":
+            {
+                switch (configSwitchValue)
+                {
+                    case "" or "single":
+                    {
+                        configOptions &= ~GenerateMultipleFiles;
+                        break;
+                    }
+
+                    case "multi":
+                    {
+                        configOptions |= GenerateMultipleFiles;
+                        break;
+                    }
+
+                    default:
+                    {
+                        errorList.Add($"Error: Unrecognized file value: {configSwitchValue}. Expected 'single' or 'multi'.");
+                        break;
+                    }
+                }
+                return configOptions;
+            }
+
+            case "types":
+            {
+                switch (configSwitchValue)
+                {
+                    case "" or "windows":
+                    {
+                        configOptions &= ~GenerateUnixTypes;
+                        break;
+                    }
+
+                    case "unix":
+                    {
+                        configOptions |= GenerateUnixTypes;
+                        break;
+                    }
+
+                    default:
+                    {
+                        errorList.Add($"Error: Unrecognized types value: {configSwitchValue}. Expected 'windows' or 'unix'.");
+                        break;
+                    }
+                }
+                return configOptions;
+            }
+
+            case "vtbls":
+            {
+                switch (configSwitchValue)
+                {
+                    case "explicit":
+                    {
+                        configOptions |= GenerateExplicitVtbls;
+                        configOptions &= ~GenerateTrimmableVtbls;
+                        break;
+                    }
+
+                    case "" or "implicit":
+                    {
+                        configOptions &= ~(GenerateExplicitVtbls | GenerateTrimmableVtbls);
+                        break;
+                    }
+
+                    case "trimmable":
+                    {
+                        configOptions |= GenerateTrimmableVtbls;
+                        configOptions &= ~GenerateExplicitVtbls;
+                        break;
+                    }
+
+                    default:
+                    {
+                        errorList.Add($"Error: Unrecognized vtbls value: {configSwitchValue}. Expected 'explicit', 'implicit', or 'trimmable'.");
+                        break;
+                    }
+                }
+                return configOptions;
+            }
+
+            case "generate-generated-code":
+            {
+                switch (configSwitchValue)
+                {
+                    case "" or "assembly":
+                    {
+                        configOptions &= ~(GenerateGeneratedCodeAttributeAsType | ExcludeGeneratedCodeAttribute);
+                        break;
+                    }
+
+                    case "type":
+                    {
+                        configOptions |= GenerateGeneratedCodeAttributeAsType;
+                        configOptions &= ~ExcludeGeneratedCodeAttribute;
+                        break;
+                    }
+
+                    case "none":
+                    {
+                        configOptions |= ExcludeGeneratedCodeAttribute;
+                        configOptions &= ~GenerateGeneratedCodeAttributeAsType;
+                        break;
+                    }
+
+                    default:
+                    {
+                        errorList.Add($"Error: Unrecognized generate-generated-code value: {configSwitchValue}. Expected 'assembly', 'type', or 'none'.");
+                        break;
+                    }
+                }
+                return configOptions;
+            }
+
+            default:
+            {
+                if (s_booleanConfigSwitches.TryGetValue(configSwitch, out var boolSwitch))
+                {
+                    if (TryParseConfigBool(configSwitch, configSwitchValue, errorList, out var enable))
+                    {
+                        // `Inverted` flags record an opt-out, so enabling the feature clears them.
+                        if (boolSwitch.Inverted ? !enable : enable)
+                        {
+                            configOptions |= boolSwitch.Flag;
+                        }
+                        else
+                        {
+                            configOptions &= ~boolSwitch.Flag;
+                        }
+                    }
+                }
+                else
+                {
+                    errorList.Add($"Error: Unrecognized config switch: {configSwitch}.");
+                }
+                return configOptions;
+            }
+        }
+    }
+
+    private static bool TryParseConfigBool(string configSwitch, string configSwitchValue, List<string> errorList, out bool result)
+    {
+        switch (configSwitchValue)
+        {
+            case "" or "true":
+            {
+                result = true;
+                return true;
+            }
+
+            case "false":
+            {
+                result = false;
+                return true;
+            }
+
+            default:
+            {
+                errorList.Add($"Error: Unrecognized value '{configSwitchValue}' for config switch '{configSwitch}'. Expected 'true' or 'false'.");
+                result = false;
+                return false;
+            }
+        }
+    }
+
 
     private static void ParseKeyValuePairs(IEnumerable<string> keyValuePairs, List<string> errorList, out Dictionary<string, string> result)
     {

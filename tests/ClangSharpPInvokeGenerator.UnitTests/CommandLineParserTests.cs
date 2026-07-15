@@ -16,6 +16,33 @@ public sealed class CommandLineParserTests
     private static CommandLineOption Flag(params string[] aliases)
         => new(aliases, "", CommandLineOptionKind.Flag);
 
+    [Test]
+    public void DeprecatedAliasStillMatchesButEmitsAWarning()
+    {
+        var methodClass = new CommandLineOption(["--method-class-name", "-m"], "", CommandLineOptionKind.SingleValue, deprecatedAliases: ["--methodClassName"]);
+        var parser = new CommandLineParser([methodClass]);
+
+        parser.Parse(["--methodClassName", "Methods"]);
+
+        Assert.That(parser.Errors, Is.Empty);
+        Assert.That(methodClass.SingleValue, Is.EqualTo("Methods"));
+        Assert.That(parser.Warnings, Has.Count.EqualTo(1));
+        Assert.That(parser.Warnings[0], Does.Contain("--methodClassName"));
+        Assert.That(parser.Warnings[0], Does.Contain("--method-class-name"));
+    }
+
+    [Test]
+    public void CanonicalAliasEmitsNoDeprecationWarning()
+    {
+        var methodClass = new CommandLineOption(["--method-class-name", "-m"], "", CommandLineOptionKind.SingleValue, deprecatedAliases: ["--methodClassName"]);
+        var parser = new CommandLineParser([methodClass]);
+
+        parser.Parse(["--method-class-name", "Methods"]);
+
+        Assert.That(parser.Errors, Is.Empty);
+        Assert.That(parser.Warnings, Is.Empty);
+    }
+
     // Regression test for dotnet/clangsharp#554: a `name=value` token whose value contains
     // spaces must be preserved as a single value rather than split on whitespace.
     [Test]

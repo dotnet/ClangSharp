@@ -2,7 +2,7 @@
 
 This guide is an opinionated walkthrough of how to drive `ClangSharpPInvokeGenerator` well for a
 real, maintainable binding project. It complements the option reference in the
-[main README](../README.md#generating-bindings) and the output of `--help` and `-c help`.
+[main README](../README.md#generating-bindings) and the output of `--help` and `--config help`.
 
 If you have ever wondered *why* the generator emitted nothing, traversed half of the Windows SDK,
 or produced a slightly different diff on every run, the problem is almost always in how the tool is
@@ -28,7 +28,7 @@ Treat generation as a first-class, checked-in part of your repository, not a one
 * **One folder per target.** In terrafx, `generation/` contains a folder per header being wrapped
   (for example `generation/DirectX/d3d12/d3d12/`). Each folder holds three files:
   * `generate.rsp` — the response file for that target,
-  * `header.txt` — the license/header text prefixed to every generated file (via `--headerFile`),
+  * `header.txt` — the license/header text prefixed to every generated file (via `--header-file`),
   * an umbrella `*.h` that `#include`s exactly what the target should expose.
 * **Shared configuration at the root.** Cross-cutting settings live once at `generation/`
   (`settings.rsp`, `remap.rsp`, and topical `remap-*.rsp`) and are pulled in by every target.
@@ -115,23 +115,24 @@ Decide where each option belongs by asking whether it is a property of *the whol
 * `--additional` clang arguments, including the architecture (`-m64`) and warning suppression
   (`-Wno-comment`, `-Wno-deprecated-declarations`, `-Wno-ignored-attributes`, ...). Suppressing the
   noise up front keeps real diagnostics visible.
-* The `--config` flag set (see [config flags](#config-flags--c)).
+* The `--config` mode families plus the `--generate` / `--log` switches (see
+  [config flags](#config-flags--c)).
 * `--define-macro` values that shape what the headers expose (for example `UNICODE`, `INITGUID`).
 * `--include-directory` search paths (your local headers plus the SDK).
-* `--headerFile header.txt` and project-wide conventions such as `--with-callconv *=Winapi`.
+* `--header-file header.txt` and project-wide conventions such as `--with-callconv *=Winapi`.
 
 **Per-target (`generate.rsp`)** — the things unique to one header:
 
 * `--file` (the umbrella header) and `--traverse` (which included files to emit).
-* `--namespace`, `--methodClassName`, `--output`, `--test-output`.
-* Target-scoped `--exclude`, `--with-attribute`, and `--with-librarypath`.
+* `--namespace`, `--method-class-name`, `--output`, `--test-output`.
+* Target-scoped `--exclude`, `--with-attribute`, and `--with-library-path`.
 
 Keeping remappings in shared topical files means a type like `HANDLE` or a namespace like `ABM` is
 mapped once and applied consistently to every target that encounters it.
 
 ## Key options and when to use them
 
-The switch reference in the [README](../README.md#generating-bindings), `--help`, and `-c help` are
+The switch reference in the [README](../README.md#generating-bindings), `--help`, and `--config help` are
 authoritative. This section groups the options by intent and notes when to reach for each.
 
 ### Inputs and traversal
@@ -165,7 +166,7 @@ authoritative. This section groups the options by intent and notes when to reach
 * **`-wn, --with-namespace`** — place a declaration (or a whole prefix family such as `ABM=`,
   `ACCESS=`) into a chosen namespace. terrafx funnels many prefixes into
   `TerraFX.Interop.Windows`.
-* **`-wu, --with-using`, `-wc, --with-class`, `-m, --methodClassName`, `-p, --prefixStrip`** —
+* **`-wu, --with-using`, `-wc, --with-class`, `-m, --method-class-name`, `-p, --prefix-strip`** —
   control the `using` directives, the owning static class for free functions, and prefix stripping
   (for example stripping `clang_` in this repo's own bindings).
 
@@ -185,8 +186,8 @@ authoritative. This section groups the options by intent and notes when to reach
 
 ### Interop and P/Invoke
 
-* **`-l, --libraryPath` / `-wlb, --with-librarypath`** — the DLL name for `DllImport`. Use
-  `--with-librarypath` to route specific functions to specific libraries
+* **`-l, --library-path` / `-wlb, --with-library-path`** — the DLL name for `DllImport`. Use
+  `--with-library-path` to route specific functions to specific libraries
   (`D3D12CreateDevice=d3d12`).
 * **`-wcc, --with-callconv`** — the calling convention, commonly `*=Winapi` project-wide.
 * **`-wsle, --with-setlasterror`, `-wsgct, --with-suppressgctransition`,
@@ -198,39 +199,43 @@ authoritative. This section groups the options by intent and notes when to reach
 
 * **`-e, --exclude` / `-i, --include`** — drop or keep specific declarations. Use `--exclude` for
   macros and helpers that don't translate (for example the `D3D12_DECODE_*`/`D3D12_ENCODE_*` macro
-  helpers, or `CINDEX_VERSION_*` in this repo).
-* The `exclude-*` [config flags](#config-flags--c) handle *categories* of declarations
-  (COM proxies, empty records, enum operators, ...).
+  helpers, or `CINDEX_VERSION_*` in this repo). They are an opt-in/opt-out pair: `--exclude` removes
+  a named declaration, `--include` keeps one that would otherwise be dropped.
+* The `--generate` features handle *categories* of declarations (COM proxies, empty records, enum
+  operators, ...); use `=false` to opt a category out.
 
 ### Config flags (`-c`)
 
-`-c, --config` toggles generation behavior. Run `ClangSharpPInvokeGenerator -c help` for the full,
-authoritative list. The groups worth knowing:
+`-c, --config` now carries only the four mode families below (plus `help`); the feature switches
+moved to `--generate <name>` and the diagnostics to `--log <name>`. Run
+`ClangSharpPInvokeGenerator --config help` for the full, authoritative list. `--generate` booleans
+accept an optional `=true`/`=false` (with `=true` implied when omitted), so a later response file can
+override an earlier one. The groups worth knowing:
 
-* **Codegen level** — `compatible-codegen` (.NET Standard 2.0), `default-codegen` (current LTS),
-  `latest-codegen`, `preview-codegen`. Pick the one that matches your target framework; the more
-  modern levels enable function pointers and other niceties.
-* **File layout** — `single-file` (default) vs `multi-file` (roughly one type per file, easier to
+* **Codegen level (`-c codegen=`)** — `compatible` (.NET Standard 2.0), `default` (current LTS),
+  `latest`, `preview`. Pick the one that matches your target framework; the more modern levels enable
+  function pointers and other niceties.
+* **File layout (`-c file=`)** — `single` (default) vs `multi` (roughly one type per file, easier to
   review and diff for large projects).
-* **Type assumptions** — `windows-types` vs `unix-types`.
-* **Vtbl strategy** — `explicit-vtbls`, `implicit-vtbls` (default), `trimmable-vtbls`.
-* **Tests** — `generate-tests-nunit` / `generate-tests-xunit` emit size/blittability tests
-  alongside the bindings.
-* **Generation toggles** — for example `generate-aggressive-inlining`,
-  `generate-file-scoped-namespaces`, `generate-guid-member`, `generate-marker-interfaces`,
-  `generate-native-inheritance-attribute`, `generate-vtbl-index-attribute`.
+* **Type assumptions (`-c types=`)** — `windows` vs `unix`.
+* **Vtbl strategy (`-c vtbls=`)** — `explicit`, `implicit` (default), `trimmable`.
+* **Tests (`--generate`)** — `--generate tests-nunit` / `--generate tests-xunit` emit
+  size/blittability tests alongside the bindings.
+* **Generation toggles (`--generate`)** — for example `--generate aggressive-inlining`,
+  `--generate file-scoped-namespaces`, `--generate guid-member`, `--generate marker-interfaces`,
+  `--generate native-inheritance-attribute`, `--generate vtbl-index-attribute`.
 
 ### Output and test modes
 
-* **`-o, --output`** — where bindings are written. With `multi-file`, this is a directory.
+* **`-o, --output`** — where bindings are written. With `-c file=multi`, this is a directory.
 * **`-to, --test-output`** — where the generated tests are written (pair with a
-  `generate-tests-*` config flag).
+  `--generate tests-*` feature).
 * **`-om, --output-mode`** — `CSharp` (default) or `Xml`.
 
 ## Wildcards
 
-The `--with-*` options accept `*` as a catch-all. This is how project-wide conventions are applied
-in one line, for example:
+Many valued `--with-*` options accept `*` as a catch-all, applying a rule to everything in one line.
+This is written `*=value`, which is how project-wide conventions are applied, for example:
 
 ```
 --with-callconv
@@ -242,6 +247,20 @@ in one line, for example:
 *=Internal
 ```
 
+Each such option has a paired `--without-<name>` option that opts a specific declaration back out of
+its `*` catch-all, so opt-in and opt-out are symmetric:
+
+```
+# Make everything internal, except keep Foo at its default accessibility
+--with-access-specifier
+*=Internal
+--without-access-specifier
+Foo
+```
+
+To opt everything in and then exclude piecemeal (or vice versa) for whole declarations, use the
+`--include` / `--exclude` pair, which is already an opt-in/opt-out pair.
+
 ## Incremental regeneration
 
 * **Commit the generated output.** With generated code in source control, regenerating turns every
@@ -250,19 +269,19 @@ in one line, for example:
   can regenerate every target concurrently; you only re-run the ones whose inputs changed.
 * **Pin your inputs.** Keep the SDK/include versions in the shared `settings.rsp` (terrafx pins an
   explicit Windows Kits version) so output stays deterministic across machines and CI.
-* **Diagnose with the `log-*` flags** rather than guessing. These are the practical answer when the
-  output isn't what you expected:
-  * `log-exclusions` — lists every declaration that was excluded, and whether it matched exactly or
+* **Diagnose with the `--log` switches** rather than guessing. These are the practical answer when
+  the output isn't what you expected:
+  * `--log exclusions` — lists every declaration that was excluded, and whether it matched exactly or
     partially. Use this when something you wanted is missing.
-  * `log-potential-typedef-remappings` — surfaces typedefs that look like they *should* be remapped,
+  * `--log potential-typedef-remappings` — surfaces typedefs that look like they *should* be remapped,
     which helps you find missing `--remap`/`--with-transparent-struct` entries.
-  * `log-visited-files` — lists the files that were actually visited, which is the fastest way to
+  * `--log visited-files` — lists the files that were actually visited, which is the fastest way to
     catch a `--traverse`/`--include-directory` mistake.
 
 ## Common pitfalls
 
 * **Forgetting `--traverse`.** Without it the generator emits everything reachable, including system
-  headers. Scope every target with `--traverse` and confirm with `log-visited-files`.
+  headers. Scope every target with `--traverse` and confirm with `--log visited-files`.
 * **`--include-directory` order.** If the wrong copy of a header is found first, you get subtly
   wrong output. Put local include directories before the SDK.
 * **Skipping warning suppression.** Real headers produce many benign clang warnings; add the

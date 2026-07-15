@@ -18,9 +18,10 @@ internal sealed class CommandLineOption
 {
     private readonly List<string> _values;
 
-    public CommandLineOption(string[] aliases, string description, CommandLineOptionKind kind, string? valueName = null, string? defaultValue = null, string[]? allowedValues = null)
+    public CommandLineOption(string[] aliases, string description, CommandLineOptionKind kind, string? valueName = null, string? defaultValue = null, string[]? allowedValues = null, string[]? deprecatedAliases = null)
     {
         Aliases = aliases;
+        DeprecatedAliases = deprecatedAliases ?? [];
         Description = description;
         Kind = kind;
         ValueName = valueName ?? aliases[0].TrimStart('-');
@@ -30,6 +31,9 @@ internal sealed class CommandLineOption
     }
 
     public string[] Aliases { get; }
+
+    // Legacy aliases that are still accepted, but emit a deprecation warning and are hidden from help.
+    public string[] DeprecatedAliases { get; }
 
     public string[]? AllowedValues { get; }
 
@@ -67,13 +71,17 @@ internal sealed class CommandLineParser
 
     private readonly IReadOnlyList<CommandLineOption> _options;
     private readonly Dictionary<string, CommandLineOption> _optionsByAlias;
+    private readonly HashSet<string> _deprecatedAliases;
     private readonly List<string> _errors;
+    private readonly List<string> _warnings;
 
     public CommandLineParser(IReadOnlyList<CommandLineOption> options)
     {
         _options = options;
         _optionsByAlias = new Dictionary<string, CommandLineOption>(StringComparer.Ordinal);
+        _deprecatedAliases = new HashSet<string>(StringComparer.Ordinal);
         _errors = [];
+        _warnings = [];
 
         foreach (var option in options)
         {
@@ -81,10 +89,18 @@ internal sealed class CommandLineParser
             {
                 _optionsByAlias.Add(alias, option);
             }
+
+            foreach (var alias in option.DeprecatedAliases)
+            {
+                _optionsByAlias.Add(alias, option);
+                _ = _deprecatedAliases.Add(alias);
+            }
         }
     }
 
     public IReadOnlyList<string> Errors => _errors;
+
+    public IReadOnlyList<string> Warnings => _warnings;
 
     public void Parse(IReadOnlyList<string> args)
     {
@@ -101,11 +117,16 @@ internal sealed class CommandLineParser
         {
             var token = tokens[index];
 
-            if (!TryMatchOption(token, out var option, out var inlineValue))
+            if (!TryMatchOption(token, out var option, out var inlineValue, out var matchedAlias))
             {
                 _errors.Add($"Error: Unrecognized command or argument '{token}'.");
                 index++;
                 continue;
+            }
+
+            if (_deprecatedAliases.Contains(matchedAlias))
+            {
+                _warnings.Add($"Warning: Option '{matchedAlias}' is deprecated and will be removed in a future release. Use '{option.CanonicalName}' instead.");
             }
 
             index++;
@@ -128,7 +149,7 @@ internal sealed class CommandLineParser
 
             var count = 0;
 
-            while ((index < tokens.Count) && !TryMatchOption(tokens[index], out _, out _))
+            while ((index < tokens.Count) && !TryMatchOption(tokens[index], out _, out _, out _))
             {
                 AddValue(option, tokens[index]);
                 index++;
@@ -158,12 +179,14 @@ internal sealed class CommandLineParser
         option.AddValue(value);
     }
 
-    private bool TryMatchOption(string token, out CommandLineOption option, out string? inlineValue)
+    private bool TryMatchOption(string token, out CommandLineOption option, out string? inlineValue, out string matchedAlias)
     {
         inlineValue = null;
+        matchedAlias = "";
 
         if (_optionsByAlias.TryGetValue(token, out option!))
         {
+            matchedAlias = token;
             return true;
         }
 
@@ -182,6 +205,7 @@ internal sealed class CommandLineParser
                 if (_optionsByAlias.TryGetValue(alias, out option!))
                 {
                     inlineValue = token[(equalsIndex + 1)..];
+                    matchedAlias = alias;
                     return true;
                 }
             }

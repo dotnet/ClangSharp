@@ -1054,7 +1054,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private string EscapeAndStripEnumMemberName(string name, string enumTypeName, EnumDecl? enumDecl = null)
     {
         if ((enumDecl is not null) &&
-            (_config.WithEnumMemberStrip.TryGetValue(enumTypeName, out var mode) || _config.WithEnumMemberStrip.TryGetValue("*", out mode)))
+            TryGetValueOrStar(_config.WithEnumMemberStrip, enumTypeName, _config._withoutEnumMemberStrip, out var mode))
         {
             // An explicit mode was configured for this enum (or via the `*` default) and fully determines
             // how the member is stripped, taking precedence over the legacy type-name/type-prefix behavior.
@@ -1291,7 +1291,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl, bool matchStar)
     {
-        if (!TryGetRemappedValue(namedDecl, _config._withAccessSpecifiers, out var accessSpecifier, matchStar) || (accessSpecifier == AccessSpecifier.None))
+        if (!TryGetRemappedValue(namedDecl, _config._withAccessSpecifiers, _config._withoutAccessSpecifiers, out var accessSpecifier, matchStar) || (accessSpecifier == AccessSpecifier.None))
         {
             switch (namedDecl.Access)
             {
@@ -1334,8 +1334,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private AccessSpecifier GetMethodClassAccessSpecifier(string name)
     {
-        var accessMap = _config.WithAccessSpecifiers;
-        return (accessMap.TryGetValue(name, out var accessSpecifier) || accessMap.TryGetValue("*", out accessSpecifier))
+        return TryGetValueOrStar(_config.WithAccessSpecifiers, name, _config._withoutAccessSpecifiers, out var accessSpecifier)
              ? accessSpecifier
              : AccessSpecifier.None;
     }
@@ -1461,7 +1460,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (cursor is NamedDecl namedDecl)
         {
-            if (TryGetRemappedValue(namedDecl, _config._withCallConvs, out var callConv, matchStar: true))
+            if (TryGetRemappedValue(namedDecl, _config._withCallConvs, _config._withoutCallConvs, out var callConv, matchStar: true))
             {
                 if (Enum.TryParse<CallConv>(callConv, true, out var remappedCallingConvention))
                 {
@@ -1479,7 +1478,13 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         var remappedName = GetRemappedTypeName(cursor, context, type, out _, ignoreTransparentStructsWhereRequired: false, skipUsing: true);
 
-        if (_config.WithCallConvs.TryGetValue(remappedName, out var callConv) || _config.WithCallConvs.TryGetValue("*", out callConv))
+        // The '*' catch-all is applied per named declaration, but this lookup is type-keyed. A
+        // function opted out via --without-callconv keeps its native convention, so suppress the
+        // '*' fallback for it here as well; explicit type-name entries still win.
+        var optedOutOfCallConvStar = (cursor is NamedDecl callConvNamedDecl) && HasRemapping(callConvNamedDecl, _config._withoutCallConvs);
+
+        if (_config.WithCallConvs.TryGetValue(remappedName, out var callConv)
+            || (!optedOutOfCallConvStar && _config.WithCallConvs.TryGetValue("*", out callConv)))
         {
             if (Enum.TryParse<CallConv>(callConv, true, out var remappedCallingConvention))
             {
@@ -1631,7 +1636,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     }
 
     private bool HasSuppressGCTransition(Cursor? cursor)
-        => (cursor is NamedDecl namedDecl) && HasRemapping(namedDecl, _config._withSuppressGCTransitions);
+        => (cursor is NamedDecl namedDecl) && HasRemapping(namedDecl, _config._withSuppressGCTransitions, _config._withoutSuppressGCTransitions, matchStar: true);
 
     private bool HasBaseField(CXXRecordDecl cxxRecordDecl)
     {
@@ -2065,7 +2070,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool TryGetUuid(RecordDecl recordDecl, out Guid uuid)
     {
-        if (TryGetRemappedValue(recordDecl, _config._withGuids, out var guid))
+        if (TryGetRemappedValue(recordDecl, _config._withGuids, optOuts: null, out var guid))
         {
             uuid = guid;
             return true;
@@ -2486,7 +2491,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             outputBuilder.WriteCustomAttribute(GeneratedCodeAttribute);
         }
 
-        if (TryGetRemappedValue(namedDecl, _config._withAttributes, out var attributes, matchStar: true))
+        if (TryGetRemappedValue(namedDecl, _config._withAttributes, _config._withoutAttributes, out var attributes, matchStar: true))
         {
             foreach (var attribute in attributes.Where((a) => !onlySupportedOSPlatform || a.StartsWith("SupportedOSPlatform(", StringComparison.Ordinal)))
             {
@@ -2609,9 +2614,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private string GetLibraryPath(string remappedName)
     {
-        return !_config.WithLibraryPaths.TryGetValue(remappedName, out var libraryPath) && !_config.WithLibraryPaths.TryGetValue("*", out libraryPath)
-            ? _config.LibraryPath
-            : libraryPath;
+        return TryGetValueOrStar(_config.WithLibraryPaths, remappedName, _config._withoutLibraryPaths, out var libraryPath)
+            ? libraryPath
+            : _config.LibraryPath;
     }
 
     private string GetClass(string remappedName, bool disallowPrefixMatch = false)
@@ -2695,87 +2700,112 @@ public sealed partial class PInvokeGenerator : IDisposable
         return _config._withNamespaces.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(remappedName, out namespaceName);
     }
 
-    private bool GetSetLastError(NamedDecl namedDecl) => HasRemapping(namedDecl, _config._withSetLastErrors, matchStar: true);
+    private bool GetSetLastError(NamedDecl namedDecl) => HasRemapping(namedDecl, _config._withSetLastErrors, _config._withoutSetLastErrors, matchStar: true);
 
-    private bool HasRemapping(NamedDecl namedDecl, HashSet<string> entries, bool matchStar = false)
+    private bool HasRemapping(NamedDecl namedDecl, HashSet<string> entries, HashSet<string>? optOuts = null, bool matchStar = false)
     {
-        var name = GetCursorQualifiedName(namedDecl).AsSpan();
-
-        if (name.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
-        {
-            name = name["ClangSharpMacro_".Length..];
-        }
-
         var entriesLookup = entries.GetAlternateLookup<ReadOnlySpan<char>>();
 
-        if (entriesLookup.Contains(name))
+        var qualifiedName = StripMacroPrefix(GetCursorQualifiedName(namedDecl));
+
+        if (entriesLookup.Contains(qualifiedName))
         {
             return true;
         }
 
-        name = GetCursorQualifiedName(namedDecl, truncateParameters: true);
+        var truncatedName = StripMacroPrefix(GetCursorQualifiedName(namedDecl, truncateParameters: true));
 
-        if (name.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
-        {
-            name = name["ClangSharpMacro_".Length..];
-        }
-
-        if (entriesLookup.Contains(name))
+        if (entriesLookup.Contains(truncatedName))
         {
             return true;
         }
 
-        name = GetRemappedCursorName(namedDecl);
+        var remappedName = StripMacroPrefix(GetRemappedCursorName(namedDecl));
 
-        if (name.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
+        if (entriesLookup.Contains(remappedName))
         {
-            name = name["ClangSharpMacro_".Length..];
+            return true;
         }
 
-        return entriesLookup.Contains(name) || (matchStar && entriesLookup.Contains("*"));
+        // The name wasn't explicitly opted in. Fall back to the '*' catch-all, unless the paired
+        // --without-* option opts this specific name back out.
+
+        if (matchStar && entriesLookup.Contains("*"))
+        {
+            return !IsOptedOut(optOuts, qualifiedName, truncatedName, remappedName);
+        }
+
+        return false;
     }
 
-    private bool TryGetRemappedValue<T>(NamedDecl namedDecl, Dictionary<string, T> remappings, [MaybeNullWhen(false)] out T value, bool matchStar = false)
+    // Whether the paired --without-* option opts a specific name back out of a '*' catch-all,
+    // matched against any of the name forms consulted by the --with-* lookups.
+    private static bool IsOptedOut(HashSet<string>? optOuts, ReadOnlySpan<char> qualifiedName, ReadOnlySpan<char> truncatedName, ReadOnlySpan<char> remappedName)
     {
-        var name = GetCursorQualifiedName(namedDecl).AsSpan();
-
-        if (name.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
+        if (optOuts is null || optOuts.Count == 0)
         {
-            name = name["ClangSharpMacro_".Length..];
+            return false;
         }
 
+        var optOutsLookup = optOuts.GetAlternateLookup<ReadOnlySpan<char>>();
+        return optOutsLookup.Contains(qualifiedName) || optOutsLookup.Contains(truncatedName) || optOutsLookup.Contains(remappedName);
+    }
+
+    private static ReadOnlySpan<char> StripMacroPrefix(string name)
+    {
+        var span = name.AsSpan();
+        return span.StartsWith("ClangSharpMacro_", StringComparison.Ordinal) ? span["ClangSharpMacro_".Length..] : span;
+    }
+
+    // Single-name variant of the '*' catch-all lookup used by the callers that key off a plain
+    // string name rather than a cursor. An explicit opt-in wins; otherwise the '*' catch-all
+    // applies unless the paired --without-* option opts the name back out.
+    private static bool TryGetValueOrStar<T>(IReadOnlyDictionary<string, T> map, string name, HashSet<string>? optOuts, [MaybeNullWhen(false)] out T value)
+    {
+        if (map.TryGetValue(name, out value))
+        {
+            return true;
+        }
+
+        if (map.TryGetValue("*", out value) && (optOuts is null || !optOuts.Contains(name)))
+        {
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    private bool TryGetRemappedValue<T>(NamedDecl namedDecl, Dictionary<string, T> remappings, HashSet<string>? optOuts, [MaybeNullWhen(false)] out T value, bool matchStar = false)
+    {
         var remappingsLookup = remappings.GetAlternateLookup<ReadOnlySpan<char>>();
 
-        if (remappingsLookup.TryGetValue(name, out value))
+        var qualifiedName = StripMacroPrefix(GetCursorQualifiedName(namedDecl));
+
+        if (remappingsLookup.TryGetValue(qualifiedName, out value))
         {
             return true;
         }
 
-        name = GetCursorQualifiedName(namedDecl, truncateParameters: true);
+        var truncatedName = StripMacroPrefix(GetCursorQualifiedName(namedDecl, truncateParameters: true));
 
-        if (name.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
-        {
-            name = name["ClangSharpMacro_".Length..];
-        }
-
-        if (remappingsLookup.TryGetValue(name, out value))
+        if (remappingsLookup.TryGetValue(truncatedName, out value))
         {
             return true;
         }
 
-        name = GetRemappedCursorName(namedDecl);
+        var remappedName = StripMacroPrefix(GetRemappedCursorName(namedDecl));
 
-        if (name.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
-        {
-            name = name["ClangSharpMacro_".Length..];
-        }
-
-        if (remappingsLookup.TryGetValue(name, out value))
+        if (remappingsLookup.TryGetValue(remappedName, out value))
         {
             return true;
         }
 
-        if (matchStar && remappings.TryGetValue("*", out value))
+        // The name wasn't explicitly opted in. Fall back to the '*' catch-all, unless the paired
+        // --without-* option opts this specific name back out.
+
+        if (matchStar && remappings.TryGetValue("*", out value)
+                      && !IsOptedOut(optOuts, qualifiedName, truncatedName, remappedName))
         {
             return true;
         }
@@ -2856,7 +2886,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private void WithType(NamedDecl namedDecl, ref string integerTypeName, ref string nativeTypeName, bool matchStar = true)
     {
-        if (TryGetRemappedValue(namedDecl, _config._withTypes, out var type, matchStar))
+        if (TryGetRemappedValue(namedDecl, _config._withTypes, _config._withoutTypes, out var type, matchStar))
         {
             if (string.IsNullOrWhiteSpace(nativeTypeName))
             {
@@ -2876,7 +2906,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         Debug.Assert(_outputBuilder is not null);
 
-        if (TryGetRemappedValue(namedDecl, _config._withUsings, out var usings, matchStar: true))
+        if (TryGetRemappedValue(namedDecl, _config._withUsings, _config._withoutUsings, out var usings, matchStar: true))
         {
             foreach (var @using in usings)
             {
