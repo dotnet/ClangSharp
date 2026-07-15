@@ -549,7 +549,7 @@ public partial class PInvokeGenerator
             overloadCount = GetOverloadCount(cxxMethodDecl);
         }
 
-        var isManualImport = _config.WithManualImports.Contains(name);
+        var isManualImport = IsWithManualImport(name);
 
         var className = name;
         var parentName = "";
@@ -1234,7 +1234,7 @@ public partial class PInvokeGenerator
             var escapedName = EscapeName(name);
 
             var functionName = GetRemappedCursorName(functionDecl);
-            var isForManualImport = _config.WithManualImports.Contains(functionName);
+            var isForManualImport = IsWithManualImport(functionName);
 
             var parameters = functionDecl.Parameters;
             var index = parameters.IndexOf(parmVarDecl);

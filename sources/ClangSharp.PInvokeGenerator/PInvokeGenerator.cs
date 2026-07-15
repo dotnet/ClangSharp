@@ -93,6 +93,11 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly Dictionary<EnumDecl, (EnumMemberStripKind Kind, string Text)> _enumMemberStrips;
     private readonly string _placeholderMacroType;
 
+    // Compiled glob patterns for a given `--with-*`/`-i`/`-e` backing store, built once per store on
+    // first use and keyed by the store instance. Non-glob configs cache an empty array, so the hot
+    // path (an exact hash lookup miss followed by iterating this) pays effectively nothing.
+    private readonly Dictionary<object, object> _globIndices = new(ReferenceEqualityComparer.Instance);
+
     private string _filePath;
     private string[] _clangCommandLineArgs;
     private CXTranslationUnit_Flags _translationFlags;
@@ -2727,20 +2732,29 @@ public sealed partial class PInvokeGenerator : IDisposable
             return true;
         }
 
-        // The name wasn't explicitly opted in. Fall back to the '*' catch-all, unless the paired
-        // --without-* option opts this specific name back out.
+        // No name form matched exactly. Unless the paired --without-* option opts this name back
+        // out, fall back to the glob patterns (most-specific first) and then the bare '*' catch-all.
 
-        if (matchStar && entriesLookup.Contains("*"))
+        if (!IsOptedOut(optOuts, qualifiedName, truncatedName, remappedName))
         {
-            return !IsOptedOut(optOuts, qualifiedName, truncatedName, remappedName);
+            if (MatchesAnyGlob(GetGlobPatterns(entries), qualifiedName, truncatedName, remappedName))
+            {
+                return true;
+            }
+
+            if (matchStar && entriesLookup.Contains("*"))
+            {
+                return true;
+            }
         }
 
         return false;
     }
 
-    // Whether the paired --without-* option opts a specific name back out of a '*' catch-all,
-    // matched against any of the name forms consulted by the --with-* lookups.
-    private static bool IsOptedOut(HashSet<string>? optOuts, ReadOnlySpan<char> qualifiedName, ReadOnlySpan<char> truncatedName, ReadOnlySpan<char> remappedName)
+    // Whether the paired --without-* option opts a specific name back out of a '*' catch-all or a
+    // glob opt-in, matched (exactly or by glob) against any of the name forms the --with-* lookups
+    // consult.
+    private bool IsOptedOut(HashSet<string>? optOuts, ReadOnlySpan<char> qualifiedName, ReadOnlySpan<char> truncatedName, ReadOnlySpan<char> remappedName)
     {
         if (optOuts is null || optOuts.Count == 0)
         {
@@ -2748,7 +2762,24 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
 
         var optOutsLookup = optOuts.GetAlternateLookup<ReadOnlySpan<char>>();
-        return optOutsLookup.Contains(qualifiedName) || optOutsLookup.Contains(truncatedName) || optOutsLookup.Contains(remappedName);
+
+        if (optOutsLookup.Contains(qualifiedName) || optOutsLookup.Contains(truncatedName) || optOutsLookup.Contains(remappedName))
+        {
+            return true;
+        }
+
+        return MatchesAnyGlob(GetGlobPatterns(optOuts), qualifiedName, truncatedName, remappedName);
+    }
+
+    // Single-name variant of the opt-out check, matched exactly or by glob.
+    private bool IsOptedOut(HashSet<string>? optOuts, string name)
+    {
+        if (optOuts is null || optOuts.Count == 0)
+        {
+            return false;
+        }
+
+        return optOuts.Contains(name) || MatchesAnyGlob(GetGlobPatterns(optOuts), name);
     }
 
     private static ReadOnlySpan<char> StripMacroPrefix(string name)
@@ -2757,19 +2788,32 @@ public sealed partial class PInvokeGenerator : IDisposable
         return span.StartsWith("ClangSharpMacro_", StringComparison.Ordinal) ? span["ClangSharpMacro_".Length..] : span;
     }
 
-    // Single-name variant of the '*' catch-all lookup used by the callers that key off a plain
-    // string name rather than a cursor. An explicit opt-in wins; otherwise the '*' catch-all
-    // applies unless the paired --without-* option opts the name back out.
-    private static bool TryGetValueOrStar<T>(IReadOnlyDictionary<string, T> map, string name, HashSet<string>? optOuts, [MaybeNullWhen(false)] out T value)
+    // Single-name variant of the glob/'*' catch-all lookup used by callers that key off a plain
+    // string name rather than a cursor. Precedence is exact match, then the most-specific glob,
+    // then the bare '*' catch-all; a glob or the catch-all only applies when the paired --without-*
+    // option doesn't opt the name back out.
+    private bool TryGetValueOrStar<T>(IReadOnlyDictionary<string, T> map, string name, HashSet<string>? optOuts, [MaybeNullWhen(false)] out T value)
     {
         if (map.TryGetValue(name, out value))
         {
             return true;
         }
 
-        if (map.TryGetValue("*", out value) && (optOuts is null || !optOuts.Contains(name)))
+        if (!IsOptedOut(optOuts, name))
         {
-            return true;
+            foreach (var entry in GetGlobEntries(map))
+            {
+                if (entry.Glob.IsMatch(name))
+                {
+                    value = entry.Value;
+                    return true;
+                }
+            }
+
+            if (map.TryGetValue("*", out value))
+            {
+                return true;
+            }
         }
 
         value = default;
@@ -2801,17 +2845,137 @@ public sealed partial class PInvokeGenerator : IDisposable
             return true;
         }
 
-        // The name wasn't explicitly opted in. Fall back to the '*' catch-all, unless the paired
-        // --without-* option opts this specific name back out.
+        // No name form matched exactly. Unless the paired --without-* option opts this name back
+        // out, fall back to the glob patterns (most-specific first) and then the bare '*' catch-all.
 
-        if (matchStar && remappings.TryGetValue("*", out value)
-                      && !IsOptedOut(optOuts, qualifiedName, truncatedName, remappedName))
+        if (!IsOptedOut(optOuts, qualifiedName, truncatedName, remappedName))
         {
-            return true;
+            foreach (var entry in GetGlobEntries(remappings))
+            {
+                if (entry.Glob.IsMatch(qualifiedName) || entry.Glob.IsMatch(truncatedName) || entry.Glob.IsMatch(remappedName))
+                {
+                    value = entry.Value;
+                    return true;
+                }
+            }
+
+            if (matchStar && remappings.TryGetValue("*", out value))
+            {
+                return true;
+            }
         }
 
         value = default;
         return false;
+    }
+
+    // A compiled glob pattern paired with the value it maps to for a --with-* value option.
+    private readonly struct GlobEntry<T>(GlobPattern glob, T value)
+    {
+        public GlobPattern Glob { get; } = glob;
+        public T Value { get; } = value;
+    }
+
+    // Builds (once per store) the glob entries for a value map, ordered most-specific first so the
+    // first match in the callers wins. The bare '*' catch-all is intentionally excluded; it keeps
+    // its own dedicated handling.
+    private GlobEntry<T>[] GetGlobEntries<T>(IReadOnlyDictionary<string, T> map)
+    {
+        if (_globIndices.TryGetValue(map, out var cached))
+        {
+            return (GlobEntry<T>[])cached;
+        }
+
+        List<GlobEntry<T>>? entries = null;
+
+        foreach (var (key, value) in map)
+        {
+            if (GlobPattern.IsGlob(key))
+            {
+                entries ??= [];
+                entries.Add(new GlobEntry<T>(GlobPattern.Compile(key), value));
+            }
+        }
+
+        // OrderByDescending is a stable sort, so equally specific patterns keep their registration
+        // (insertion) order, which is a deterministic tie-break.
+        GlobEntry<T>[] result = (entries is null) ? [] : [.. entries.OrderByDescending(static entry => entry.Glob.LiteralLength)];
+
+        _globIndices.Add(map, result);
+        return result;
+    }
+
+    // Builds (once per store) the glob patterns for a name set, ordered most-specific first.
+    private GlobPattern[] GetGlobPatterns(IReadOnlyCollection<string> names)
+    {
+        if (_globIndices.TryGetValue(names, out var cached))
+        {
+            return (GlobPattern[])cached;
+        }
+
+        List<GlobPattern>? patterns = null;
+
+        foreach (var name in names)
+        {
+            if (GlobPattern.IsGlob(name))
+            {
+                patterns ??= [];
+                patterns.Add(GlobPattern.Compile(name));
+            }
+        }
+
+        GlobPattern[] result = (patterns is null) ? [] : [.. patterns.OrderByDescending(static pattern => pattern.LiteralLength)];
+
+        _globIndices.Add(names, result);
+        return result;
+    }
+
+    // Whether a function name opts into being treated as a manual import, by exact match or glob.
+    private bool IsWithManualImport(string name)
+        => _config._withManualImports.Contains(name) || MatchesAnyGlob(GetGlobPatterns(_config._withManualImports), name);
+
+    private static bool MatchesAnyGlob(GlobPattern[] globs, ReadOnlySpan<char> name)
+    {
+        foreach (var glob in globs)
+        {
+            if (glob.IsMatch(name))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool MatchesAnyGlob(GlobPattern[] globs, ReadOnlySpan<char> qualifiedName, ReadOnlySpan<char> truncatedName, ReadOnlySpan<char> remappedName)
+    {
+        foreach (var glob in globs)
+        {
+            if (glob.IsMatch(qualifiedName) || glob.IsMatch(truncatedName) || glob.IsMatch(remappedName))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Whether a name set (the include or exclude list) matches a declaration by its bare '*'
+    // catch-all or by a glob, tested against the qualified, truncated, and unqualified name forms.
+    // Exact matches are handled separately by the callers so they can emit precise diagnostics.
+    private bool MatchesNameOrGlobOrStar(HashSet<string> names, string qualifiedName, string qualifiedNameWithoutParameters, string name)
+    {
+        if (names.Count == 0)
+        {
+            return false;
+        }
+
+        if (names.Contains("*"))
+        {
+            return true;
+        }
+
+        return MatchesAnyGlob(GetGlobPatterns(names), qualifiedName, qualifiedNameWithoutParameters, name);
     }
 
     private void WithTestAttribute()
