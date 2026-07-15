@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="FileOpenDialog" access="public" uuid="9f81f860-3900-421a-a231-e7522f9d7f4a">
+      <field name="x" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <iid name="CLSID_FileOpenDialog" value="0x9F81F860, 0x3900, 0x421A, 0xA2, 0x31, 0xE7, 0x52, 0x2F, 0x9D, 0x7F, 0x4A" />
+    </class>
+  </namespace>
+</bindings>

@@ -11,6 +11,7 @@ public sealed class StructDeclarationTest : BaselineTest
 {
     private static readonly string[] ExcludeTestExcludedNames = ["MyStruct"];
     private static readonly string[] GuidTestExcludedNames = ["DECLSPEC_UUID"];
+    private static readonly string[] GuidConstTestExcludedNames = ["DECLSPEC_UUID", "GUID"];
 
     public StructDeclarationTest(BaselineVariant variant) : base(variant)
     {
@@ -359,6 +360,78 @@ struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyStruct2
 ";
 
         return ValidateAsync(nameof(GuidTest), inputContents, excludedNames: GuidTestExcludedNames);
+    }
+
+    [Test]
+    public Task GuidCoclassConstTest()
+    {
+        if (Variant.Os != BaselineOs.Windows)
+        {
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
+
+        // A coclass with an associated `CLSID_` global recovers its uuid value into a single
+        // `CLSID_FileOpenDialog` constant (no `IID_FileOpenDialog`).
+
+        var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+
+struct GUID
+{{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+}};
+
+typedef GUID CLSID;
+
+struct DECLSPEC_UUID(""9f81f860-3900-421a-a231-e7522f9d7f4a"") FileOpenDialog
+{{
+    int x;
+}};
+
+extern ""C"" const CLSID CLSID_FileOpenDialog;
+";
+
+        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
+        return ValidateAsync(nameof(GuidCoclassConstTest), inputContents, excludedNames: GuidConstTestExcludedNames, remappedNames: remappedNames);
+    }
+
+    [Test]
+    public Task GuidInterfaceConstTest()
+    {
+        if (Variant.Os != BaselineOs.Windows)
+        {
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
+
+        // An interface with an associated `IID_` global emits a single `IID_IFileDialog` constant
+        // (the const name matches the default `IID_` scrape name, so it dedups to one).
+
+        var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+
+struct GUID
+{{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+}};
+
+typedef GUID IID;
+
+struct DECLSPEC_UUID(""42f85136-db7e-439c-85f1-e4075d135fc8"") IFileDialog
+{{
+    int x;
+}};
+
+extern ""C"" const IID IID_IFileDialog;
+";
+
+        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
+        return ValidateAsync(nameof(GuidInterfaceConstTest), inputContents, excludedNames: GuidConstTestExcludedNames, remappedNames: remappedNames);
     }
 
     [Test]
