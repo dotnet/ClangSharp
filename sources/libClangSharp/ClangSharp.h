@@ -411,6 +411,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getAttr(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CX_AttrKind clangsharp_Cursor_getAttrKind(CXCursor C);
 
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getAttrSpelling(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getAvailabilityAttributeDeprecated(CXCursor, llvm::VersionTuple* version);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getAvailabilityAttributeIntroduced(CXCursor, llvm::VersionTuple* version);
@@ -751,6 +753,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsVolatile(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsIncomplete(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsInherited(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsInheritingConstructor(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsAggregate(CXCursor C);
@@ -778,6 +782,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsStandardLayout(CXCursor C);
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsTrivial(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsTriviallyCopyable(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsLateParsed(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsListInitialization(CXCursor C);
 
@@ -1109,11 +1115,15 @@ CLANGSHARP_LINKAGE CX_TemplateArgumentDependence clangsharp_TemplateArgument_get
 
 CLANGSHARP_LINKAGE CXType clangsharp_TemplateArgument_getIntegralType(CX_TemplateArgument T);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_TemplateArgument_getIsDefaulted(CX_TemplateArgument T);
+
 CLANGSHARP_LINKAGE CXType clangsharp_TemplateArgument_getNonTypeTemplateArgumentType(CX_TemplateArgument T);
 
 CLANGSHARP_LINKAGE CXType clangsharp_TemplateArgument_getNullPtrType(CX_TemplateArgument T);
 
 CLANGSHARP_LINKAGE int clangsharp_TemplateArgument_getNumPackElements(CX_TemplateArgument T);
+
+CLANGSHARP_LINKAGE int clangsharp_TemplateArgument_getNumTemplateExpansions(CX_TemplateArgument T);
 
 CLANGSHARP_LINKAGE CX_TemplateArgument clangsharp_TemplateArgument_getPackElement(CX_TemplateArgument T, unsigned i);
 
@@ -1137,7 +1147,19 @@ CLANGSHARP_LINKAGE CXSourceRange clangsharp_TemplateArgumentLoc_getSourceRange(C
 
 CLANGSHARP_LINKAGE CXSourceRange clangsharp_TemplateArgumentLoc_getSourceRangeRaw(CX_TemplateArgumentLoc T);
 
+CLANGSHARP_LINKAGE CXSourceLocation clangsharp_TemplateArgumentLoc_getTemplateEllipsisLoc(CX_TemplateArgumentLoc T);
+
+CLANGSHARP_LINKAGE CXSourceLocation clangsharp_TemplateArgumentLoc_getTemplateNameLoc(CX_TemplateArgumentLoc T);
+
 CLANGSHARP_LINKAGE CXCursor clangsharp_TemplateName_getAsTemplateDecl(CX_TemplateName T);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_TemplateName_getContainsUnexpandedParameterPack(CX_TemplateName T);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_TemplateName_getIsDependent(CX_TemplateName T);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_TemplateName_getIsInstantiationDependent(CX_TemplateName T);
+
+CLANGSHARP_LINKAGE CX_TemplateName clangsharp_TemplateName_getUnderlying(CX_TemplateName T);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_desugar(CXType CT);
 

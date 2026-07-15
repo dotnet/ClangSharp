@@ -362,6 +362,15 @@ CX_AttrKind clangsharp_Cursor_getAttrKind(CXCursor C) {
     return CX_AttrKind_Invalid;
 }
 
+CXString clangsharp_Cursor_getAttrSpelling(CXCursor C) {
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+        return createDup(A->getSpelling());
+    }
+
+    return createEmpty();
+}
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getAvailabilityAttributeDeprecated(CXCursor C, llvm::VersionTuple* version)
 {
     if (clang_isAttribute(C.kind)) {
@@ -3097,6 +3106,15 @@ unsigned clangsharp_Cursor_getIsTriviallyCopyable(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getIsInherited(CXCursor C) {
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+        return A->isInherited();
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsInheritingConstructor(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -3104,6 +3122,15 @@ unsigned clangsharp_Cursor_getIsInheritingConstructor(CXCursor C) {
         if (const CXXConstructorDecl* CXXCD = dyn_cast<CXXConstructorDecl>(D)) {
             return CXXCD->isInheritingConstructor();
         }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsLateParsed(CXCursor C) {
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+        return A->isLateParsed();
     }
 
     return 0;
@@ -6191,6 +6218,26 @@ CXType clangsharp_TemplateArgument_getNullPtrType(CX_TemplateArgument T) {
     return MakeCXType(QualType(), T.tu);
 }
 
+unsigned clangsharp_TemplateArgument_getIsDefaulted(CX_TemplateArgument T) {
+    if (T.value) {
+        return T.value->getIsDefaulted();
+    }
+
+    return 0;
+}
+
+int clangsharp_TemplateArgument_getNumTemplateExpansions(CX_TemplateArgument T) {
+    if (T.value && (T.kind == CXTemplateArgumentKind_TemplateExpansion)) {
+        UnsignedOrNone NumExpansions = T.value->getNumTemplateExpansions();
+
+        if (NumExpansions) {
+            return static_cast<int>(*NumExpansions);
+        }
+    }
+
+    return -1;
+}
+
 int clangsharp_TemplateArgument_getNumPackElements(CX_TemplateArgument T) {
     if (T.kind == CXTemplateArgumentKind_Pack) {
         return T.value->getPackAsArray().size();
@@ -6235,6 +6282,24 @@ CX_TemplateArgument clangsharp_TemplateArgumentLoc_getArgument(CX_TemplateArgume
     }
 
     return MakeCXTemplateArgument(nullptr, T.tu);
+}
+
+CXSourceLocation clangsharp_TemplateArgumentLoc_getTemplateEllipsisLoc(CX_TemplateArgumentLoc T) {
+    if (T.value) {
+        SourceLocation SLoc = T.value->getTemplateEllipsisLoc();
+        return translateSourceLocation(getASTUnit(T.tu)->getASTContext(), SLoc);
+    }
+
+    return clang_getNullLocation();
+}
+
+CXSourceLocation clangsharp_TemplateArgumentLoc_getTemplateNameLoc(CX_TemplateArgumentLoc T) {
+    if (T.value) {
+        SourceLocation SLoc = T.value->getTemplateNameLoc();
+        return translateSourceLocation(getASTUnit(T.tu)->getASTContext(), SLoc);
+    }
+
+    return clang_getNullLocation();
 }
 
 CXSourceLocation clangsharp_TemplateArgumentLoc_getLocation(CX_TemplateArgumentLoc T) {
@@ -6316,6 +6381,42 @@ CXSourceRange clangsharp_TemplateArgumentLoc_getSourceRangeRaw(CX_TemplateArgume
     }
 
     return translateSourceRangeRaw(getASTUnit(T.tu)->getASTContext(), R);
+}
+
+CX_TemplateName clangsharp_TemplateName_getUnderlying(CX_TemplateName T) {
+    if (T.value) {
+        TemplateName TN = TemplateName::getFromVoidPointer(const_cast<void*>(T.value));
+        return MakeCXTemplateName(TN.getUnderlying(), T.tu);
+    }
+
+    return MakeCXTemplateName(TemplateName::getFromVoidPointer(nullptr), T.tu);
+}
+
+unsigned clangsharp_TemplateName_getContainsUnexpandedParameterPack(CX_TemplateName T) {
+    if (T.value) {
+        TemplateName TN = TemplateName::getFromVoidPointer(const_cast<void*>(T.value));
+        return TN.containsUnexpandedParameterPack();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_TemplateName_getIsDependent(CX_TemplateName T) {
+    if (T.value) {
+        TemplateName TN = TemplateName::getFromVoidPointer(const_cast<void*>(T.value));
+        return TN.isDependent();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_TemplateName_getIsInstantiationDependent(CX_TemplateName T) {
+    if (T.value) {
+        TemplateName TN = TemplateName::getFromVoidPointer(const_cast<void*>(T.value));
+        return TN.isInstantiationDependent();
+    }
+
+    return 0;
 }
 
 CXCursor clangsharp_TemplateName_getAsTemplateDecl(CX_TemplateName T) {
