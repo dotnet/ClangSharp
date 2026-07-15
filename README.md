@@ -24,6 +24,7 @@ Source browsing is available via: https://source.clangsharp.dev/
 * [Features](#features)
 * [Building Managed](#building-managed)
 * [Building Native](#building-native)
+* [Regenerating native binaries](#regenerating-native-binaries)
 * [Generating Bindings](#generating-bindings)
   * [Best practices](docs/generating-bindings-best-practices.md)
   * [XML binding format](docs/xml-binding-format.md)
@@ -78,7 +79,7 @@ To successfully build `libClangSharp` you must first build Clang (https://clang.
 
 The process done on Windows is roughly:
 ```cmd
-git clone --single-branch --branch llvmorg-21.1.8 https://github.com/llvm/llvm-project
+git clone --single-branch --branch llvmorg-22.1.8 https://github.com/llvm/llvm-project
 cd llvm-project
 mkdir artifacts/bin
 cd artifacts/bin
@@ -102,7 +103,7 @@ You can then open `libClangSharp.slnx` in Visual Studio, change the configuratio
 
 The process done on Linux is roughly:
 ```bash
-git clone --single-branch --branch llvmorg-21.1.8 https://github.com/llvm/llvm-project
+git clone --single-branch --branch llvmorg-22.1.8 https://github.com/llvm/llvm-project
 cd llvm-project
 mkdir -p artifacts/bin
 cd artifacts/bin
@@ -127,6 +128,32 @@ cd artifacts/bin/native
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install -DPATH_TO_LLVM=../../../../llvm-project/artifacts/install ../../../
 make install
 ```
+
+### Regenerating native binaries
+
+The native runtime packages are produced by CI (`.github/workflows/regenerate-native.yml`) rather than by hand:
+
+* `libclang.runtime.*` (and the `libclang` meta-package) — the prebuilt `libclang` shared library, lifted directly from the matching official LLVM release.
+* `libClangSharp.runtime.*` (and the `libClangSharp` meta-package) — the `libClangSharp` helper, compiled from `sources/libClangSharp` against that same LLVM release.
+
+The tracked LLVM version is the `project(ClangSharp VERSION X.Y.Z)` value in the top-level `CMakeLists.txt`, which maps to the `llvmorg-X.Y.Z` release tag. For each runtime (`win-x64`, `win-arm64`, `linux-x64`, `linux-arm64`, `osx-arm64`) the download-and-stage step is handled by `scripts/build.ps1`/`scripts/build.sh`:
+
+```
+# lift the prebuilt libclang out of the matching LLVM release
+./scripts/build.sh --regeneratenative --target libclang --rid linux-x64
+
+# compile libClangSharp against that same LLVM release
+./scripts/build.sh --regeneratenative --target libClangSharp --rid linux-x64
+```
+
+The staged binary is written to `artifacts/native/<rid>/`. The LLVM release distribution bundles both the prebuilt `libclang` and the `lib/cmake/{llvm,clang}` config, headers, and import libraries used as `PATH_TO_LLVM` when building `libClangSharp`, so no from-source LLVM build is required (the manual [Building Native](#building-native) steps remain the way to reproduce a build locally). Because lifting `libclang` is just unpacking prebuilt binaries, the workflow does all five runtimes on a single Windows runner (its bundled `bsdtar` handles `.tar.xz`); `libClangSharp` is compiled per-runtime on native runners.
+
+The jobs run when:
+
+* **libclang** — the tracked LLVM major/minor version changes, or the workflow is dispatched manually with the `libclang` input set.
+* **libClangSharp** — the same LLVM version change, or anything under `sources/libClangSharp/` changes, or the workflow is dispatched manually with the `libclangsharp` input set.
+
+Before anything is downloaded, the workflow verifies the `packages/**/*.nuspec` and `packages/**/runtime.json` versions match the tracked LLVM version (libclang exactly; libClangSharp as `<llvm-version>.<revision>`), so a version bump that forgot to update a package fails fast. Each job uploads the resulting `.nupkg` files as build artifacts and signs them; publishing them to NuGet.org is a manual step. To move to a new LLVM release, bump the version in `CMakeLists.txt` alongside the `<version>` in the affected `packages/**/*.nuspec` files (and the versions in `packages/**/runtime.json` and this README); pushing that change regenerates the packages.
 
 ### Generating Bindings
 

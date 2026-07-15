@@ -1,0 +1,2 @@
+**/libclang.dll
+**/libClangSharp.dll
