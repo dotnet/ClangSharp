@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="Base" access="public" layout="Sequential" pack="1">
+      <field name="value" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name="Derived" access="public" native="struct Derived : Base&lt;T&gt;">
+      <field name="Base" access="public" inherited="Base">
+        <type>Base</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

@@ -166,6 +166,28 @@ typedef struct
     }
 
     [Test]
+    public Task DependentTemplateBaseTest()
+    {
+        // A dependent template-specialization base (`Base<T>` within a class template) previously
+        // crashed `GetRecordDecl` with an `InvalidCastException` when both template bindings and
+        // empty-record exclusion were enabled, as the base resolves to a `ClassTemplateDecl`
+        // rather than a `CXXRecordDecl`. See microsoft/win32metadata#1686.
+        var inputContents = @"template <typename T>
+struct Base
+{
+    int value;
+};
+
+template <typename T>
+struct Derived : Base<T>
+{
+};
+";
+
+        return ValidateAsync(nameof(DependentTemplateBaseTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateTemplateBindings | PInvokeGeneratorConfigurationOptions.ExcludeEmptyRecords);
+    }
+
+    [Test]
     public Task ExcludeTest()
     {
         var inputContents = "typedef struct MyStruct MyStruct;";
