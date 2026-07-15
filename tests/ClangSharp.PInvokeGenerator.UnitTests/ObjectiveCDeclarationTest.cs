@@ -35,7 +35,7 @@ namespace ClangSharp.Test
         [NativeTypeName(""Class"")]
         public void* isa;
 
-        public static class Selectors
+        public static partial class Selectors
         {
             public static readonly SEL hello = ObjectiveC.sel_registerName(""hello"");
             public static readonly SEL addLeft_right_ = ObjectiveC.sel_registerName(""addLeft:right:"");
@@ -123,7 +123,7 @@ namespace ClangSharp.Test
         [NativeTypeName(""Class"")]
         public void* isa;
 
-        public static class Selectors
+        public static partial class Selectors
         {
             public static readonly SEL count = ObjectiveC.sel_registerName(""count"");
         }
@@ -199,7 +199,7 @@ namespace ClangSharp.Test
         [NativeTypeName(""Class"")]
         public void* isa;
 
-        public static class Selectors
+        public static partial class Selectors
         {
             public static readonly SEL count = ObjectiveC.sel_registerName(""count"");
             public static readonly SEL step = ObjectiveC.sel_registerName(""step"");
@@ -289,7 +289,7 @@ namespace ClangSharp.Test
 
         public static readonly void* Class = ObjectiveC.objc_getClass(""Base"");
 
-        public static class Selectors
+        public static partial class Selectors
         {
             public static readonly SEL baseMethod = ObjectiveC.sel_registerName(""baseMethod"");
         }
@@ -305,7 +305,7 @@ namespace ClangSharp.Test
 
         public static readonly void* Class = ObjectiveC.objc_getClass(""Widget"");
 
-        public static class Selectors
+        public static partial class Selectors
         {
             public static readonly SEL render = ObjectiveC.sel_registerName(""render"");
             public static readonly SEL width = ObjectiveC.sel_registerName(""width"");
@@ -394,7 +394,7 @@ namespace ClangSharp.Test
         [NativeTypeName(""Class"")]
         public void* isa;
 
-        public static class Selectors
+        public static partial class Selectors
         {
             public static readonly SEL identifier = ObjectiveC.sel_registerName(""identifier"");
             public static readonly SEL greet = ObjectiveC.sel_registerName(""greet"");
@@ -487,7 +487,7 @@ namespace ClangSharp.Test
 
         public static readonly void* Class = ObjectiveC.objc_getClass(""View"");
 
-        public static class Selectors
+        public static partial class Selectors
         {
             public static readonly SEL center = ObjectiveC.sel_registerName(""center"");
             public static readonly SEL moveBy_ = ObjectiveC.sel_registerName(""moveBy:"");
@@ -509,6 +509,107 @@ namespace ClangSharp.Test
         {
             get => ((delegate* unmanaged<View*, SEL, CGPoint>)ObjectiveC.objc_msgSend)((View*)Unsafe.AsPointer(ref this), Selectors.origin);
             set => ((delegate* unmanaged<View*, SEL, CGPoint, void>)ObjectiveC.objc_msgSend)((View*)Unsafe.AsPointer(ref this), Selectors.setOrigin_, value);
+        }
+    }
+
+    /// <summary>Represents an Objective-C selector (<c>SEL</c>).</summary>
+    public unsafe partial struct SEL : IEquatable<SEL>
+    {
+        public void* Value;
+
+        public SEL(void* value)
+        {
+            Value = value;
+        }
+
+        public static bool operator ==(SEL left, SEL right) => left.Value == right.Value;
+
+        public static bool operator !=(SEL left, SEL right) => left.Value != right.Value;
+
+        public override bool Equals(object? obj) => (obj is SEL other) && Equals(other);
+
+        public bool Equals(SEL other) => Value == other.Value;
+
+        public override int GetHashCode() => ((nuint)Value).GetHashCode();
+    }
+
+    /// <summary>Provides access to the Objective-C runtime (<c>libobjc</c>).</summary>
+    public static unsafe partial class ObjectiveC
+    {
+        private const string LibObjC = ""/usr/lib/libobjc.A.dylib"";
+
+        /// <summary>The raw <c>objc_msgSend</c> entry point, cast per call site to the selector's signature.</summary>
+        public static readonly void* objc_msgSend = (void*)NativeLibrary.GetExport(NativeLibrary.Load(LibObjC), ""objc_msgSend"");
+
+        [DllImport(LibObjC, EntryPoint = ""sel_registerName"", ExactSpelling = true)]
+        public static extern SEL sel_registerName([MarshalAs(UnmanagedType.LPUTF8Str)] string name);
+
+        [DllImport(LibObjC, EntryPoint = ""objc_getClass"", ExactSpelling = true)]
+        public static extern void* objc_getClass([MarshalAs(UnmanagedType.LPUTF8Str)] string name);
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateObjectiveCBindings, commandLineArgs: s_objectiveCCommandLineArgs, language: "objective-c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    public Task CategoryTest()
+    {
+        var inputContents = @"@interface Widget
+- (int)tag;
+@end
+
+@interface Widget (Extras)
+- (int)extraValue;
+@property int label;
++ (int)defaultLabel;
+@end
+";
+
+        // A category reopens the class's `partial struct` and its `partial` Selectors cache, adding
+        // only the new members; class members still dispatch on the `Class` object from the interface.
+        var expectedOutputContents = @"using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    [NativeTypeName(""@interface Widget"")]
+    public unsafe partial struct Widget
+    {
+        [NativeTypeName(""Class"")]
+        public void* isa;
+
+        public static readonly void* Class = ObjectiveC.objc_getClass(""Widget"");
+
+        public static partial class Selectors
+        {
+            public static readonly SEL tag = ObjectiveC.sel_registerName(""tag"");
+        }
+
+        public int tag() => ((delegate* unmanaged<Widget*, SEL, int>)ObjectiveC.objc_msgSend)((Widget*)Unsafe.AsPointer(ref this), Selectors.tag);
+    }
+
+    [NativeTypeName(""@interface Widget (Extras)"")]
+    public unsafe partial struct Widget
+    {
+        public static partial class Selectors
+        {
+            public static readonly SEL extraValue = ObjectiveC.sel_registerName(""extraValue"");
+            public static readonly SEL label = ObjectiveC.sel_registerName(""label"");
+            public static readonly SEL setLabel_ = ObjectiveC.sel_registerName(""setLabel:"");
+            public static readonly SEL defaultLabel = ObjectiveC.sel_registerName(""defaultLabel"");
+        }
+
+        public int extraValue() => ((delegate* unmanaged<Widget*, SEL, int>)ObjectiveC.objc_msgSend)((Widget*)Unsafe.AsPointer(ref this), Selectors.extraValue);
+
+        public static int defaultLabel() => ((delegate* unmanaged<void*, SEL, int>)ObjectiveC.objc_msgSend)(Class, Selectors.defaultLabel);
+
+        public int label
+        {
+            get => ((delegate* unmanaged<Widget*, SEL, int>)ObjectiveC.objc_msgSend)((Widget*)Unsafe.AsPointer(ref this), Selectors.label);
+            set => ((delegate* unmanaged<Widget*, SEL, int, void>)ObjectiveC.objc_msgSend)((Widget*)Unsafe.AsPointer(ref this), Selectors.setLabel_, value);
         }
     }
 

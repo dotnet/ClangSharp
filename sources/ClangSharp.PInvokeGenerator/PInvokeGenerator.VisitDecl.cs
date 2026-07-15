@@ -107,7 +107,17 @@ public partial class PInvokeGenerator
 
             // case CX_DeclKind_NamespaceAlias:
             // case CX_DeclKind_ObjCCompatibleAlias:
-            // case CX_DeclKind_ObjCCategory:
+
+            case CX_DeclKind_ObjCCategory:
+            {
+                if (_config.GenerateObjectiveCBindings)
+                {
+                    VisitObjCCategoryDecl((ObjCCategoryDecl)decl);
+                    break;
+                }
+                goto default;
+            }
+
             // case CX_DeclKind_ObjCCategoryImpl:
             // case CX_DeclKind_ObjCImplementation:
 

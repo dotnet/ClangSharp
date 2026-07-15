@@ -171,7 +171,57 @@ public partial class PInvokeGenerator
         StopUsingOutputBuilder();
     }
 
-    // Emits the raw `Selectors` cache plus the friendly `objc_msgSend` members (methods and
+    private void VisitObjCCategoryDecl(ObjCCategoryDecl objCCategoryDecl)
+    {
+        var classInterface = objCCategoryDecl.ClassInterface;
+
+        // A category with no resolvable class (e.g. the base `@interface` was not parsed) has nowhere
+        // to attach its members, so there is no faithful mapping to emit.
+        if (classInterface is null)
+        {
+            AddDiagnostic(DiagnosticLevel.Warning, $"Objective-C category '{GetCursorName(objCCategoryDecl)}' has no resolvable class interface and was skipped.", objCCategoryDecl);
+            return;
+        }
+
+        var categoryName = GetCursorName(objCCategoryDecl);
+        var name = GetRemappedCursorName(classInterface);
+        var escapedName = EscapeName(name);
+
+        _generatedObjCBindings = true;
+
+        // A category extends an existing class, so it reopens that class's `partial struct` and adds
+        // only the new message members. The `isa` field and backing `Class` object already belong to
+        // the `@interface`'s emission, so they are not repeated here.
+        StartUsingOutputBuilder(name, includeTestOutput: false);
+        {
+            Debug.Assert(_outputBuilder is not null);
+
+            var desc = new StructDesc {
+                AccessSpecifier = GetAccessSpecifier(classInterface, matchStar: true),
+                EscapedName = escapedName,
+                IsUnsafe = true,
+                NativeType = $"@interface {GetCursorName(classInterface)} ({categoryName})",
+                Location = objCCategoryDecl.Location,
+                IsNested = false,
+                WriteCustomAttrs = static context => {
+                    (var objCCategoryDecl, var generator) = ((ObjCCategoryDecl, PInvokeGenerator))context;
+
+                    generator.WithAttributes(objCCategoryDecl, emitGeneratedCodeAttribute: true);
+                    generator.WithUsings(objCCategoryDecl);
+                },
+                CustomAttrGeneratorData = (objCCategoryDecl, this),
+            };
+
+            _outputBuilder.BeginStruct(in desc);
+            {
+                EmitObjCMessageMembers(objCCategoryDecl, escapedName, supportsClassMembers: true, hasPrecedingMembers: false);
+            }
+            _outputBuilder.EndStruct(in desc);
+        }
+        StopUsingOutputBuilder();
+    }
+
+
     // properties) that fall within the supported subset. Anything outside that subset is diagnosed
     // rather than emitted with a wrong ABI.
     //
@@ -179,11 +229,15 @@ public partial class PInvokeGenerator
     // are only emitted when the container has one (i.e. an `@interface`, via `supportsClassMembers`).
     // A `@protocol` has no backing class, so its class-method/-property requirements are diagnosed
     // and skipped rather than wired to a receiver that does not exist.
-    private void EmitObjCMessageMembers(ObjCContainerDecl container, string escapedParentName, bool supportsClassMembers)
+    private void EmitObjCMessageMembers(ObjCContainerDecl container, string escapedParentName, bool supportsClassMembers, bool hasPrecedingMembers = true)
     {
         Debug.Assert(_outputBuilder is not null);
 
-        var containerDesc = $"{(container is ObjCProtocolDecl ? "@protocol" : "@interface")} {GetCursorName(container)}";
+        var containerDesc = container switch {
+            ObjCProtocolDecl => $"@protocol {GetCursorName(container)}",
+            ObjCCategoryDecl category => $"@interface {GetCursorName(category.ClassInterface)} ({GetCursorName(category)})",
+            _ => $"@interface {GetCursorName(container)}",
+        };
 
         var selectors = new List<(string Field, string NativeSelector)>();
         var seenSelectors = new HashSet<string>(StringComparer.Ordinal);
@@ -303,9 +357,15 @@ public partial class PInvokeGenerator
         output.AddUsingDirective("System.Runtime.CompilerServices");
 
         // Raw layer: the registered selectors, kept public so nothing is hidden and any selector we
-        // did not wrap can still be sent by hand via `&ObjectiveC.objc_msgSend`.
-        output.WriteNewline();
-        output.WriteIndentedLine("public static class Selectors");
+        // did not wrap can still be sent by hand via `&ObjectiveC.objc_msgSend`. The leading blank line
+        // separates the cache from the preceding fields; a category reopens an otherwise-empty struct
+        // body, so it is suppressed there.
+        if (hasPrecedingMembers)
+        {
+            output.WriteNewline();
+        }
+
+        output.WriteIndentedLine("public static partial class Selectors");
         output.WriteBlockStart();
         {
             foreach (var (field, nativeSelector) in selectors)
