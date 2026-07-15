@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using ClangSharp.Interop;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
@@ -31,5 +32,110 @@ pcint g();
 
         Assert.That(unqualifiedType.IsLocalConstQualified, Is.False, "UnqualifiedType should drop the local const");
         Assert.That(unqualifiedType.AsString, Is.EqualTo("int"));
+    }
+
+    [Test]
+    public void PredicatesTest()
+    {
+        var inputContents = """
+struct S { int field; };
+enum E { AValue };
+
+using VoidT = void;
+using BoolT = bool;
+using NullPtrT = decltype(nullptr);
+using LRefT = int&;
+using RRefT = int&&;
+using ArrT = int[4];
+using PtrT = int*;
+using RecordT = S;
+using EnumT = E;
+using FuncT = void();
+using MemPtrT = int S::*;
+using VecT = int __attribute__((vector_size(16)));
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var typedefs = translationUnit.TranslationUnitDecl.Decls.OfType<TypedefNameDecl>()
+                                      .ToDictionary((typedef) => typedef.Name, (typedef) => typedef.UnderlyingType, StringComparer.Ordinal);
+
+        Assert.That(typedefs["VoidT"].IsVoidType, Is.True);
+        Assert.That(typedefs["VoidT"].IsIntegerType, Is.False);
+
+        Assert.That(typedefs["BoolT"].IsBooleanType, Is.True);
+        Assert.That(typedefs["NullPtrT"].IsNullPtrType, Is.True);
+
+        Assert.That(typedefs["LRefT"].IsReferenceType, Is.True);
+        Assert.That(typedefs["LRefT"].IsLValueReferenceType, Is.True);
+        Assert.That(typedefs["LRefT"].IsRValueReferenceType, Is.False);
+
+        Assert.That(typedefs["RRefT"].IsReferenceType, Is.True);
+        Assert.That(typedefs["RRefT"].IsRValueReferenceType, Is.True);
+        Assert.That(typedefs["RRefT"].IsLValueReferenceType, Is.False);
+
+        Assert.That(typedefs["ArrT"].IsArrayType, Is.True);
+        Assert.That(typedefs["PtrT"].IsPointerType, Is.True);
+        Assert.That(typedefs["PtrT"].IsAnyPointerType, Is.True);
+        Assert.That(typedefs["RecordT"].IsRecordType, Is.True);
+        Assert.That(typedefs["EnumT"].IsEnumeralType, Is.True);
+        Assert.That(typedefs["FuncT"].IsFunctionType, Is.True);
+        Assert.That(typedefs["MemPtrT"].IsMemberPointerType, Is.True);
+        Assert.That(typedefs["VecT"].IsVectorType, Is.True);
+    }
+
+    [Test]
+    public void MemberPointerClassTypeTest()
+    {
+        var inputContents = """
+struct S { int field; };
+using MemPtrT = int S::*;
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var memPtr = translationUnit.TranslationUnitDecl.Decls.OfType<TypedefNameDecl>().Single((typedef) => typedef.Name.Equals("MemPtrT", StringComparison.Ordinal));
+        var memberPointerType = (MemberPointerType)memPtr.UnderlyingType.CanonicalType;
+
+        Assert.That(memberPointerType.ClassType.AsCXXRecordDecl, Is.Not.Null);
+        Assert.That(memberPointerType.ClassType.AsCXXRecordDecl!.Name, Is.EqualTo("S"));
+    }
+
+    [Test]
+    public void TemplateNameTest()
+    {
+        var inputContents = """
+template <typename T> struct Tmpl { T value; };
+using SpecT = Tmpl<int>;
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var spec = translationUnit.TranslationUnitDecl.Decls.OfType<TypedefNameDecl>().Single((typedef) => typedef.Name.Equals("SpecT", StringComparison.Ordinal));
+        var templateSpecializationType = (TemplateSpecializationType)spec.UnderlyingType.Desugar;
+        var templateName = templateSpecializationType.TemplateName;
+
+        Assert.That(templateName.IsNull, Is.False);
+        Assert.That(templateName.Kind, Is.EqualTo(CX_TemplateNameKind.CX_TNK_QualifiedTemplate));
+    }
+
+    [Test]
+    public void NonReferenceTypeTest()
+    {
+        var inputContents = """
+using LRefT = int&;
+using RRefT = int&&;
+using ValT = int;
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var typedefs = translationUnit.TranslationUnitDecl.Decls.OfType<TypedefNameDecl>().ToDictionary((typedef) => typedef.Name, StringComparer.Ordinal);
+
+        Assert.That(typedefs["LRefT"].UnderlyingType.NonReferenceType.AsString, Is.EqualTo("int"));
+        Assert.That(typedefs["RRefT"].UnderlyingType.NonReferenceType.AsString, Is.EqualTo("int"));
+        Assert.That(typedefs["ValT"].UnderlyingType.NonReferenceType.AsString, Is.EqualTo("int"));
+
+        Assert.That(typedefs["ValT"].UnderlyingType.AddressSpace, Is.EqualTo(0u));
     }
 }
