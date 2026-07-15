@@ -76,6 +76,15 @@ add_library(ClangSharp SHARED ${SOURCES})
 
 target_link_libraries(ClangSharp PRIVATE clangAST clangFrontend libclang)
 
+# The official LLVM macOS release ships LTO bitcode in its static archives, so
+# linking them requires a libLTO that understands LLVM 22 bitcode. Apple's system
+# linker defaults to Xcode's older libLTO and fails ("could not parse bitcode
+# object file ... Unknown attribute kind"). Point the linker at the libLTO.dylib
+# from the LLVM release being consumed.
+if(APPLE AND EXISTS "${PATH_TO_LLVM}/lib/libLTO.dylib")
+  target_link_options(ClangSharp PRIVATE "LINKER:-lto_library,${PATH_TO_LLVM}/lib/libLTO.dylib")
+endif()
+
 target_include_directories(ClangSharp PRIVATE ${CLANG_INCLUDE_DIRS})
 
 set_target_properties(ClangSharp PROPERTIES
