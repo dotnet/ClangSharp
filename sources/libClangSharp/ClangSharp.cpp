@@ -937,6 +937,18 @@ CX_ConstructionKind clangsharp_Cursor_getConstructionKind(CXCursor C) {
     return _CX_CK_Invalid;
 }
 
+CX_ConstexprSpecKind clangsharp_Cursor_getConstexprKind(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
+            return static_cast<CX_ConstexprSpecKind>(static_cast<int>(FD->getConstexprKind()) + 1);
+        }
+    }
+
+    return CX_CSK_Invalid;
+}
+
 unsigned clangsharp_Cursor_getConstructsVirtualBase(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -1921,6 +1933,126 @@ unsigned clangsharp_Cursor_getHasUserDeclaredMoveOperation(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getHasDeletedDestructor(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasDeletedDestructor();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasInClassInitializer(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasInClassInitializer();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasMutableFields(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasMutableFields();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasNonTrivialDefaultConstructor(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasNonTrivialDefaultConstructor();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasNonTrivialDestructor(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasNonTrivialDestructor();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasPrivateFields(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasPrivateFields();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasProtectedFields(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasProtectedFields();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasTrivialCopyConstructor(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasTrivialCopyConstructor();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasTrivialDefaultConstructor(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasTrivialDefaultConstructor();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasTrivialDestructor(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasTrivialDestructor();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getHasVarStorage(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
@@ -1991,6 +2123,18 @@ CXCursor clangsharp_Cursor_getInitExpr(CXCursor C) {
     }
 
     return clang_getNullCursor();
+}
+
+CX_InitializationStyle clangsharp_Cursor_getInitStyle(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
+            return static_cast<CX_InitializationStyle>(VD->getInitStyle() + 1);
+        }
+    }
+
+    return CX_IS_Invalid;
 }
 
 CXType clangsharp_Cursor_getInjectedSpecializationType(CXCursor C) {
@@ -2388,6 +2532,18 @@ unsigned clangsharp_Cursor_getIsFileScope(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getIsFixed(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const EnumDecl* ED = dyn_cast<EnumDecl>(D)) {
+            return ED->isFixed();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsGlobal(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -2501,6 +2657,166 @@ unsigned clangsharp_Cursor_getIsIncomplete(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getIsAggregate(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->isAggregate();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsCapturelessLambda(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->isCapturelessLambda();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsCXX11StandardLayout(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->isCXX11StandardLayout();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsDynamicClass(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->isDynamicClass();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsEffectivelyFinal(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->isEffectivelyFinal();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsEmpty(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->isEmpty();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsGenericLambda(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->isLambda() && CXXRD->isGenericLambda();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsLambda(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->isLambda();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsLiteral(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->isLiteral();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsPolymorphic(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->isPolymorphic();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsStandardLayout(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->isStandardLayout();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsTrivial(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->isTrivial();
+        }
+
+        if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
+            return FD->isTrivial();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsTriviallyCopyable(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->isTriviallyCopyable();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsInheritingConstructor(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -2587,6 +2903,18 @@ unsigned clangsharp_Cursor_getIsNegative(CXCursor C) {
 
         if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(S)) {
             return IL->getValue().isNegative();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsNested(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const NamespaceDecl* ND = dyn_cast<NamespaceDecl>(D)) {
+            return ND->isNested();
         }
     }
 
@@ -3004,6 +3332,18 @@ unsigned clangsharp_Cursor_getIsVariadic(CXCursor C) {
     return clang_Cursor_isVariadic(C);
 }
 
+unsigned clangsharp_Cursor_getIsZeroLengthBitField(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const FieldDecl* FD = dyn_cast<FieldDecl>(D)) {
+            return FD->isZeroLengthBitField();
+        }
+    }
+
+    return 0;
+}
+
 CXCursor clangsharp_Cursor_getLambdaCallOperator(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -3014,6 +3354,20 @@ CXCursor clangsharp_Cursor_getLambdaCallOperator(CXCursor C) {
     }
 
     return clang_getNullCursor();
+}
+
+CX_LambdaCaptureDefault clangsharp_Cursor_getLambdaCaptureDefault(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
+            if (CRD->isLambda()) {
+                return static_cast<CX_LambdaCaptureDefault>(CRD->getLambdaCaptureDefault() + 1);
+            }
+        }
+    }
+
+    return CX_LCD_Invalid;
 }
 
 CXCursor clangsharp_Cursor_getLambdaContextDecl(CXCursor C) {
@@ -4151,6 +4505,18 @@ int clangsharp_Cursor_getResultIndex(CXCursor C) {
     }
 
     return -1;
+}
+
+CXRefQualifierKind clangsharp_Cursor_getRefQualifier(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXMethodDecl* MD = dyn_cast<CXXMethodDecl>(D)) {
+            return static_cast<CXRefQualifierKind>(MD->getRefQualifier());
+        }
+    }
+
+    return CXRefQualifier_None;
 }
 
 CXType clangsharp_Cursor_getReturnType(CXCursor C) {
