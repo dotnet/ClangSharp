@@ -163,32 +163,3 @@ jobs:
         path: |
           ./artifacts/pkg/**/*
         if-no-files-found: error
-  publish-nightlies-azure:
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' }}
-    needs: [ sign-nuget ]
-    steps:
-    - uses: actions/download-artifact@v4
-      with:
-        name: sign_nuget
-        path: ./artifacts/pkg
-    - uses: actions/setup-dotnet@v4
-      with:
-        global-json-file: ./global.json
-        source-url: https://pkgs.clangsharp.dev/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{ secrets.AZURE_DEVOPS_PAT }}
-    - run: dotnet nuget push "./artifacts/pkg/Release/*.nupkg" --api-key AzureDevOps --skip-duplicate
-  publish-nightlies-github:
-    runs-on: ubuntu-latest
-    if: false
-    needs: [ sign-nuget ]
-    steps:
-    - uses: actions/download-artifact@v4
-      with:
-        name: sign_nuget
-        path: ./artifacts/pkg
-    - uses: actions/setup-dotnet@v4
-      with:
-        global-json-file: ./global.json
-    - run: dotnet nuget push "./artifacts/pkg/Release/*.nupkg" --source https://nuget.pkg.github.com/dotnet/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate

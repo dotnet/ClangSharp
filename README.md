@@ -15,8 +15,6 @@ A helper package which exposes many Clang APIs missing from libClang is provided
 
 **NOTE:** libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/21.1.8); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
 
-Nightly packages are available via the NuGet Feed URL: https://pkgs.clangsharp.dev/index.json
-
 Source browsing is available via: https://source.clangsharp.dev/
 
 ## Table of Contents
