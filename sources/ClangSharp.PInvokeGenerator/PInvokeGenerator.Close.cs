@@ -156,6 +156,14 @@ public partial class PInvokeGenerator
                 }
             }
 
+            if (_generatedObjCBindings)
+            {
+                // The Objective-C support surface (`SEL` + `ObjectiveC`) is emitted inside the shared
+                // namespace in single-file mode, so its required using directives are hoisted here.
+                _ = usingDirectives.Add("System");
+                _ = usingDirectives.Add("System.Runtime.InteropServices");
+            }
+
             if (hasAnyContents || generateHelperTypes)
             {
                 using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
@@ -413,6 +421,14 @@ public partial class PInvokeGenerator
             hasNamespaceContent = GenerateSetsLastSystemErrorAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
             hasNamespaceContent = GenerateVtblIndexAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
             GenerateTransparentStructs(this, stream, leaveStreamOpen, hasNamespaceContent);
+        }
+
+        if (_generatedObjCBindings && (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp))
+        {
+            // In single-file mode the shared namespace was already opened by the emitted protocol
+            // type(s), so the support surface just needs a leading blank line to separate it.
+            var hasNamespaceContent = !_config.GenerateMultipleFiles;
+            GenerateObjectiveCSupport(this, stream, leaveStreamOpen, hasNamespaceContent);
         }
 
         if (leaveStreamOpen && (_outputBuilderFactory.OutputBuilders.Any() || generateHelperTypes))
@@ -775,6 +791,140 @@ public partial class PInvokeGenerator
             }
 
             return true;
+        }
+
+        static void GenerateObjectiveCSupport(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen, bool hasNamespaceContent)
+        {
+            var config = generator.Config;
+
+            if (stream is null)
+            {
+                var outputPath = Path.Combine(config.OutputLocation, "ObjectiveC.cs");
+                stream = generator._outputStreamFactory(outputPath);
+            }
+
+            using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
+            sw.NewLine = "\n";
+
+            var indentString = "    ";
+
+            if (config.GenerateMultipleFiles)
+            {
+                if (!string.IsNullOrEmpty(config.HeaderText))
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Runtime.InteropServices;");
+                sw.WriteLine();
+
+                sw.Write("namespace ");
+                sw.Write(generator.GetNamespace("ObjectiveC"));
+
+                if (config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
+            }
+            else
+            {
+                // The shared namespace is already open; emit only the type bodies, separated from
+                // the preceding content by a blank line.
+
+                if (config.GenerateFileScopedNamespaces)
+                {
+                    indentString = "";
+                }
+
+                if (hasNamespaceContent)
+                {
+                    sw.WriteLine();
+                }
+            }
+
+            // `SEL` is a strongly typed wrapper over the opaque selector pointer, mirroring how the
+            // Objective-C runtime models `SEL` as an opaque pointer.
+            sw.Write(indentString);
+            sw.WriteLine("/// <summary>Represents an Objective-C selector (<c>SEL</c>).</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("public unsafe partial struct SEL : IEquatable<SEL>");
+            sw.Write(indentString);
+            sw.WriteLine('{');
+            sw.Write(indentString);
+            sw.WriteLine("    public void* Value;");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    public SEL(void* value)");
+            sw.Write(indentString);
+            sw.WriteLine("    {");
+            sw.Write(indentString);
+            sw.WriteLine("        Value = value;");
+            sw.Write(indentString);
+            sw.WriteLine("    }");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    public static bool operator ==(SEL left, SEL right) => left.Value == right.Value;");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    public static bool operator !=(SEL left, SEL right) => left.Value != right.Value;");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    public override bool Equals(object? obj) => (obj is SEL other) && Equals(other);");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    public bool Equals(SEL other) => Value == other.Value;");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    public override int GetHashCode() => ((nuint)Value).GetHashCode();");
+            sw.Write(indentString);
+            sw.WriteLine('}');
+            sw.WriteLine();
+
+            // The runtime surface: the cached raw `objc_msgSend` entry point (cast per call site to
+            // the selector's signature) plus the minimal registration/lookup helpers.
+            sw.Write(indentString);
+            sw.WriteLine("/// <summary>Provides access to the Objective-C runtime (<c>libobjc</c>).</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("public static unsafe partial class ObjectiveC");
+            sw.Write(indentString);
+            sw.WriteLine('{');
+            sw.Write(indentString);
+            sw.WriteLine("    private const string LibObjC = \"/usr/lib/libobjc.A.dylib\";");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    /// <summary>The raw <c>objc_msgSend</c> entry point, cast per call site to the selector's signature.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("    public static readonly void* objc_msgSend = (void*)NativeLibrary.GetExport(NativeLibrary.Load(LibObjC), \"objc_msgSend\");");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    [DllImport(LibObjC, EntryPoint = \"sel_registerName\", ExactSpelling = true)]");
+            sw.Write(indentString);
+            sw.WriteLine("    public static extern SEL sel_registerName([MarshalAs(UnmanagedType.LPUTF8Str)] string name);");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    [DllImport(LibObjC, EntryPoint = \"objc_getClass\", ExactSpelling = true)]");
+            sw.Write(indentString);
+            sw.WriteLine("    public static extern void* objc_getClass([MarshalAs(UnmanagedType.LPUTF8Str)] string name);");
+            sw.Write(indentString);
+            sw.WriteLine('}');
+
+            if (config.GenerateMultipleFiles && !config.GenerateFileScopedNamespaces)
+            {
+                sw.WriteLine('}');
+            }
+
+            if (!leaveStreamOpen)
+            {
+                stream = null;
+            }
         }
 
         static bool GenerateNativeTypeNameAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen, bool hasNamespaceContent)

@@ -98,4 +98,6 @@ public enum PInvokeGeneratorConfigurationOptions : long
     ExcludeGeneratedCodeAttribute = 1L << 43,
 
     GenerateExternVariables = 1L << 44,
+
+    GenerateObjectiveCBindings = 1L << 45,
 }

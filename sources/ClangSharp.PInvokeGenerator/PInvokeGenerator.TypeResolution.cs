@@ -540,6 +540,22 @@ public sealed partial class PInvokeGenerator
             {
                 result.typeName = GetTypeName(cursor, context, rootType, usingType.Desugar, ignoreTransparentStructsWhereRequired, isTemplate, out _);
             }
+            else if (type is ObjCObjectPointerType objCObjectPointerType)
+            {
+                // An Objective-C object reference (`id`, `NSObject *`, ...) is a pointer to the
+                // object. When it names a concrete `@interface` we map it to that generated struct
+                // pointer; the generic `id` (no interface) maps to `void*`.
+                var interfaceDecl = objCObjectPointerType.InterfaceDecl;
+                result.typeName = interfaceDecl is not null ? $"{EscapeName(GetRemappedCursorName(interfaceDecl))}*" : "void*";
+            }
+            else if (type is ObjCObjectType objCObjectType)
+            {
+                result.typeName = objCObjectType.Interface is ObjCInterfaceDecl objCInterfaceDecl ? EscapeName(GetRemappedCursorName(objCInterfaceDecl)) : "void";
+            }
+            else if (type is ObjCInterfaceType objCInterfaceType)
+            {
+                result.typeName = EscapeName(GetRemappedCursorName(objCInterfaceType.Decl));
+            }
             else
             {
                 AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.TypeClass}'. Falling back '{result.typeName}'.", cursor);
