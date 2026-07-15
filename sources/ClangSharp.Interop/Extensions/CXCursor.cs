@@ -1178,6 +1178,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsResultDependent => clangsharp.Cursor_getIsResultDependent(this) != 0;
 
+    public readonly bool IsReversed => clangsharp.Cursor_getIsReversed(this) != 0;
+
     public readonly bool IsStdInitListInitialization => clangsharp.Cursor_getIsStdInitListInitialization(this) != 0;
 
     public readonly bool IsSigned => clangsharp.Cursor_getIsSigned(this) != 0;

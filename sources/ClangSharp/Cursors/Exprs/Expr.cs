@@ -14,12 +14,41 @@ public class Expr : ValueStmt
 {
     private static readonly Func<Expr, Expr> s_ignoreImplicitCastsSingleStep = (e) => e is ImplicitCastExpr ice ? ice.SubExpr : e is FullExpr fe ? fe.SubExpr : e;
 
+    private static readonly Func<Expr, Expr> s_ignoreImplicitCastsExtraSingleStep = (e) =>
+    {
+        var subE = s_ignoreImplicitCastsSingleStep(e);
+
+        return subE != e ? subE : e is MaterializeTemporaryExpr mte ? mte.SubExpr : e is SubstNonTypeTemplateParmExpr nttp ? nttp.Replacement : e;
+    };
+
+    private static readonly Func<Expr, Expr> s_ignoreCastsSingleStep = (e) => e switch {
+        CastExpr ce => ce.SubExpr,
+        FullExpr fe => fe.SubExpr,
+        MaterializeTemporaryExpr mte => mte.SubExpr,
+        SubstNonTypeTemplateParmExpr nttp => nttp.Replacement,
+        _ => e,
+    };
+
+    private static readonly Func<Expr, Expr> s_ignoreLValueCastsSingleStep = (e) =>
+    {
+        if (e is CastExpr ce && ce.CastKind != CX_CK_LValueToRValue)
+        {
+            return e;
+        }
+
+        return s_ignoreCastsSingleStep(e);
+    };
+
+    private static readonly Func<Expr, Expr> s_ignoreBaseCastsSingleStep = (e) => e is CastExpr ce && ce.CastKind is CX_CK_DerivedToBase or CX_CK_UncheckedDerivedToBase or CX_CK_NoOp ? ce.SubExpr : e;
+
     private static readonly Func<Expr, Expr> s_ignoreImplicitSingleStep = (e) =>
     {
         var subE = s_ignoreImplicitCastsSingleStep(e);
 
         return subE != e ? subE : e is MaterializeTemporaryExpr mte ? mte.SubExpr : e is CXXBindTemporaryExpr bte ? bte.SubExpr : e;
     };
+
+    private static readonly Func<Expr, Expr> s_ignoreImplicitAsWrittenSingleStep = (e) => e is ImplicitCastExpr ice ? ice.SubExprAsWritten : s_ignoreImplicitSingleStep(e);
 
     private static readonly Func<Expr, Expr> s_ignoreParensSingleStep = (e) =>
     {
@@ -75,9 +104,23 @@ public class Expr : ValueStmt
 
     public CX_ExprDependence Dependence => Handle.ExprDependence;
 
+    public Expr IgnoreCasts => IgnoreExprNodes(this, s_ignoreCastsSingleStep);
+
+    public Expr IgnoreImpCasts => IgnoreExprNodes(this, s_ignoreImplicitCastsSingleStep);
+
     public Expr IgnoreImplicit => IgnoreExprNodes(this, s_ignoreImplicitSingleStep);
 
+    public Expr IgnoreImplicitAsWritten => IgnoreExprNodes(this, s_ignoreImplicitAsWrittenSingleStep);
+
     public Expr IgnoreParens => IgnoreExprNodes(this, s_ignoreParensSingleStep);
+
+    public Expr IgnoreParenBaseCasts => IgnoreExprNodes(this, s_ignoreParensSingleStep, s_ignoreBaseCastsSingleStep);
+
+    public Expr IgnoreParenCasts => IgnoreExprNodes(this, s_ignoreParensSingleStep, s_ignoreCastsSingleStep);
+
+    public Expr IgnoreParenImpCasts => IgnoreExprNodes(this, s_ignoreParensSingleStep, s_ignoreImplicitCastsExtraSingleStep);
+
+    public Expr IgnoreParenLValueCasts => IgnoreExprNodes(this, s_ignoreParensSingleStep, s_ignoreLValueCastsSingleStep);
 
     public bool IsImplicitCXXThis
     {
@@ -140,6 +183,19 @@ public class Expr : ValueStmt
         {
             lastE = e;
             e = fn(e);
+        }
+
+        return e;
+    }
+
+    private static Expr IgnoreExprNodes(Expr e, Func<Expr, Expr> fn1, Func<Expr, Expr> fn2)
+    {
+        Expr? lastE = null;
+
+        while (e != lastE)
+        {
+            lastE = e;
+            e = fn2(fn1(e));
         }
 
         return e;

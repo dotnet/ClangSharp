@@ -17,5 +17,9 @@ public sealed class MemberPointerType : Type
 
     public Type ClassType => _classType.GetValue(this);
 
+    public bool IsMemberDataPointer => !IsMemberFunctionPointer;
+
+    public bool IsMemberFunctionPointer => PointeeType.CanonicalType is FunctionProtoType;
+
     private static unsafe Type ClassTypeFactory(MemberPointerType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ClassType);
 }
