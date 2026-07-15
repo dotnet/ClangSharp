@@ -317,6 +317,56 @@ enum E {
         });
     }
 
+    [Test]
+    public void CXXMethodIsPureVirtualTest()
+    {
+        var inputContents = """
+struct S
+{
+    virtual void PureMethod() = 0;
+    virtual void VirtualMethod() {}
+    void PlainMethod() {}
+};
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var recordDecl = translationUnit.TranslationUnitDecl.Decls.OfType<CXXRecordDecl>().Single((decl) => decl.Name.Equals("S", StringComparison.Ordinal));
+
+        CXXMethodDecl Method(string name)
+        {
+            return recordDecl.Methods.First((method) => method.Name.Equals(name, StringComparison.Ordinal));
+        }
+
+        Assert.That(Method("PureMethod").IsPureVirtual, Is.True);
+        Assert.That(Method("VirtualMethod").IsPureVirtual, Is.False);
+        Assert.That(Method("PlainMethod").IsPureVirtual, Is.False);
+    }
+
+    [Test]
+    public void FieldOffsetOfFieldTest()
+    {
+        var inputContents = """
+struct S
+{
+    int first;
+    int second;
+};
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var recordDecl = translationUnit.TranslationUnitDecl.Decls.OfType<CXXRecordDecl>().Single((decl) => decl.Name.Equals("S", StringComparison.Ordinal));
+
+        FieldDecl Field(string name)
+        {
+            return recordDecl.Fields.First((field) => field.Name.Equals(name, StringComparison.Ordinal));
+        }
+
+        Assert.That(Field("first").OffsetOfField, Is.EqualTo(0));
+        Assert.That(Field("second").OffsetOfField, Is.EqualTo(32));
+    }
+
     // Some tests depend on native libClangSharp shims that the pinned 21.1 prebuilt package predates
     // (e.g. clangsharp_Cursor_getNumTemplateArguments / getTemplateArgument and
     // clangsharp_Cursor_getUsingEnumDeclEnumDecl). Skip those until the native lib is rebuilt for a

@@ -15,6 +15,7 @@ public unsafe class Type : IEquatable<Type>
     private ValueLazy<Type, Type> _canonicalType;
     private ValueLazy<Type, Type> _desugar;
     private ValueLazy<Type, string> _kindSpelling;
+    private ValueLazy<Type, Type> _nonReferenceType;
     private ValueLazy<Type, Type> _pointeeType;
     private ValueLazy<Type, TranslationUnit> _translationUnit;
     private ValueLazy<Type, Type> _unqualifiedType;
@@ -50,6 +51,7 @@ public unsafe class Type : IEquatable<Type>
         _canonicalType = new ValueLazy<Type, Type>(&CanonicalTypeFactory);
         _desugar = new ValueLazy<Type, Type>(&DesugarFactory);
         _kindSpelling = new ValueLazy<Type, string>(&KindSpellingFactory);
+        _nonReferenceType = new ValueLazy<Type, Type>(&NonReferenceTypeFactory);
         _pointeeType = new ValueLazy<Type, Type>(&PointeeTypeFactory);
         _translationUnit = new ValueLazy<Type, TranslationUnit>(&TranslationUnitFactory);
         _unqualifiedType = new ValueLazy<Type, Type>(&UnqualifiedTypeFactory);
@@ -68,6 +70,10 @@ public unsafe class Type : IEquatable<Type>
         return false;
     }
 #endif
+
+    public uint AddressSpace => Handle.AddressSpace;
+
+    public long AlignOf => Handle.AlignOf;
 
     public CXXRecordDecl? AsCXXRecordDecl => AsTagDecl as CXXRecordDecl;
 
@@ -91,7 +97,19 @@ public unsafe class Type : IEquatable<Type>
 
     public bool IsAnyPointerType => IsPointerType || IsObjCObjectPointerType;
 
+    public bool IsArrayType => CanonicalType is ArrayType;
+
+    public bool IsAtomicType => CanonicalType is AtomicType;
+
     public bool IsBitIntType => CanonicalType is BitIntType;
+
+    public bool IsBlockPointerType => CanonicalType is BlockPointerType;
+
+    public bool IsBooleanType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind == CXType_Bool;
+
+    public bool IsEnumeralType => CanonicalType is EnumType;
+
+    public bool IsFunctionType => CanonicalType is FunctionType;
 
     public bool IsIntegerType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind is >= CXType_Bool and <= CXType_Int128;
 
@@ -105,21 +123,49 @@ public unsafe class Type : IEquatable<Type>
         }
     }
 
+    public bool IsLValueReferenceType => CanonicalType is LValueReferenceType;
+
     public bool IsLocalConstQualified => Handle.IsConstQualified;
+
+    public bool IsLocalRestrictQualified => Handle.IsRestrictQualified;
+
+    public bool IsLocalVolatileQualified => Handle.IsVolatileQualified;
+
+    public bool IsMemberPointerType => CanonicalType is MemberPointerType;
+
+    public bool IsNullPtrType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind == CXType_NullPtr;
 
     public bool IsObjCInstanceType => Handle.IsObjCInstanceType;
 
     public bool IsObjCObjectPointerType => CanonicalType is ObjCObjectPointerType;
 
+    public bool IsPODType => Handle.IsPODType;
+
     public bool IsPointerType => CanonicalType is PointerType;
 
+    public bool IsRValueReferenceType => CanonicalType is RValueReferenceType;
+
+    public bool IsRecordType => CanonicalType is RecordType;
+
+    public bool IsReferenceType => CanonicalType is ReferenceType;
+
     public bool IsSugared => Handle.IsSugared;
+
+    public bool IsVectorType => CanonicalType is VectorType or ExtVectorType;
+
+    public bool IsVoidType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind == CXType_Void;
 
     public CXTypeKind Kind => Handle.kind;
 
     public string KindSpelling => _kindSpelling.GetValue(this);
 
+    public Type NonReferenceType => _nonReferenceType.GetValue(this);
+
+    public CXTypeNullabilityKind Nullability => Handle.Nullability;
+
     public Type PointeeType => _pointeeType.GetValue(this);
+
+    public long SizeOf => Handle.SizeOf;
 
     public TranslationUnit TranslationUnit => _translationUnit.GetValue(this);
 
@@ -247,6 +293,8 @@ public unsafe class Type : IEquatable<Type>
     private static unsafe TranslationUnit TranslationUnitFactory(Type self) => TranslationUnit.GetOrCreate((CXTranslationUnit)self.Handle.data[1]);
 
     private static unsafe Type PointeeTypeFactory(Type self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.PointeeType);
+
+    private static unsafe Type NonReferenceTypeFactory(Type self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.NonReferenceType);
 
     private static unsafe Type UnqualifiedTypeFactory(Type self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.UnqualifiedType);
 

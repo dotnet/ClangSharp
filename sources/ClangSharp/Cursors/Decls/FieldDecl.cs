@@ -50,6 +50,8 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
 
     public bool IsUnnamedBitfield => Handle.IsUnnamedBitfield;
 
+    public long OffsetOfField => Handle.OffsetOfField;
+
     public new RecordDecl? Parent => (DeclContext as RecordDecl) ?? ((SemanticParentCursor is ClassTemplateDecl classTemplateDecl) ? (RecordDecl)classTemplateDecl.TemplatedDecl : null);
 
     private static unsafe bool IsAnonymousFieldFactory(FieldDecl self) {

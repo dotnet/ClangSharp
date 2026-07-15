@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_TemplateNameKind;
 
 namespace ClangSharp;
 
@@ -20,6 +21,10 @@ public sealed unsafe class TemplateName
     public TemplateDecl AsTemplateDecl => _asTemplateDecl.GetValue(this);
 
     public CX_TemplateName Handle { get; }
+
+    public bool IsNull => Handle.kind == CX_TNK_Invalid;
+
+    public CX_TemplateNameKind Kind => Handle.kind;
 
     public TranslationUnit TranslationUnit => _translationUnit.GetValue(this);
 

@@ -8,7 +8,14 @@ namespace ClangSharp;
 
 public sealed class MemberPointerType : Type
 {
-    internal MemberPointerType(CXType handle) : base(handle, CXType_MemberPointer, CX_TypeClass_MemberPointer)
+    private ValueLazy<MemberPointerType, Type> _classType;
+
+    internal unsafe MemberPointerType(CXType handle) : base(handle, CXType_MemberPointer, CX_TypeClass_MemberPointer)
     {
+        _classType = new ValueLazy<MemberPointerType, Type>(&ClassTypeFactory);
     }
+
+    public Type ClassType => _classType.GetValue(this);
+
+    private static unsafe Type ClassTypeFactory(MemberPointerType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ClassType);
 }
