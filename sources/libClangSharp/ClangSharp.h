@@ -19,6 +19,9 @@
 #include <clang/AST/StmtObjC.h>
 #include <clang/AST/VTableBuilder.h>
 #include <clang/Basic/Specifiers.h>
+#include <clang/Lex/MacroInfo.h>
+#include <clang/Lex/Preprocessor.h>
+#include <clang/Lex/PreprocessingRecord.h>
 #include <clang-c/ExternC.h>
 #include <clang-c/Index.h>
 
@@ -240,6 +243,14 @@ enum CX_InitializationStyle {
     CX_IS_CallInit = clang::VarDecl::CallInit + 1,
     CX_IS_ListInit = clang::VarDecl::ListInit + 1,
     CX_IS_ParenListInit = clang::VarDecl::ParenListInit + 1,
+};
+
+enum CX_InclusionDirectiveKind {
+    CX_IDK_Invalid,
+    CX_IDK_Include = static_cast<int>(clang::InclusionDirective::Include) + 1,
+    CX_IDK_Import = static_cast<int>(clang::InclusionDirective::Import) + 1,
+    CX_IDK_IncludeNext = static_cast<int>(clang::InclusionDirective::IncludeNext) + 1,
+    CX_IDK_IncludeMacros = static_cast<int>(clang::InclusionDirective::IncludeMacros) + 1,
 };
 
 enum CX_LambdaCaptureDefault {
@@ -1079,6 +1090,30 @@ CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getThisType(CXCursor C);
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTrailingRequiresClause(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTypedefNameForAnonDecl(CXCursor C);
+
+CLANGSHARP_LINKAGE CX_InclusionDirectiveKind clangsharp_Cursor_getInclusionDirectiveKind(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getInclusionDirectiveImportedModule(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getInclusionDirectiveWasInQuotes(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsMacroC99Varargs(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsMacroGNUVarargs(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsMacroVariadic(CXCursor C);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getMacroExpansionDefinition(CXCursor C);
+
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getMacroParamName(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getMacroTokenKind(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getMacroTokenSpelling(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumMacroParams(CXCursor C);
+
+CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumMacroTokens(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasCatchAll(CXCursor C);
 

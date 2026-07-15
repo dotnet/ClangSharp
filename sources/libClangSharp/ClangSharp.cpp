@@ -5811,6 +5811,139 @@ CXCursor clangsharp_Cursor_getTypedefNameForAnonDecl(CXCursor C) {
     return clang_getNullCursor();
 }
 
+static const MacroInfo* getMacroInfoForCursor(CXCursor C) {
+    if (C.kind != CXCursor_MacroDefinition) {
+        return nullptr;
+    }
+
+    const MacroDefinitionRecord* MDR = getCursorMacroDefinition(C);
+
+    if (!MDR) {
+        return nullptr;
+    }
+
+    ASTUnit* AU = getCursorASTUnit(C);
+
+    if (!AU) {
+        return nullptr;
+    }
+
+    return AU->getPreprocessor().getMacroInfo(MDR->getName());
+}
+
+unsigned clangsharp_Cursor_getIsMacroVariadic(CXCursor C) {
+    if (const MacroInfo* MI = getMacroInfoForCursor(C)) {
+        return MI->isVariadic();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsMacroC99Varargs(CXCursor C) {
+    if (const MacroInfo* MI = getMacroInfoForCursor(C)) {
+        return MI->isC99Varargs();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsMacroGNUVarargs(CXCursor C) {
+    if (const MacroInfo* MI = getMacroInfoForCursor(C)) {
+        return MI->isGNUVarargs();
+    }
+
+    return 0;
+}
+
+int clangsharp_Cursor_getNumMacroParams(CXCursor C) {
+    if (const MacroInfo* MI = getMacroInfoForCursor(C)) {
+        return MI->getNumParams();
+    }
+
+    return -1;
+}
+
+CXString clangsharp_Cursor_getMacroParamName(CXCursor C, unsigned i) {
+    if (const MacroInfo* MI = getMacroInfoForCursor(C)) {
+        if (i < MI->getNumParams()) {
+            return createDup(MI->params()[i]->getName());
+        }
+    }
+
+    return createEmpty();
+}
+
+int clangsharp_Cursor_getNumMacroTokens(CXCursor C) {
+    if (const MacroInfo* MI = getMacroInfoForCursor(C)) {
+        return MI->getNumTokens();
+    }
+
+    return -1;
+}
+
+CXString clangsharp_Cursor_getMacroTokenSpelling(CXCursor C, unsigned i) {
+    if (const MacroInfo* MI = getMacroInfoForCursor(C)) {
+        if (i < MI->getNumTokens()) {
+            ASTUnit* AU = getCursorASTUnit(C);
+            std::string spelling = AU->getPreprocessor().getSpelling(MI->getReplacementToken(i));
+            return createDup(spelling);
+        }
+    }
+
+    return createEmpty();
+}
+
+unsigned clangsharp_Cursor_getMacroTokenKind(CXCursor C, unsigned i) {
+    if (const MacroInfo* MI = getMacroInfoForCursor(C)) {
+        if (i < MI->getNumTokens()) {
+            return static_cast<unsigned>(MI->getReplacementToken(i).getKind());
+        }
+    }
+
+    return 0;
+}
+
+CXCursor clangsharp_Cursor_getMacroExpansionDefinition(CXCursor C) {
+    if (C.kind == CXCursor_MacroExpansion) {
+        MacroExpansionCursor MEC = getCursorMacroExpansion(C);
+        const MacroDefinitionRecord* MDR = MEC.getDefinition();
+
+        if (MDR) {
+            CXCursor Def = { CXCursor_MacroDefinition, 0, { MDR, nullptr, C.data[2] } };
+            return Def;
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
+CX_InclusionDirectiveKind clangsharp_Cursor_getInclusionDirectiveKind(CXCursor C) {
+    if (C.kind == CXCursor_InclusionDirective) {
+        const InclusionDirective* ID = getCursorInclusionDirective(C);
+        return static_cast<CX_InclusionDirectiveKind>(ID->getKind() + 1);
+    }
+
+    return CX_IDK_Invalid;
+}
+
+unsigned clangsharp_Cursor_getInclusionDirectiveWasInQuotes(CXCursor C) {
+    if (C.kind == CXCursor_InclusionDirective) {
+        const InclusionDirective* ID = getCursorInclusionDirective(C);
+        return ID->wasInQuotes();
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getInclusionDirectiveImportedModule(CXCursor C) {
+    if (C.kind == CXCursor_InclusionDirective) {
+        const InclusionDirective* ID = getCursorInclusionDirective(C);
+        return ID->importedModule();
+    }
+
+    return 0;
+}
+
 CX_ObjCMessageReceiverKind clangsharp_Cursor_getObjCMessageReceiverKind(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
