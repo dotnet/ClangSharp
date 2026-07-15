@@ -106,6 +106,23 @@ enum CX_ExprDependence {
     CX_ED_ErrorDependent = clang::ExprDependenceScope::ErrorDependent,
 };
 
+enum CX_ExprObjectKind {
+    CX_OK_Invalid,
+    CX_OK_Ordinary = clang::OK_Ordinary + 1,
+    CX_OK_BitField = clang::OK_BitField + 1,
+    CX_OK_VectorComponent = clang::OK_VectorComponent + 1,
+    CX_OK_ObjCProperty = clang::OK_ObjCProperty + 1,
+    CX_OK_ObjCSubscript = clang::OK_ObjCSubscript + 1,
+    CX_OK_MatrixComponent = clang::OK_MatrixComponent + 1,
+};
+
+enum CX_ExprValueKind {
+    CX_VK_Invalid,
+    CX_VK_PRValue = clang::VK_PRValue + 1,
+    CX_VK_LValue = clang::VK_LValue + 1,
+    CX_VK_XValue = clang::VK_XValue + 1,
+};
+
 enum CX_FloatingSemantics {
     CX_FLK_Invalid,
     CX_FLK_IEEEhalf = llvm::APFloatBase::S_IEEEhalf + 1,
@@ -146,11 +163,33 @@ enum CX_LambdaCaptureDefault {
     CX_LCD_ByRef = clang::LCD_ByRef + 1,
 };
 
+enum CX_LiteralOperatorKind {
+    CX_LOK_Invalid,
+    CX_LOK_Raw = clang::UserDefinedLiteral::LOK_Raw + 1,
+    CX_LOK_Template = clang::UserDefinedLiteral::LOK_Template + 1,
+    CX_LOK_Integer = clang::UserDefinedLiteral::LOK_Integer + 1,
+    CX_LOK_Floating = clang::UserDefinedLiteral::LOK_Floating + 1,
+    CX_LOK_String = clang::UserDefinedLiteral::LOK_String + 1,
+    CX_LOK_Character = clang::UserDefinedLiteral::LOK_Character + 1,
+};
+
 enum CX_OverloadedOperatorKind {
     CX_OO_Invalid = clang::OO_None,
 #define OVERLOADED_OPERATOR(Name,Spelling,Token,Unary,Binary,MemberOnly) \
     CX_OO_##Name = clang::OO_##Name,
 #include "clang/Basic/OperatorKinds.def"
+};
+
+enum CX_PredefinedIdentKind {
+    CX_PIK_Invalid,
+    CX_PIK_Func = static_cast<int>(clang::PredefinedIdentKind::Func) + 1,
+    CX_PIK_Function = static_cast<int>(clang::PredefinedIdentKind::Function) + 1,
+    CX_PIK_LFunction = static_cast<int>(clang::PredefinedIdentKind::LFunction) + 1,
+    CX_PIK_FuncDName = static_cast<int>(clang::PredefinedIdentKind::FuncDName) + 1,
+    CX_PIK_FuncSig = static_cast<int>(clang::PredefinedIdentKind::FuncSig) + 1,
+    CX_PIK_LFuncSig = static_cast<int>(clang::PredefinedIdentKind::LFuncSig) + 1,
+    CX_PIK_PrettyFunction = static_cast<int>(clang::PredefinedIdentKind::PrettyFunction) + 1,
+    CX_PIK_PrettyFunctionNoVirtual = static_cast<int>(clang::PredefinedIdentKind::PrettyFunctionNoVirtual) + 1,
 };
 
 enum CX_StmtClass {
@@ -211,6 +250,27 @@ enum CX_TypeClass {
 #define ABSTRACT_TYPE(Class, Base)
 #include <clang/AST/TypeNodes.inc>
     CX_TypeClass_TagFirst = CX_TypeClass_Record, CX_TypeClass_TagLast = CX_TypeClass_Enum
+};
+
+enum CX_TypeTrait {
+    CX_TT_Invalid,
+#define TYPE_TRAIT_1(Spelling, Name, Key) CX_UTT_##Name,
+#include "clang/Basic/TokenKinds.def"
+    CX_UTT_Last = 0 // CX_UTT_Last == last CX_UTT_XX in the enum.
+#define TYPE_TRAIT_1(Spelling, Name, Key) +1
+#include "clang/Basic/TokenKinds.def"
+    ,
+#define TYPE_TRAIT_2(Spelling, Name, Key) CX_BTT_##Name,
+#include "clang/Basic/TokenKinds.def"
+    CX_BTT_Last = CX_UTT_Last // CX_BTT_Last == last CX_BTT_XX in the enum.
+#define TYPE_TRAIT_2(Spelling, Name, Key) +1
+#include "clang/Basic/TokenKinds.def"
+    ,
+#define TYPE_TRAIT_N(Spelling, Name, Key) CX_TT_##Name,
+#include "clang/Basic/TokenKinds.def"
+    CX_TT_Last = CX_BTT_Last // CX_TT_Last == last CX_TT_XX in the enum.
+#define TYPE_TRAIT_N(Spelling, Name, Key) +1
+#include "clang/Basic/TokenKinds.def"
 };
 
 enum CX_UnaryExprOrTypeTrait {
@@ -374,6 +434,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getCXXRecord_IsPOD(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getBoolLiteralValue(CXCursor C);
 
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCookedLiteral(CXCursor C);
+
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getDeclaredReturnType(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getDecl(CXCursor C, unsigned i);
@@ -431,6 +493,8 @@ CLANGSHARP_LINKAGE int clangsharp_Cursor_getFunctionScopeIndex(CXCursor C);
 CLANGSHARP_LINKAGE clang::MSGuidDeclParts clangsharp_Cursor_getGuidValue(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHadMultipleCandidates(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasAPValueResult(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasBody(CXCursor C);
 
@@ -499,6 +563,10 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasVarStorage(CXCursor C);
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getHoldingVar(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getInClassInitializer(CXCursor C);
+
+CLANGSHARP_LINKAGE CX_PredefinedIdentKind clangsharp_Cursor_getIdentKind(CXCursor C);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getIgnoreParenNoopCasts(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getInheritedConstructor(CXCursor C);
 
@@ -686,6 +754,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getLambdaStaticInvoker(CXCursor C)
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getLhsExpr(CXCursor C);
 
+CLANGSHARP_LINKAGE CX_LiteralOperatorKind clangsharp_Cursor_getLiteralOperatorKind(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getMaxAlignment(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getMethod(CXCursor C, unsigned i);
@@ -756,6 +826,8 @@ CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumVBases(CXCursor C);
 
 CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getObjCRuntimeNameAttrMetadataName(CXCursor C);
 
+CLANGSHARP_LINKAGE CX_ExprObjectKind clangsharp_Cursor_getObjectKind(CXCursor C);
+
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getOpaqueValue(CXCursor C);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getOriginalType(CXCursor C);
@@ -785,6 +857,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getReferenced(CXCursor C);
 CLANGSHARP_LINKAGE CXRefQualifierKind clangsharp_Cursor_getRefQualifier(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getRequiresZeroInitialization(CXCursor C);
+
+CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getResultAsAPSInt(CXCursor C);
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getResultIndex(CXCursor C);
 
@@ -861,6 +935,10 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUsingEnumDeclEnumDecl(CXCursor 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getTypeParamHasExplicitBound(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getTypeParamVariance(CXCursor C);
+
+CLANGSHARP_LINKAGE CX_TypeTrait clangsharp_Cursor_getTypeTrait(CXCursor C);
+
+CLANGSHARP_LINKAGE CX_ExprValueKind clangsharp_Cursor_getValueKind(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getVBase(CXCursor C, unsigned i);
 

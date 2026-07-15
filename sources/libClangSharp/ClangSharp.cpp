@@ -1039,9 +1039,25 @@ unsigned clangsharp_Cursor_getBoolLiteralValue(CXCursor C) {
         if (const ObjCBoolLiteralExpr* OCBLE = dyn_cast<ObjCBoolLiteralExpr>(S)) {
             return OCBLE->getValue();
         }
+
+        if (const TypeTraitExpr* TTE = dyn_cast<TypeTraitExpr>(S)) {
+            return TTE->getBoolValue();
+        }
     }
 
     return 0;
+}
+
+CXCursor clangsharp_Cursor_getCookedLiteral(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const UserDefinedLiteral* UDL = dyn_cast<UserDefinedLiteral>(S)) {
+            return MakeCXCursor(UDL->getCookedLiteral(), getCursorDecl(C), getCursorTU(C));
+        }
+    }
+
+    return clang_getNullCursor();
 }
 
 CXType clangsharp_Cursor_getDeclaredReturnType(CXCursor C) {
@@ -1617,6 +1633,18 @@ unsigned clangsharp_Cursor_getHadMultipleCandidates(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getHasAPValueResult(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ConstantExpr* CE = dyn_cast<ConstantExpr>(S)) {
+            return CE->hasAPValueResult();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getHasBody(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -2107,6 +2135,18 @@ unsigned clangsharp_Cursor_getInheritedFromVBase(CXCursor C) {
     }
 
     return 0;
+}
+
+CX_PredefinedIdentKind clangsharp_Cursor_getIdentKind(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const PredefinedExpr* PE = dyn_cast<PredefinedExpr>(S)) {
+            return static_cast<CX_PredefinedIdentKind>(static_cast<int>(PE->getIdentKind()) + 1);
+        }
+    }
+
+    return CX_PIK_Invalid;
 }
 
 CXCursor clangsharp_Cursor_getInitExpr(CXCursor C) {
@@ -3222,6 +3262,19 @@ unsigned clangsharp_Cursor_getIsThrownVariableInScope(CXCursor C) {
     return 0;
 }
 
+CXCursor clangsharp_Cursor_getIgnoreParenNoopCasts(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const Expr* E = dyn_cast<Expr>(S)) {
+            const ASTContext& Ctx = getCursorASTUnit(C)->getASTContext();
+            return MakeCXCursor(E->IgnoreParenNoopCasts(Ctx), getCursorDecl(C), getCursorTU(C));
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
 unsigned clangsharp_Cursor_getIsTransparent(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -3236,6 +3289,10 @@ unsigned clangsharp_Cursor_getIsTransparent(CXCursor C) {
 
         if (const InitListExpr* ILE = dyn_cast<InitListExpr>(S)) {
             return ILE->isTransparent();
+        }
+
+        if (const PredefinedExpr* PE = dyn_cast<PredefinedExpr>(S)) {
+            return PE->isTransparent();
         }
     }
 
@@ -3411,6 +3468,18 @@ CXCursor clangsharp_Cursor_getLhsExpr(CXCursor C) {
     }
 
     return clang_getNullCursor();
+}
+
+CX_LiteralOperatorKind clangsharp_Cursor_getLiteralOperatorKind(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const UserDefinedLiteral* UDL = dyn_cast<UserDefinedLiteral>(S)) {
+            return static_cast<CX_LiteralOperatorKind>(UDL->getLiteralOperatorKind() + 1);
+        }
+    }
+
+    return CX_LOK_Invalid;
 }
 
 unsigned clangsharp_Cursor_getMaxAlignment(CXCursor C) {
@@ -4182,6 +4251,18 @@ CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getObjCRuntimeNameAttrMetadataName
     return createEmpty();
 }
 
+CX_ExprObjectKind clangsharp_Cursor_getObjectKind(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const Expr* E = dyn_cast<Expr>(S)) {
+            return static_cast<CX_ExprObjectKind>(E->getObjectKind() + 1);
+        }
+    }
+
+    return CX_OK_Invalid;
+}
+
 CXCursor clangsharp_Cursor_getOpaqueValue(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
@@ -4483,6 +4564,20 @@ unsigned clangsharp_Cursor_getRequiresZeroInitialization(CXCursor C) {
 
         if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(S)) {
             return CXXCE->requiresZeroInitialization();
+        }
+    }
+
+    return 0;
+}
+
+int64_t clangsharp_Cursor_getResultAsAPSInt(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const ConstantExpr* CE = dyn_cast<ConstantExpr>(S)) {
+            if (CE->hasAPValueResult() && CE->getResultAPValueKind() == APValue::Int) {
+                return CE->getResultAsAPSInt().getSExtValue();
+            }
         }
     }
 
@@ -5459,6 +5554,30 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getTypeParamVariance(CXCursor C)
     }
 
     return 0 /* ObjCTypeParamVariance::Invariant */;
+}
+
+CX_TypeTrait clangsharp_Cursor_getTypeTrait(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const TypeTraitExpr* TTE = dyn_cast<TypeTraitExpr>(S)) {
+            return static_cast<CX_TypeTrait>(TTE->getTrait() + 1);
+        }
+    }
+
+    return CX_TT_Invalid;
+}
+
+CX_ExprValueKind clangsharp_Cursor_getValueKind(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const Expr* E = dyn_cast<Expr>(S)) {
+            return static_cast<CX_ExprValueKind>(E->getValueKind() + 1);
+        }
+    }
+
+    return CX_VK_Invalid;
 }
 
 CXCursor clangsharp_Cursor_getVBase(CXCursor C, unsigned i) {
