@@ -94,16 +94,30 @@ public abstract class PInvokeGeneratorTest
         Assert.That(actualOutputContents, Is.EqualTo(expectedOutputContents));
     }
 
-    // Shared generator core: produces the actual generated bindings text without asserting against an
-    // expected value, so both the inline-string harness and the checked-in baseline harness can reuse it.
+    // Convenience wrapper over GenerateBindingsWithTestOutputAsync that returns only the primary bindings text,
+    // used by both the inline-string harness and the checked-in baseline harness (neither asserts test output).
     internal static async Task<string> GenerateBindingsAsync(string inputContents, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions configOptions, string[]? excludedNames, IReadOnlyDictionary<string, string>? remappedNames, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes, IReadOnlyDictionary<string, string>? withCallConvs, IReadOnlyDictionary<string, string>? withClasses, IReadOnlyDictionary<string, string>? withLibraryPaths, IReadOnlyDictionary<string, string>? withNamespaces, string[]? withSetLastErrors, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs, IReadOnlyDictionary<string, string>? withTypes, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings, IReadOnlyDictionary<string, string>? withPackings, IEnumerable<Diagnostic>? expectedDiagnostics, string libraryPath, string[]? commandLineArgs, string language, string languageStandard, IReadOnlyDictionary<string, string>? remappedTypeNames = null, IReadOnlyDictionary<string, string>? remappedFieldNames = null, string? typePrefixToStrip = null, IReadOnlyDictionary<string, string>? withEnumMemberStrip = null, string? withConditional = null, string[]? withEqualityMembers = null, IReadOnlyDictionary<string, Guid>? withGuids = null, string[]? withoutSetLastErrors = null, IReadOnlyCollection<string>? withoutCallConvs = null)
+    {
+        var (actualOutputContents, _) = await GenerateBindingsWithTestOutputAsync(inputContents, outputMode, configOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard, remappedTypeNames, remappedFieldNames, typePrefixToStrip, withEnumMemberStrip, withConditional, withEqualityMembers, withGuids, withoutSetLastErrors, withoutCallConvs).ConfigureAwait(false);
+        return actualOutputContents;
+    }
+
+    // Same generator core as GenerateBindingsAsync, but additionally captures the auxiliary test output that the
+    // generator emits when GenerateTestsNUnit/GenerateTestsXUnit are set. The regular bindings and the generated
+    // tests are written to separate output streams (keyed off the config's OutputLocation vs TestOutputLocation),
+    // so both can be validated independently. TestOutputContents is the empty string when no test output was
+    // generated (either because tests weren't requested or nothing in the input produced any).
+    internal static async Task<(string OutputContents, string TestOutputContents)> GenerateBindingsWithTestOutputAsync(string inputContents, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions configOptions, string[]? excludedNames, IReadOnlyDictionary<string, string>? remappedNames, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes, IReadOnlyDictionary<string, string>? withCallConvs, IReadOnlyDictionary<string, string>? withClasses, IReadOnlyDictionary<string, string>? withLibraryPaths, IReadOnlyDictionary<string, string>? withNamespaces, string[]? withSetLastErrors, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs, IReadOnlyDictionary<string, string>? withTypes, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings, IReadOnlyDictionary<string, string>? withPackings, IEnumerable<Diagnostic>? expectedDiagnostics, string libraryPath, string[]? commandLineArgs, string language, string languageStandard, IReadOnlyDictionary<string, string>? remappedTypeNames = null, IReadOnlyDictionary<string, string>? remappedFieldNames = null, string? typePrefixToStrip = null, IReadOnlyDictionary<string, string>? withEnumMemberStrip = null, string? withConditional = null, string[]? withEqualityMembers = null, IReadOnlyDictionary<string, Guid>? withGuids = null, string[]? withoutSetLastErrors = null, IReadOnlyCollection<string>? withoutCallConvs = null)
     {
         Assert.That(DefaultInputFileName, Does.Exist);
         commandLineArgs ??= DefaultCppClangCommandLineArgs;
 
         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
 
+        var generatesTests = (configOptions & (PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit | PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit)) != 0;
+
         using var outputStream = new MemoryStream();
+        using var testOutputStream = new MemoryStream();
         using var unsavedFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
 
         var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
@@ -118,7 +132,7 @@ public abstract class PInvokeGeneratorTest
             RemappedTypeNames = remappedTypeNames,
             RemappedFieldNames = remappedFieldNames,
             TraversalNames = null,
-            TestOutputLocation = null,
+            TestOutputLocation = generatesTests ? Path.GetRandomFileName() : null,
             WithAccessSpecifiers = withAccessSpecifiers,
             WithAttributes = withAttributes,
             WithCallConvs = withCallConvs,
@@ -140,7 +154,14 @@ public abstract class PInvokeGeneratorTest
             WithGuids = withGuids,
         };
 
-        using (var pinvokeGenerator = new PInvokeGenerator(config, (path) => outputStream))
+        var testOutputLocation = config.TestOutputLocation;
+
+        Stream OutputStreamFactory(string path)
+        {
+            return generatesTests && string.Equals(path, testOutputLocation, StringComparison.Ordinal) ? testOutputStream : outputStream;
+        }
+
+        using (var pinvokeGenerator = new PInvokeGenerator(config, OutputStreamFactory))
         {
             var handle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, commandLineArgs, unsavedFiles, DefaultTranslationUnitFlags);
 
@@ -162,6 +183,11 @@ public abstract class PInvokeGeneratorTest
 
         using var streamReader = new StreamReader(outputStream);
         var actualOutputContents = await streamReader.ReadToEndAsync().ConfigureAwait(false);
-        return actualOutputContents;
+
+        testOutputStream.Position = 0;
+        using var testStreamReader = new StreamReader(testOutputStream);
+        var actualTestOutputContents = await testStreamReader.ReadToEndAsync().ConfigureAwait(false);
+
+        return (actualOutputContents, actualTestOutputContents);
     }
 }
