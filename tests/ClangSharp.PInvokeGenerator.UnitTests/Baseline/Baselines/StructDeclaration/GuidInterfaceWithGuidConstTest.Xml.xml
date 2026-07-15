@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="ITextHost" access="public" uuid="c5bdd8d0-d26e-11ce-a89e-00aa006cadc5">
+      <field name="x" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <iid name="IID_ITextHost" value="0xC5BDD8D0, 0xD26E, 0x11CE, 0xA8, 0x9E, 0x00, 0xAA, 0x00, 0x6C, 0xAD, 0xC5" />
+    </class>
+  </namespace>
+</bindings>

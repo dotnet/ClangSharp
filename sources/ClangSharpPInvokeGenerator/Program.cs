@@ -430,6 +430,12 @@ internal static partial class Program
                     break;
                 }
 
+                case "generate-extern-variables":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateExternVariables;
+                    break;
+                }
+
                 case "generate-helper-types":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateHelperTypes;

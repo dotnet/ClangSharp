@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -95,7 +96,7 @@ public abstract class PInvokeGeneratorTest
 
     // Shared generator core: produces the actual generated bindings text without asserting against an
     // expected value, so both the inline-string harness and the checked-in baseline harness can reuse it.
-    internal static async Task<string> GenerateBindingsAsync(string inputContents, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions configOptions, string[]? excludedNames, IReadOnlyDictionary<string, string>? remappedNames, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes, IReadOnlyDictionary<string, string>? withCallConvs, IReadOnlyDictionary<string, string>? withClasses, IReadOnlyDictionary<string, string>? withLibraryPaths, IReadOnlyDictionary<string, string>? withNamespaces, string[]? withSetLastErrors, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs, IReadOnlyDictionary<string, string>? withTypes, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings, IReadOnlyDictionary<string, string>? withPackings, IEnumerable<Diagnostic>? expectedDiagnostics, string libraryPath, string[]? commandLineArgs, string language, string languageStandard, IReadOnlyDictionary<string, string>? remappedTypeNames = null, IReadOnlyDictionary<string, string>? remappedFieldNames = null, string? typePrefixToStrip = null, IReadOnlyDictionary<string, string>? withEnumMemberStrip = null, string? withConditional = null, string[]? withEqualityMembers = null)
+    internal static async Task<string> GenerateBindingsAsync(string inputContents, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions configOptions, string[]? excludedNames, IReadOnlyDictionary<string, string>? remappedNames, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes, IReadOnlyDictionary<string, string>? withCallConvs, IReadOnlyDictionary<string, string>? withClasses, IReadOnlyDictionary<string, string>? withLibraryPaths, IReadOnlyDictionary<string, string>? withNamespaces, string[]? withSetLastErrors, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs, IReadOnlyDictionary<string, string>? withTypes, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings, IReadOnlyDictionary<string, string>? withPackings, IEnumerable<Diagnostic>? expectedDiagnostics, string libraryPath, string[]? commandLineArgs, string language, string languageStandard, IReadOnlyDictionary<string, string>? remappedTypeNames = null, IReadOnlyDictionary<string, string>? remappedFieldNames = null, string? typePrefixToStrip = null, IReadOnlyDictionary<string, string>? withEnumMemberStrip = null, string? withConditional = null, string[]? withEqualityMembers = null, IReadOnlyDictionary<string, Guid>? withGuids = null)
     {
         Assert.That(DefaultInputFileName, Does.Exist);
         commandLineArgs ??= DefaultCppClangCommandLineArgs;
@@ -134,6 +135,7 @@ public abstract class PInvokeGeneratorTest
             WithUsings = withUsings,
             WithPackings = withPackings,
             WithConditional = withConditional,
+            WithGuids = withGuids,
         };
 
         using (var pinvokeGenerator = new PInvokeGenerator(config, (path) => outputStream))

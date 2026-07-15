@@ -324,6 +324,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool GenerateGenericPointerWrapper => (_options & PInvokeGeneratorConfigurationOptions.GenerateGenericPointerWrapper) != 0;
 
+    public bool GenerateExternVariables => (_options & PInvokeGeneratorConfigurationOptions.GenerateExternVariables) != 0;
+
     public bool GenerateGuidMember => (_options & PInvokeGeneratorConfigurationOptions.GenerateGuidMember) != 0;
 
     public bool GenerateHelperTypes => (_options & PInvokeGeneratorConfigurationOptions.GenerateHelperTypes) != 0;

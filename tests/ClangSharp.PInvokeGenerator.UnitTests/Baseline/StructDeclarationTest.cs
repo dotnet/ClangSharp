@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -11,6 +12,7 @@ public sealed class StructDeclarationTest : BaselineTest
 {
     private static readonly string[] ExcludeTestExcludedNames = ["MyStruct"];
     private static readonly string[] GuidTestExcludedNames = ["DECLSPEC_UUID"];
+    private static readonly string[] GuidConstTestExcludedNames = ["DECLSPEC_UUID", "GUID"];
 
     public StructDeclarationTest(BaselineVariant variant) : base(variant)
     {
@@ -359,6 +361,146 @@ struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyStruct2
 ";
 
         return ValidateAsync(nameof(GuidTest), inputContents, excludedNames: GuidTestExcludedNames);
+    }
+
+    [Test]
+    public Task GuidCoclassForwardDeclConstTest()
+    {
+        if (Variant.Os != BaselineOs.Windows)
+        {
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
+
+        // Real COM headers (e.g. ShObjIdl_core.h) declare the coclass as a forward declaration and pair
+        // it with an `EXTERN_C const CLSID CLSID_Foo;` global. The uuid is recovered into a single
+        // `CLSID_FileOpenDialog` constant even though only a forward declaration is present.
+
+        var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+#define EXTERN_C extern ""C""
+
+struct GUID
+{{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+}};
+
+typedef GUID CLSID;
+
+EXTERN_C const CLSID CLSID_FileOpenDialog;
+
+class DECLSPEC_UUID(""dc1c5a9c-e88a-4dde-a5a1-60f82a20aef7"") FileOpenDialog;
+";
+
+        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
+        return ValidateAsync(nameof(GuidCoclassForwardDeclConstTest), inputContents, excludedNames: GuidConstTestExcludedNames, remappedNames: remappedNames);
+    }
+
+    [Test]
+    public Task GuidCoclassConstTest()
+    {
+        if (Variant.Os != BaselineOs.Windows)
+        {
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
+
+        // A coclass with an associated `CLSID_` global recovers its uuid value into a single
+        // `CLSID_FileOpenDialog` constant (no `IID_FileOpenDialog`).
+
+        var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+
+struct GUID
+{{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+}};
+
+typedef GUID CLSID;
+
+struct DECLSPEC_UUID(""9f81f860-3900-421a-a231-e7522f9d7f4a"") FileOpenDialog
+{{
+    int x;
+}};
+
+extern ""C"" const CLSID CLSID_FileOpenDialog;
+";
+
+        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
+        return ValidateAsync(nameof(GuidCoclassConstTest), inputContents, excludedNames: GuidConstTestExcludedNames, remappedNames: remappedNames);
+    }
+
+    [Test]
+    public Task GuidInterfaceConstTest()
+    {
+        if (Variant.Os != BaselineOs.Windows)
+        {
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
+
+        // An interface with an associated `IID_` global emits a single `IID_IFileDialog` constant
+        // (the const name matches the default `IID_` scrape name, so it dedups to one).
+
+        var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+
+struct GUID
+{{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+}};
+
+typedef GUID IID;
+
+struct DECLSPEC_UUID(""42f85136-db7e-439c-85f1-e4075d135fc8"") IFileDialog
+{{
+    int x;
+}};
+
+extern ""C"" const IID IID_IFileDialog;
+";
+
+        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
+        return ValidateAsync(nameof(GuidInterfaceConstTest), inputContents, excludedNames: GuidConstTestExcludedNames, remappedNames: remappedNames);
+    }
+
+    [Test]
+    public Task GuidInterfaceWithGuidConstTest()
+    {
+        // Some COM interfaces (e.g. ITextHost, win32metadata #1952) ship a `EXTERN_C const IID IID_Foo;`
+        // global but no `DECLSPEC_UUID` annotation, so the uuid value is not present in the headers. When the
+        // value is supplied out-of-band via `--with-guid`, it composes with the const-GUID global recovery to
+        // emit a single `IID_ITextHost` constant and a `[Guid]` attribute on the interface.
+
+        var inputContents = $@"#define EXTERN_C extern ""C""
+
+struct GUID
+{{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+}};
+
+typedef GUID IID;
+
+struct ITextHost
+{{
+    int x;
+}};
+
+EXTERN_C const IID IID_ITextHost;
+";
+
+        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
+        var withGuids = new Dictionary<string, Guid> { ["ITextHost"] = new Guid("c5bdd8d0-d26e-11ce-a89e-00aa006cadc5") };
+        return ValidateAsync(nameof(GuidInterfaceWithGuidConstTest), inputContents, excludedNames: GuidConstTestExcludedNames, remappedNames: remappedNames, withGuids: withGuids);
     }
 
     [Test]

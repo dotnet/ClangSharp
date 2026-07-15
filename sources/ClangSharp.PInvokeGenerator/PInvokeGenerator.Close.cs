@@ -459,6 +459,7 @@ public partial class PInvokeGenerator
         _generatedUuids.Clear();
         _outputBuilderFactory.Clear();
         _uuidsToGenerate.Clear();
+        _uuidNameOverrides.Clear();
         _visitedFiles.Clear();
 
         static void GenerateGeneratedCodeAssemblyAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
