@@ -1613,9 +1613,12 @@ public sealed partial class PInvokeGenerator
             return true;
         }
 
-        foreach (var paramType in functionProtoType.ParamTypes)
+        // Iterate the actual ParmVarDecls rather than functionProtoType.ParamTypes so that
+        // parameter-context adjustments (namely an array parameter decaying to a pointer) are
+        // accounted for, matching how the parameters are actually emitted and the FunctionDecl path
+        foreach (var parmVarDecl in typedefDecl.CursorChildren.OfType<ParmVarDecl>())
         {
-            if (IsUnsafe(typedefDecl, paramType))
+            if (IsUnsafe(parmVarDecl))
             {
                 return true;
             }

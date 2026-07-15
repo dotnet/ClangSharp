@@ -695,6 +695,14 @@ public sealed partial class PInvokeGenerator
                         typeName = "byte";
                     }
 
+                    // A function parameter of array type decays to a pointer. ParamTypes exposes the
+                    // unadjusted array type and GetTypeName only appends the pointer suffix for
+                    // FunctionDecl/ParmVarDecl cursors, so account for the decay here otherwise
+                    if (IsType<ArrayType>(cursor, paramType) && cursor is not (FunctionDecl or ParmVarDecl))
+                    {
+                        typeName += '*';
+                    }
+
                     _ = nameBuilder.Append(typeName);
                     _ = nameBuilder.Append(',');
                     _ = nameBuilder.Append(' ');
