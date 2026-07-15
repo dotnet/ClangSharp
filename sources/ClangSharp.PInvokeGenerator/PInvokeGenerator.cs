@@ -65,6 +65,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly List<Diagnostic> _diagnostics;
     private readonly LinkedList<(Cursor Cursor, object? UserData)> _context;
     private readonly Dictionary<string, Guid> _uuidsToGenerate;
+    private readonly Dictionary<string, string> _uuidNameOverrides;
     private readonly HashSet<string> _generatedUuids;
     private readonly PInvokeGeneratorConfiguration _config;
     private readonly Dictionary<NamedDecl, string> _cursorNames;
@@ -161,6 +162,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             _diagnostics = [];
             _context = new LinkedList<(Cursor, object?)>();
             _uuidsToGenerate = new Dictionary<string, Guid>(StringComparer.Ordinal);
+            _uuidNameOverrides = new Dictionary<string, string>(StringComparer.Ordinal);
             _generatedUuids = new HashSet<string>(StringComparer.Ordinal);
             _cursorNames = [];
             _cursorQualifiedNames = [];

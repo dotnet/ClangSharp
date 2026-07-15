@@ -1361,8 +1361,69 @@ public partial class PInvokeGenerator
 
     private void VisitTranslationUnitDecl(TranslationUnitDecl translationUnitDecl)
     {
+        PreprocessUuidNameOverrides(translationUnitDecl.Decls);
+
         Visit(translationUnitDecl.Decls);
         Visit(translationUnitDecl.CursorChildren, translationUnitDecl.Decls);
+    }
+
+    private static readonly string[] s_uuidNamePrefixes = ["CLSID_", "IID_", "LIBID_", "FMTID_", "CATID_", "GUID_"];
+
+    private void PreprocessUuidNameOverrides(IEnumerable<Decl> decls)
+    {
+        // A top-level `const GUID CLSID_Foo;` (extern, no initializer) names, by COM convention, the
+        // uuid of the adjacent `DECLSPEC_UUID`-annotated record `Foo`. Its value is only knowable from
+        // that record's uuid attribute, so we record a mapping from the record's native name to the
+        // global's declared name and use it as the record's uuid-constant name during VisitRecordDecl.
+        // This keeps exactly one constant (e.g. `CLSID_Foo`) and points the GuidOfTest at it.
+
+        foreach (var decl in decls)
+        {
+            if (decl is LinkageSpecDecl linkageSpecDecl)
+            {
+                PreprocessUuidNameOverrides(linkageSpecDecl.Decls);
+                continue;
+            }
+            else if (decl is NamespaceDecl namespaceDecl)
+            {
+                PreprocessUuidNameOverrides(namespaceDecl.Decls);
+                continue;
+            }
+
+            if (decl is not VarDecl varDecl || varDecl.HasInit || !varDecl.Type.IsLocalConstQualified)
+            {
+                continue;
+            }
+
+            // Resolve the managed type via the canonical record decl name rather than the full type
+            // string machinery, which is not safe to run during this pre-scan (it happens before normal
+            // visitation and can fault on incomplete/deduced types).
+            if (varDecl.Type.CanonicalType is not RecordType recordType || !GetRemappedCursorName(recordType.Decl).Equals("Guid", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var nativeName = GetCursorName(varDecl);
+
+            foreach (var prefix in s_uuidNamePrefixes)
+            {
+                if ((nativeName.Length <= prefix.Length) || !nativeName.StartsWith(prefix, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var associatedNativeName = nativeName[prefix.Length..];
+                var remappedName = GetRemappedName(nativeName, varDecl, tryRemapOperatorName: false, out _, skipUsing: true);
+
+                // Prefer an `IID_` global when several globals map to the same record.
+                if (!_uuidNameOverrides.ContainsKey(associatedNativeName) || prefix.Equals("IID_", StringComparison.Ordinal))
+                {
+                    _uuidNameOverrides[associatedNativeName] = remappedName;
+                }
+
+                break;
+            }
+        }
     }
 
     private void VisitTypedefDecl(TypedefDecl typedefDecl, bool onlyHandleRemappings)

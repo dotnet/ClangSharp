@@ -66,7 +66,10 @@ public partial class PInvokeGenerator
             if (TryGetUuid(recordDecl, out var uuid))
             {
                 nullableUuid = uuid;
-                uuidName = GetRemappedName($"IID_{nativeName}", recordDecl, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
+
+                uuidName = _uuidNameOverrides.TryGetValue(nativeName, out var overrideName)
+                    ? overrideName
+                    : GetRemappedName($"IID_{nativeName}", recordDecl, tryRemapOperatorName: false, out _, skipUsing: true);
 
                 _uuidsToGenerate.Add(uuidName, uuid);
 

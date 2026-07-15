@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="IFileDialog" access="public" uuid="42f85136-db7e-439c-85f1-e4075d135fc8">
+      <field name="x" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <iid name="IID_IFileDialog" value="0x42F85136, 0xDB7E, 0x439C, 0x85, 0xF1, 0xE4, 0x07, 0x5D, 0x13, 0x5F, 0xC8" />
+    </class>
+  </namespace>
+</bindings>
