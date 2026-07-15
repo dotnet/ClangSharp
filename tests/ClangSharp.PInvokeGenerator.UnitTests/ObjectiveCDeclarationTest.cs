@@ -170,7 +170,7 @@ namespace ClangSharp.Test
 ";
 
         var expectedDiagnostics = new[] {
-            new Diagnostic(DiagnosticLevel.Warning, "Objective-C method 'logValue:' on '@protocol Logger' is not supported: variadic methods are not yet supported. It was skipped.", "Line 2, Column 9 in ClangUnsavedFile.h")
+            new Diagnostic(DiagnosticLevel.Warning, "Objective-C method 'logValue:' on '@protocol Logger' is not supported: variadic methods cannot be expressed as a fixed function-pointer signature. It was skipped.", "Line 2, Column 9 in ClangUnsavedFile.h")
         };
 
         return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateObjectiveCBindings, expectedDiagnostics: expectedDiagnostics, commandLineArgs: s_objectiveCCommandLineArgs, language: "objective-c", languageStandard: DefaultCStandard);
@@ -408,6 +408,108 @@ namespace ClangSharp.Test
 
         // @optional; guard with respondsToSelector: before sending.
         public int badge => ((delegate* unmanaged<Named*, SEL, int>)ObjectiveC.objc_msgSend)((Named*)Unsafe.AsPointer(ref this), Selectors.badge);
+    }
+
+    /// <summary>Represents an Objective-C selector (<c>SEL</c>).</summary>
+    public unsafe partial struct SEL : IEquatable<SEL>
+    {
+        public void* Value;
+
+        public SEL(void* value)
+        {
+            Value = value;
+        }
+
+        public static bool operator ==(SEL left, SEL right) => left.Value == right.Value;
+
+        public static bool operator !=(SEL left, SEL right) => left.Value != right.Value;
+
+        public override bool Equals(object? obj) => (obj is SEL other) && Equals(other);
+
+        public bool Equals(SEL other) => Value == other.Value;
+
+        public override int GetHashCode() => ((nuint)Value).GetHashCode();
+    }
+
+    /// <summary>Provides access to the Objective-C runtime (<c>libobjc</c>).</summary>
+    public static unsafe partial class ObjectiveC
+    {
+        private const string LibObjC = ""/usr/lib/libobjc.A.dylib"";
+
+        /// <summary>The raw <c>objc_msgSend</c> entry point, cast per call site to the selector's signature.</summary>
+        public static readonly void* objc_msgSend = (void*)NativeLibrary.GetExport(NativeLibrary.Load(LibObjC), ""objc_msgSend"");
+
+        [DllImport(LibObjC, EntryPoint = ""sel_registerName"", ExactSpelling = true)]
+        public static extern SEL sel_registerName([MarshalAs(UnmanagedType.LPUTF8Str)] string name);
+
+        [DllImport(LibObjC, EntryPoint = ""objc_getClass"", ExactSpelling = true)]
+        public static extern void* objc_getClass([MarshalAs(UnmanagedType.LPUTF8Str)] string name);
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateObjectiveCBindings, commandLineArgs: s_objectiveCCommandLineArgs, language: "objective-c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    public Task AggregateSignatureTest()
+    {
+        var inputContents = @"typedef struct CGPoint { double x; double y; } CGPoint;
+
+@interface View
+@property CGPoint origin;
+- (CGPoint)center;
+- (void)moveBy:(CGPoint)delta;
+- (int)tag;
+@end
+";
+
+        // By-value struct returns/parameters are emitted through the plain `objc_msgSend` on the arm64
+        // ABI and flagged; the scalar `tag` is not flagged.
+        var expectedOutputContents = @"using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public partial struct CGPoint
+    {
+        public double x;
+
+        public double y;
+    }
+
+    [NativeTypeName(""@interface View"")]
+    public unsafe partial struct View
+    {
+        [NativeTypeName(""Class"")]
+        public void* isa;
+
+        public static readonly void* Class = ObjectiveC.objc_getClass(""View"");
+
+        public static class Selectors
+        {
+            public static readonly SEL center = ObjectiveC.sel_registerName(""center"");
+            public static readonly SEL moveBy_ = ObjectiveC.sel_registerName(""moveBy:"");
+            public static readonly SEL tag = ObjectiveC.sel_registerName(""tag"");
+            public static readonly SEL origin = ObjectiveC.sel_registerName(""origin"");
+            public static readonly SEL setOrigin_ = ObjectiveC.sel_registerName(""setOrigin:"");
+        }
+
+        // By-value struct in signature: assumes the arm64 objc_msgSend ABI (x86-64 objc_msgSend_stret is unsupported).
+        public CGPoint center() => ((delegate* unmanaged<View*, SEL, CGPoint>)ObjectiveC.objc_msgSend)((View*)Unsafe.AsPointer(ref this), Selectors.center);
+
+        // By-value struct in signature: assumes the arm64 objc_msgSend ABI (x86-64 objc_msgSend_stret is unsupported).
+        public void moveBy_(CGPoint delta) => ((delegate* unmanaged<View*, SEL, CGPoint, void>)ObjectiveC.objc_msgSend)((View*)Unsafe.AsPointer(ref this), Selectors.moveBy_, delta);
+
+        public int tag() => ((delegate* unmanaged<View*, SEL, int>)ObjectiveC.objc_msgSend)((View*)Unsafe.AsPointer(ref this), Selectors.tag);
+
+        // By-value struct in signature: assumes the arm64 objc_msgSend ABI (x86-64 objc_msgSend_stret is unsupported).
+        public CGPoint origin
+        {
+            get => ((delegate* unmanaged<View*, SEL, CGPoint>)ObjectiveC.objc_msgSend)((View*)Unsafe.AsPointer(ref this), Selectors.origin);
+            set => ((delegate* unmanaged<View*, SEL, CGPoint, void>)ObjectiveC.objc_msgSend)((View*)Unsafe.AsPointer(ref this), Selectors.setOrigin_, value);
+        }
     }
 
     /// <summary>Represents an Objective-C selector (<c>SEL</c>).</summary>

@@ -170,8 +170,10 @@ public partial class PInvokeGenerator
         }
         StopUsingOutputBuilder();
     }
-    // properties) that fall within the v1 scalar/pointer/void subset. Anything outside that subset
-    // is diagnosed rather than emitted with a wrong ABI.
+
+    // Emits the raw `Selectors` cache plus the friendly `objc_msgSend` members (methods and
+    // properties) that fall within the supported subset. Anything outside that subset is diagnosed
+    // rather than emitted with a wrong ABI.
     //
     // Instance members dispatch on `this`; class members dispatch on the backing class object and
     // are only emitted when the container has one (i.e. an `@interface`, via `supportsClassMembers`).
@@ -204,8 +206,8 @@ public partial class PInvokeGenerator
                 return;
             }
 
-            // Variadics and by-value aggregate returns/parameters need dispatch machinery
-            // (`objc_msgSend_stret`/promotion) that is deliberately out of scope for now.
+            // Variadics can't be expressed as a fixed unmanaged function-pointer signature, so they
+            // are the one remaining out-of-subset shape and are diagnosed rather than mis-emitted.
             if (!IsInObjCMessageSubset(method, out var reason))
             {
                 AddDiagnostic(DiagnosticLevel.Warning, $"Objective-C method '{method.Selector}' on '{containerDesc}' is not supported: {reason}. It was skipped.", method);
@@ -216,6 +218,7 @@ public partial class PInvokeGenerator
             var memberName = EscapeName(nativeSelector.Replace(':', '_'));
             var returnTypeName = IsTypeVoid(method, method.ReturnType) ? "void" : GetRemappedTypeName(method, container, method.ReturnType, out _);
 
+            var involvesAggregate = IsAggregateType(method.ReturnType);
             var parameters = new List<(string TypeName, string EscapedName)>();
 
             foreach (var parmVarDecl in method.Parameters)
@@ -223,22 +226,19 @@ public partial class PInvokeGenerator
                 var parmTypeName = GetRemappedTypeName(parmVarDecl, method, parmVarDecl.Type, out _);
                 var parmName = EscapeName(GetRemappedCursorName(parmVarDecl));
                 parameters.Add((parmTypeName, parmName));
+
+                involvesAggregate |= IsAggregateType(parmVarDecl.Type);
             }
 
             AddSelector(memberName, nativeSelector);
-            methods.Add(new ObjCMessageMember(memberName, returnTypeName, parameters, isClassMember, method.Handle.IsObjCOptional));
+            methods.Add(new ObjCMessageMember(memberName, returnTypeName, parameters, isClassMember, method.Handle.IsObjCOptional, involvesAggregate));
         }
 
         void ProcessProperty(ObjCPropertyDecl property, bool isClassMember)
         {
-            if (IsAggregateType(property.Type))
-            {
-                AddDiagnostic(DiagnosticLevel.Warning, $"Objective-C property '{GetCursorName(property)}' on '{containerDesc}' is not supported: by-value aggregate types are not yet supported. It was skipped.", property);
-                return;
-            }
-
             var propertyName = EscapeName(GetRemappedCursorName(property));
             var typeName = GetRemappedTypeName(property, container, property.Type, out _);
+            var involvesAggregate = IsAggregateType(property.Type);
 
             var getterSelector = property.GetterMethodDecl.Selector;
             var getterField = EscapeName(getterSelector.Replace(':', '_'));
@@ -254,7 +254,7 @@ public partial class PInvokeGenerator
                 AddSelector(setterField, setterSelector);
             }
 
-            properties.Add(new ObjCPropertyMember(propertyName, typeName, getterField, setterField, isClassMember, property.Handle.IsObjCOptional));
+            properties.Add(new ObjCPropertyMember(propertyName, typeName, getterField, setterField, isClassMember, property.Handle.IsObjCOptional, involvesAggregate));
         }
 
         foreach (var method in container.InstanceMethods)
@@ -323,7 +323,7 @@ public partial class PInvokeGenerator
         {
             output.WriteNewline();
             WriteObjCOptionalNote(output, member.IsOptional);
-
+            WriteObjCAggregateNote(output, member.InvolvesAggregate);
             var prototype = new StringBuilder();
 
             for (var i = 0; i < member.Parameters.Count; i++)
@@ -349,6 +349,7 @@ public partial class PInvokeGenerator
         {
             output.WriteNewline();
             WriteObjCOptionalNote(output, property.IsOptional);
+            WriteObjCAggregateNote(output, property.InvolvesAggregate);
 
             var getter = BuildObjCMsgSend(property.IsClassMember, escapedParentName, property.GetterField, property.TypeName, []);
             var staticModifier = property.IsClassMember ? "static " : "";
@@ -387,6 +388,18 @@ public partial class PInvokeGenerator
         }
     }
 
+    // A by-value struct in the signature is dispatched through the plain `objc_msgSend` on the
+    // assumption of the arm64 (Apple Silicon) ABI, where struct returns/arguments go through the
+    // normal entry point. The legacy x86-64 ABI would need `objc_msgSend_stret`/`_fpret` for some of
+    // these, which is intentionally unsupported now that Apple has dropped x86-64 macOS.
+    private static void WriteObjCAggregateNote(CSharpOutputBuilder output, bool involvesAggregate)
+    {
+        if (involvesAggregate)
+        {
+            output.WriteIndentedLine("// By-value struct in signature: assumes the arm64 objc_msgSend ABI (x86-64 objc_msgSend_stret is unsupported).");
+        }
+    }
+
     // Builds the friendly-member body: a per-call-site cast of the cached `objc_msgSend` pointer to
     // the selector's signature. Instance members dispatch on `this`; class members dispatch on the
     // backing class object exposed as the `Class` field.
@@ -412,29 +425,15 @@ public partial class PInvokeGenerator
         return $"((delegate* unmanaged<{fnPtrArgs}>)ObjectiveC.objc_msgSend)({callArgs})";
     }
 
-    // v1 message-send subset: no variadics and no by-value aggregate return/parameter types, so the
-    // plain `objc_msgSend` entry point is ABI-correct (aggregate returns would need `_stret`).
+    // Message-send subset: only variadics are excluded, since a C-style `...` cannot be expressed as
+    // a fixed unmanaged function-pointer signature. By-value aggregates are supported via the plain
+    // `objc_msgSend` under the arm64 ABI (see `WriteObjCAggregateNote`).
     private static bool IsInObjCMessageSubset(ObjCMethodDecl method, out string reason)
     {
         if (method.Handle.IsVariadic)
         {
-            reason = "variadic methods are not yet supported";
+            reason = "variadic methods cannot be expressed as a fixed function-pointer signature";
             return false;
-        }
-
-        if (IsAggregateType(method.ReturnType))
-        {
-            reason = "by-value aggregate return types are not yet supported (would require objc_msgSend_stret)";
-            return false;
-        }
-
-        foreach (var parmVarDecl in method.Parameters)
-        {
-            if (IsAggregateType(parmVarDecl.Type))
-            {
-                reason = "by-value aggregate parameter types are not yet supported";
-                return false;
-            }
         }
 
         reason = "";
@@ -446,16 +445,17 @@ public partial class PInvokeGenerator
         return type.CanonicalType.Kind is CXTypeKind.CXType_Record;
     }
 
-    private readonly struct ObjCMessageMember(string memberName, string returnTypeName, List<(string TypeName, string EscapedName)> parameters, bool isClassMember, bool isOptional)
+    private readonly struct ObjCMessageMember(string memberName, string returnTypeName, List<(string TypeName, string EscapedName)> parameters, bool isClassMember, bool isOptional, bool involvesAggregate)
     {
         public string MemberName { get; } = memberName;
         public string ReturnTypeName { get; } = returnTypeName;
         public List<(string TypeName, string EscapedName)> Parameters { get; } = parameters;
         public bool IsClassMember { get; } = isClassMember;
         public bool IsOptional { get; } = isOptional;
+        public bool InvolvesAggregate { get; } = involvesAggregate;
     }
 
-    private readonly struct ObjCPropertyMember(string propertyName, string typeName, string getterField, string? setterField, bool isClassMember, bool isOptional)
+    private readonly struct ObjCPropertyMember(string propertyName, string typeName, string getterField, string? setterField, bool isClassMember, bool isOptional, bool involvesAggregate)
     {
         public string PropertyName { get; } = propertyName;
         public string TypeName { get; } = typeName;
@@ -463,5 +463,6 @@ public partial class PInvokeGenerator
         public string? SetterField { get; } = setterField;
         public bool IsClassMember { get; } = isClassMember;
         public bool IsOptional { get; } = isOptional;
+        public bool InvolvesAggregate { get; } = involvesAggregate;
     }
 }
