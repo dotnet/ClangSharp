@@ -282,6 +282,26 @@ public sealed partial class PInvokeGenerator
                 return true;
             }
 
+            if (MatchesNameOrGlobOrStar(_config._excludedNames, qualifiedName, qualifiedNameWithoutParameters, name))
+            {
+                if (_config.LogExclusions)
+                {
+                    var message = $"Excluded {kind} '{qualifiedName}' by wildcard match";
+
+                    if (isExcludedByConfigOption)
+                    {
+                        message += "; Exclusion is unnecessary due to a config option";
+                    }
+                    else if ((isExcludedValue & 0b10) != 0)
+                    {
+                        message += "; Exclusion is unnecessary due to a conflicting definition";
+                    }
+
+                    AddDiagnostic(DiagnosticLevel.Info, message);
+                }
+                return true;
+            }
+
             if (isExcludedByConfigOption)
             {
                 if (_config.LogExclusions)
@@ -293,7 +313,8 @@ public sealed partial class PInvokeGenerator
 
             if (_config.IncludedNames.Count != 0 && !_config.IncludedNames.Contains(qualifiedName)
                                                  && !_config.IncludedNames.Contains(qualifiedNameWithoutParameters)
-                                                 && !_config.IncludedNames.Contains(name))
+                                                 && !_config.IncludedNames.Contains(name)
+                                                 && !MatchesNameOrGlobOrStar(_config._includedNames, qualifiedName, qualifiedNameWithoutParameters, name))
             {
                 var semanticParentCursor = cursor.SemanticParentCursor;
 
@@ -1561,7 +1582,7 @@ public sealed partial class PInvokeGenerator
     {
         var name = GetRemappedCursorName(functionDecl);
 
-        if (_config.WithManualImports.Contains(name))
+        if (IsWithManualImport(name))
         {
             return true;
         }

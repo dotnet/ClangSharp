@@ -32,9 +32,9 @@ public sealed class PInvokeGeneratorConfiguration
 
     internal readonly HashSet<string> _excludedNames;
     private readonly HashSet<string> _forceRemappedNames;
-    private readonly HashSet<string> _includedNames;
+    internal readonly HashSet<string> _includedNames;
     private readonly HashSet<string> _nativeTypeNamesToStrip;
-    private readonly HashSet<string> _withManualImports;
+    internal readonly HashSet<string> _withManualImports;
     private readonly HashSet<string> _traversalNames;
     internal readonly HashSet<string> _withEqualityMembers;
     internal readonly HashSet<string> _withReadonlys;
