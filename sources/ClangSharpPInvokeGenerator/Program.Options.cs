@@ -224,6 +224,7 @@ internal static partial class Program
         new HelpRow("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
         new HelpRow("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
         new HelpRow("generate-marker-interfaces", "Bindings for marker interfaces representing native inheritance hierarchies should be generated."),
+        new HelpRow("generate-native-alignment-attribute", "[NativeAlignment(#)] attribute should be generated to document the requested over-alignment (__declspec(align) / DECLSPEC_ALIGN) that .NET cannot honor."),
         new HelpRow("generate-native-bitfield-attribute", "[NativeBitfield(\"\", offset: #, length: #)] attribute should be generated to document the encountered bitfield layout."),
         new HelpRow("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
         new HelpRow("generate-generic-pointer-wrapper", "Pointer<T> should be used for limited generic type support."),

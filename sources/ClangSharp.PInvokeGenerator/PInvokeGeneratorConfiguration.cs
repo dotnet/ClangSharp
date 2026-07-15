@@ -336,6 +336,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool GenerateMultipleFiles => (_options & PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles) != 0;
 
+    public bool GenerateNativeAlignmentAttribute => (_options & PInvokeGeneratorConfigurationOptions.GenerateNativeAlignmentAttribute) != 0;
+
     public bool GenerateNativeBitfieldAttribute => (_options & PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute) != 0;
 
     public bool GenerateNativeInheritanceAttribute => (_options & PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute) != 0;

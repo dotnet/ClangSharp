@@ -253,6 +253,13 @@ internal partial class XmlOutputBuilder
             _ = _sb.Append('"');
         }
 
+        if (info.NativeAlignment is not null)
+        {
+            _ = _sb.Append(" alignment=\"");
+            _ = _sb.Append(info.NativeAlignment.Value);
+            _ = _sb.Append('"');
+        }
+
         if (info.Uuid is not null)
         {
             _ = _sb.Append(" uuid=\"");

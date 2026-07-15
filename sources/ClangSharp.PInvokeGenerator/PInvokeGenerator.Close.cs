@@ -407,6 +407,7 @@ public partial class PInvokeGenerator
             GenerateGeneratedCodeAssemblyAttribute(this, stream, leaveStreamOpen);
             GenerateDisableRuntimeMarshallingAttribute(this, stream, leaveStreamOpen);
             hasNamespaceContent = GenerateNativeBitfieldAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
+            hasNamespaceContent = GenerateNativeAlignmentAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
             hasNamespaceContent = GenerateNativeInheritanceAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
             hasNamespaceContent = GenerateNativeTypeNameAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
             hasNamespaceContent = GenerateNativeAnnotationAttribute(this, stream, leaveStreamOpen, hasNamespaceContent);
@@ -760,6 +761,114 @@ public partial class PInvokeGenerator
             sw.WriteLine("    /// <summary>Gets the name of the base type that was inherited from in the native signature.</summary>");
             sw.Write(indentString);
             sw.WriteLine("    public string Name => _name;");
+            sw.Write(indentString);
+            sw.WriteLine('}');
+
+            if (generator.Config.GenerateMultipleFiles && !generator.Config.GenerateFileScopedNamespaces)
+            {
+                sw.WriteLine('}');
+            }
+
+            if (!leaveStreamOpen)
+            {
+                stream = null;
+            }
+
+            return true;
+        }
+
+        static bool GenerateNativeAlignmentAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen, bool hasNamespaceContent)
+        {
+            var config = generator.Config;
+
+            if (!config.GenerateNativeAlignmentAttribute)
+            {
+                return hasNamespaceContent;
+            }
+
+            if (stream is null)
+            {
+                var outputPath = Path.Combine(config.OutputLocation, "NativeAlignmentAttribute.cs");
+                stream = generator._outputStreamFactory(outputPath);
+            }
+
+            using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
+            sw.NewLine = "\n";
+
+            var indentString = "    ";
+
+            if (generator.Config.GenerateMultipleFiles)
+            {
+                if (!string.IsNullOrEmpty(config.HeaderText))
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
+                sw.WriteLine();
+
+                sw.Write("namespace ");
+                sw.Write(generator.GetNamespace("NativeAlignmentAttribute"));
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
+            }
+            else
+            {
+                // The shared namespace is already open; emit only the type body, separated from
+                // the preceding content by a blank line.
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    indentString = "";
+                }
+
+                if (hasNamespaceContent)
+                {
+                    sw.WriteLine();
+                }
+            }
+
+            sw.Write(indentString);
+            sw.WriteLine("/// <summary>Defines the alignment of a struct as it was requested in the native signature.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("[AttributeUsage(AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]");
+            sw.Write(indentString);
+            sw.WriteLine("[Conditional(\"DEBUG\")]");
+            sw.Write(indentString);
+            sw.WriteLine("internal sealed partial class NativeAlignmentAttribute : Attribute");
+            sw.Write(indentString);
+            sw.WriteLine('{');
+            sw.Write(indentString);
+            sw.WriteLine("    private readonly int _alignment;");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    /// <summary>Initializes a new instance of the <see cref=\"NativeAlignmentAttribute\" /> class.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("    /// <param name=\"alignment\">The alignment that was requested in the native signature.</param>");
+            sw.Write(indentString);
+            sw.WriteLine("    public NativeAlignmentAttribute(int alignment)");
+            sw.Write(indentString);
+            sw.WriteLine("    {");
+            sw.Write(indentString);
+            sw.WriteLine("        _alignment = alignment;");
+            sw.Write(indentString);
+            sw.WriteLine("    }");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    /// <summary>Gets the alignment that was requested in the native signature.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("    public int Alignment => _alignment;");
             sw.Write(indentString);
             sw.WriteLine('}');
 
