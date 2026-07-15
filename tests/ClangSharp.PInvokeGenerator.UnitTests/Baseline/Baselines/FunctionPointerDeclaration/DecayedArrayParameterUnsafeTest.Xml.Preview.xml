@@ -3,7 +3,7 @@
   <namespace name="ClangSharp.Test">
     <struct name="MyStruct" access="public" unsafe="true">
       <field name="_callback" access="public">
-        <type native="Callback">delegate* unmanaged[Cdecl]&lt;ushort, int&gt;</type>
+        <type native="Callback">delegate* unmanaged[Cdecl]&lt;ushort*, int&gt;</type>
       </field>
     </struct>
   </namespace>

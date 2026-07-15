@@ -45,6 +45,17 @@ struct MyStruct {
 ");
 
     [Test]
+    public Task DecayedArrayTypedefParameterTest()
+        => ValidateAsync(nameof(DecayedArrayTypedefParameterTest), @"typedef unsigned short ARR[64];
+
+typedef int (*Callback)(ARR szPRFHash);
+
+struct MyStruct {
+    Callback _callback;
+};
+");
+
+    [Test]
     public Task PointerlessTypedefTest()
         => ValidateAsync(nameof(PointerlessTypedefTest), @"typedef void (Callback)();
 
