@@ -110,7 +110,6 @@ namespace clang::cxtype {
             TKCASE(ExtVector);
             TKCASE(MemberPointer);
             TKCASE(Auto);
-            TKCASE(Elaborated);
             TKCASE(Pipe);
             TKCASE(Attributed);
             TKCASE(BTFTagAttributed);

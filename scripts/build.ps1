@@ -1,9 +1,11 @@
 [CmdletBinding(PositionalBinding=$false)]
 Param(
   [ValidateSet("<auto>", "amd64", "x64", "x86", "arm64", "arm")][string] $architecture = "",
+  [string] $base = "",
   [switch] $build,
   [switch] $ci,
   [ValidateSet("Debug", "Release")][string] $configuration = "Debug",
+  [switch] $detectchanges,
   [switch] $help,
   [string] $llvm = "",
   [switch] $pack,
@@ -15,6 +17,7 @@ Param(
   [switch] $test,
   [switch] $testwin32metadata,
   [ValidateSet("quiet", "minimal", "normal", "detailed", "diagnostic")][string] $verbosity = "minimal",
+  [switch] $verifypackages,
   [Parameter(ValueFromRemainingArguments=$true)][String[]]$properties
 )
 
@@ -50,6 +53,8 @@ function Help() {
     Write-Host -Object "  -pack                   Package build artifacts"
     Write-Host -Object "  -regeneratenative       Download the matching LLVM release and stage a native binary"
     Write-Host -Object "                          (use with -target and -rid)"
+    Write-Host -Object "  -verifypackages         Verify the libclang/libClangSharp package versions match CMakeLists.txt"
+    Write-Host -Object "  -detectchanges          Print which native packages need regenerating since -base <ref>"
     Write-Host -Object ""
     Write-Host -Object "Advanced settings:"
     Write-Host -Object "  -solution <value>       Path to solution to build"
@@ -215,6 +220,113 @@ function Regenerate-Native() {
   }
 }
 
+function Verify-Packages() {
+  $version = Get-LlvmVersion
+  $failed = $false
+
+  # libclang packages track the LLVM version exactly, including the repository branch.
+  $libclangNuspecs = @(Join-Path -Path $RepoRoot -ChildPath "packages\libclang\libclang\libclang.nuspec")
+  $libclangNuspecs += Get-ChildItem -Path (Join-Path -Path $RepoRoot -ChildPath "packages\libclang") -Filter "*.nuspec" -Recurse | Where-Object { $_.Name -ne "libclang.nuspec" } | ForEach-Object { $_.FullName }
+
+  foreach ($nuspec in $libclangNuspecs) {
+    $content = Get-Content -Path $nuspec -Raw
+
+    if ($content -match "<version>([^<]*)</version>") {
+      if ($Matches[1] -ne $version) {
+        Write-Host -Object "${nuspec}: version '$($Matches[1])' does not match LLVM version '$version'"
+        $failed = $true
+      }
+    }
+
+    if ($content -match 'branch="([^"]*)"') {
+      if ($Matches[1] -ne "llvmorg-$version") {
+        Write-Host -Object "${nuspec}: repository branch '$($Matches[1])' does not match 'llvmorg-$version'"
+        $failed = $true
+      }
+    }
+  }
+
+  $libclangRuntimeJson = Join-Path -Path $RepoRoot -ChildPath "packages\libclang\libclang\runtime.json"
+
+  foreach ($match in ([regex]'"(\d+\.\d+\.\d+(\.\d+)?)"').Matches((Get-Content -Path $libclangRuntimeJson -Raw))) {
+    if ($match.Groups[1].Value -ne $version) {
+      Write-Host -Object "packages\libclang\libclang\runtime.json: mapped version '$($match.Groups[1].Value)' does not match LLVM version '$version'"
+      $failed = $true
+    }
+  }
+
+  # libClangSharp packages are the LLVM version plus an independent build revision.
+  $libclangsharpNuspecs = @(Join-Path -Path $RepoRoot -ChildPath "packages\libClangSharp\libClangSharp\libClangSharp.nuspec")
+  $libclangsharpNuspecs += Get-ChildItem -Path (Join-Path -Path $RepoRoot -ChildPath "packages\libClangSharp") -Filter "*.nuspec" -Recurse | Where-Object { $_.Name -ne "libClangSharp.nuspec" } | ForEach-Object { $_.FullName }
+
+  foreach ($nuspec in $libclangsharpNuspecs) {
+    $content = Get-Content -Path $nuspec -Raw
+
+    if ($content -match "<version>([^<]*)</version>") {
+      if (-not $Matches[1].StartsWith("$version.")) {
+        Write-Host -Object "${nuspec}: version '$($Matches[1])' is not 'llvm-version.<revision>' (expected '$version.<n>')"
+        $failed = $true
+      }
+    }
+  }
+
+  $libclangsharpRuntimeJson = Join-Path -Path $RepoRoot -ChildPath "packages\libClangSharp\libClangSharp\runtime.json"
+
+  foreach ($match in ([regex]'"(\d+\.\d+\.\d+(\.\d+)?)"').Matches((Get-Content -Path $libclangsharpRuntimeJson -Raw))) {
+    if (-not $match.Groups[1].Value.StartsWith("$version.")) {
+      Write-Host -Object "packages\libClangSharp\libClangSharp\runtime.json: mapped version '$($match.Groups[1].Value)' is not '$version.<revision>'"
+      $failed = $true
+    }
+  }
+
+  if ($failed) {
+    throw "Update the package versions to match the tracked LLVM version ($version) before regenerating."
+  }
+
+  Write-Host -Object "Package versions verified against LLVM $version"
+}
+
+function Detect-Changes() {
+  if ($base -eq "") {
+    throw "-base <ref> is required with -detectchanges"
+  }
+
+  $version = Get-LlvmVersion
+  $detectLibclang = $false
+  $detectLibclangsharp = $false
+
+  & git -C "$RepoRoot" cat-file -e "$base^{commit}" 2>$null
+
+  if ($LastExitCode -ne 0) {
+    # No resolvable baseline to diff against, so regenerate everything conservatively.
+    $detectLibclang = $true
+    $detectLibclangsharp = $true
+  }
+  else {
+    # libclang regenerates when the tracked LLVM major.minor changes.
+    $previous = & git -C "$RepoRoot" show "${base}:CMakeLists.txt" 2>$null | Select-String -Pattern 'project\(ClangSharp VERSION ([0-9.]+)\)' | Select-Object -First 1
+
+    $previousVersion = if ($previous) { $previous.Matches[0].Groups[1].Value } else { "" }
+
+    $currentMajorMinor = ($version -split '\.')[0..1] -join '.'
+    $previousMajorMinor = ($previousVersion -split '\.')[0..1] -join '.'
+
+    if ($currentMajorMinor -ne $previousMajorMinor) {
+      $detectLibclang = $true
+    }
+
+    # libClangSharp regenerates for that same reason or when its sources change.
+    & git -C "$RepoRoot" diff --quiet "$base" HEAD -- sources/libClangSharp/
+
+    if ($detectLibclang -or ($LastExitCode -ne 0)) {
+      $detectLibclangsharp = $true
+    }
+  }
+
+  Write-Output "libclang=$($detectLibclang.ToString().ToLowerInvariant())"
+  Write-Output "libclangsharp=$($detectLibclangsharp.ToString().ToLowerInvariant())"
+}
+
 function Test() {
   $logFile = Join-Path -Path $LogDir -ChildPath "$configuration\test.binlog"
   & dotnet test -c "$configuration" --no-build --no-restore -v "$verbosity" /bl:"$logFile" /err $properties "$solution"
@@ -342,6 +454,14 @@ try {
 
   if ($regeneratenative) {
     Regenerate-Native
+  }
+
+  if ($verifypackages) {
+    Verify-Packages
+  }
+
+  if ($detectchanges) {
+    Detect-Changes
   }
 }
 catch {

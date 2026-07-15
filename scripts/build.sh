@@ -9,9 +9,11 @@ done
 ScriptRoot="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 architecture=''
+base=''
 build=false
 ci=false
 configuration='Debug'
+detectchanges=false
 help=false
 llvm=''
 pack=false
@@ -22,6 +24,7 @@ solution=''
 target=''
 test=false
 verbosity='minimal'
+verifypackages=false
 properties=''
 
 while [[ $# -gt 0 ]]; do
@@ -29,6 +32,10 @@ while [[ $# -gt 0 ]]; do
   case $lower in
     --architecture)
       architecture=$2
+      shift 2
+      ;;
+    --base)
+      base=$2
       shift 2
       ;;
     --build)
@@ -42,6 +49,10 @@ while [[ $# -gt 0 ]]; do
     --configuration)
       configuration=$2
       shift 2
+      ;;
+    --detectchanges)
+      detectchanges=true
+      shift 1
       ;;
     --help)
       help=true
@@ -82,6 +93,10 @@ while [[ $# -gt 0 ]]; do
     --verbosity)
       verbosity=$2
       shift 2
+      ;;
+    --verifypackages)
+      verifypackages=true
+      shift 1
       ;;
     *)
       properties="$properties $1"
@@ -127,6 +142,8 @@ function Help {
   echo "  --pack                    Package build artifacts"
   echo "  --regeneratenative        Download the matching LLVM release and stage a native binary"
   echo "                            (use with --target and --rid)"
+  echo "  --verifypackages          Verify the libclang/libClangSharp package versions match CMakeLists.txt"
+  echo "  --detectchanges           Print which native packages need regenerating since --base <ref>"
   echo ""
   echo "Advanced settings:"
   echo "  --solution <value>        Path to solution to build"
@@ -380,6 +397,111 @@ function RegenerateNative {
   fi
 }
 
+function VerifyPackages {
+  GetLlvmVersion
+
+  if [ "$LASTEXITCODE" != 0 ]; then
+    return "$LASTEXITCODE"
+  fi
+
+  rc=0
+
+  # libclang packages track the LLVM version exactly, including the repository branch.
+  for f in "$RepoRoot"/packages/libclang/libclang/libclang.nuspec "$RepoRoot"/packages/libclang/libclang.runtime.*/*.nuspec; do
+    v="$(sed -n 's:.*<version>\([^<]*\)</version>.*:\1:p' "$f" | head -n1)"
+
+    if [ "$v" != "$llvm" ]; then
+      echo "$f: version '$v' does not match LLVM version '$llvm'"
+      rc=1
+    fi
+
+    b="$(sed -n 's:.*<repository[^>]*branch="\([^"]*\)".*:\1:p' "$f" | head -n1)"
+
+    if [ -n "$b" ] && [ "$b" != "llvmorg-$llvm" ]; then
+      echo "$f: repository branch '$b' does not match 'llvmorg-$llvm'"
+      rc=1
+    fi
+  done
+
+  for v in $(grep -oE '"[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?"' "$RepoRoot/packages/libclang/libclang/runtime.json" | tr -d '"'); do
+    if [ "$v" != "$llvm" ]; then
+      echo "packages/libclang/libclang/runtime.json: mapped version '$v' does not match LLVM version '$llvm'"
+      rc=1
+    fi
+  done
+
+  # libClangSharp packages are the LLVM version plus an independent build revision.
+  for f in "$RepoRoot"/packages/libClangSharp/libClangSharp/libClangSharp.nuspec "$RepoRoot"/packages/libClangSharp/libClangSharp.runtime.*/*.nuspec; do
+    v="$(sed -n 's:.*<version>\([^<]*\)</version>.*:\1:p' "$f" | head -n1)"
+
+    case "$v" in
+      "$llvm".*) : ;;
+      *)
+        echo "$f: version '$v' is not 'llvm-version.<revision>' (expected '$llvm.<n>')"
+        rc=1
+        ;;
+    esac
+  done
+
+  for v in $(grep -oE '"[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?"' "$RepoRoot/packages/libClangSharp/libClangSharp/runtime.json" | tr -d '"'); do
+    case "$v" in
+      "$llvm".*) : ;;
+      *)
+        echo "packages/libClangSharp/libClangSharp/runtime.json: mapped version '$v' is not '$llvm.<revision>'"
+        rc=1
+        ;;
+    esac
+  done
+
+  if [ "$rc" != 0 ]; then
+    echo "Update the package versions to match the tracked LLVM version ($llvm) before regenerating."
+    LASTEXITCODE=1
+    return "$LASTEXITCODE"
+  fi
+
+  echo "Package versions verified against LLVM $llvm"
+  LASTEXITCODE=0
+}
+
+function DetectChanges {
+  if [[ -z "$base" ]]; then
+    echo "--base <ref> is required with --detectchanges"
+    LASTEXITCODE=1
+    return "$LASTEXITCODE"
+  fi
+
+  GetLlvmVersion
+
+  if [ "$LASTEXITCODE" != 0 ]; then
+    return "$LASTEXITCODE"
+  fi
+
+  detectLibclang=false
+  detectLibclangsharp=false
+
+  if ! git -C "$RepoRoot" cat-file -e "$base^{commit}" 2>/dev/null; then
+    # No resolvable baseline to diff against, so regenerate everything conservatively.
+    detectLibclang=true
+    detectLibclangsharp=true
+  else
+    # libclang regenerates when the tracked LLVM major.minor changes.
+    prevVersion="$(git -C "$RepoRoot" show "$base:CMakeLists.txt" 2>/dev/null | sed -n 's/^project(ClangSharp VERSION \([0-9.]*\)).*/\1/p')"
+
+    if [ "${llvm%.*}" != "${prevVersion%.*}" ]; then
+      detectLibclang=true
+    fi
+
+    # libClangSharp regenerates for that same reason or when its sources change.
+    if [ "$detectLibclang" = true ] || ! git -C "$RepoRoot" diff --quiet "$base" HEAD -- sources/libClangSharp/; then
+      detectLibclangsharp=true
+    fi
+  fi
+
+  echo "libclang=$detectLibclang"
+  echo "libclangsharp=$detectLibclangsharp"
+  LASTEXITCODE=0
+}
+
 if $help; then
   Help
   exit 0
@@ -457,10 +579,29 @@ if $pack; then
   fi
 fi
 
+# The native subcommands below are only ever executed directly (never sourced via
+# cibuild.sh), so they exit with the failure code -- a top-level return would merely
+# warn and let the script fall through to a later block, masking the failure.
 if $regeneratenative; then
   RegenerateNative
 
   if [ "$LASTEXITCODE" != 0 ]; then
-    return "$LASTEXITCODE"
+    exit "$LASTEXITCODE"
+  fi
+fi
+
+if $verifypackages; then
+  VerifyPackages
+
+  if [ "$LASTEXITCODE" != 0 ]; then
+    exit "$LASTEXITCODE"
+  fi
+fi
+
+if $detectchanges; then
+  DetectChanges
+
+  if [ "$LASTEXITCODE" != 0 ]; then
+    exit "$LASTEXITCODE"
   fi
 fi
