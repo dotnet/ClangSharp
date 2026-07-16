@@ -18,7 +18,6 @@ using ClangSharp.XML;
 using static ClangSharp.Interop.CX_AttrKind;
 using static ClangSharp.Interop.CX_CXXAccessSpecifier;
 using static ClangSharp.Interop.CX_StmtClass;
-using static ClangSharp.Interop.CX_TemplateNameKind;
 using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
 using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CXCallingConv;
@@ -441,18 +440,9 @@ public sealed partial class PInvokeGenerator
         // a `TypeAliasTemplateDecl`) rather than a `CXXRecordDecl`. Canonicalization also unwraps
         // any alias template to the aliased class template, so both cases resolve here.
         if (baseType.CanonicalType is TemplateSpecializationType templateSpecializationType &&
-            templateSpecializationType.Handle.TemplateName.kind != CX_TNK_Invalid &&
             templateSpecializationType.TemplateName.AsTemplateDecl is ClassTemplateDecl classTemplateDecl)
         {
             return classTemplateDecl.TemplatedDecl;
-        }
-
-        // Some libClang builds fail to resolve the template name of a dependent specialization
-        // base, leaving it invalid. The referenced cursor is still the class template, so resolve
-        // through it directly. See https://github.com/dotnet/ClangSharp/issues/806.
-        if (cxxBaseSpecifier.Referenced is ClassTemplateDecl referencedClassTemplateDecl)
-        {
-            return referencedClassTemplateDecl.TemplatedDecl;
         }
 
         AddDiagnostic(DiagnosticLevel.Error, "Failed to retrieve record type for CXX base specifier. Falling back to referenced type.", cxxBaseSpecifier);

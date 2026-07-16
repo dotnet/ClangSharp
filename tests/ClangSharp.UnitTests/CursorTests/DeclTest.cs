@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 using NUnit.Framework;
 using static ClangSharp.Interop.CX_CXXAccessSpecifier;
@@ -364,16 +363,5 @@ struct S
 
         Assert.That(Field("first").OffsetOfField, Is.EqualTo(0));
         Assert.That(Field("second").OffsetOfField, Is.EqualTo(32));
-    }
-
-    // The win-arm64 libClangSharp 22.1.8.2 prebuilt ships broken clangsharp shims that access-violate
-    // rather than return, crashing the test host. Skip the tests exercising them on that RID until the
-    // native package is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.
-    private static void SkipUntilNativeRebuild()
-    {
-        if (OperatingSystem.IsWindows() && (RuntimeInformation.ProcessArchitecture == Architecture.Arm64))
-        {
-            Assert.Ignore("The win-arm64 libClangSharp prebuilt ships broken clangsharp shims that crash the host. Remove this guard once the native lib is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.");
-        }
     }
 }

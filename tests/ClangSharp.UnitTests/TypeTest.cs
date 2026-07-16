@@ -170,6 +170,10 @@ using MemFuncT = void (S::*)();
     [Test]
     public void TemplateNameTest()
     {
+        // Resolving TemplateSpecializationType.TemplateName relies on the native clangsharp shim, which
+        // the win-arm64 prebuilt returns invalid; skip until the native lib is rebuilt.
+        SkipUntilNativeRebuild();
+
         var inputContents = """
 template <typename T> struct Tmpl { T value; };
 using SpecT = Tmpl<int>;
