@@ -218,6 +218,53 @@ private:
         Assert.That(structB.IsPOD, Is.False, "struct B should be not POD");
     }
 
+    [Test]
+    public void CXXRecordDeclStructuralPredicatesTest()
+    {
+        var inputContents = """
+struct Pod { };
+
+struct Poly
+{
+    Poly();
+    virtual void f();
+    mutable int m;
+private:
+    int p;
+};
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var records = translationUnit.TranslationUnitDecl.Decls.OfType<CXXRecordDecl>()
+                                     .Where((recordDecl) => recordDecl.HasDefinition)
+                                     .ToDictionary((recordDecl) => recordDecl.Name, StringComparer.Ordinal);
+
+        var pod = records["Pod"];
+        var poly = records["Poly"];
+
+        Assert.That(pod.IsAggregate, Is.True);
+        Assert.That(pod.IsEmpty, Is.True);
+        Assert.That(pod.IsPOD, Is.True);
+        Assert.That(pod.IsStandardLayout, Is.True);
+        Assert.That(pod.IsTrivial, Is.True);
+        Assert.That(pod.IsTriviallyCopyable, Is.True);
+        Assert.That(pod.IsPolymorphic, Is.False);
+        Assert.That(pod.IsDynamicClass, Is.False);
+        Assert.That(pod.HasUserDeclaredConstructor, Is.False);
+
+        Assert.That(poly.IsPolymorphic, Is.True);
+        Assert.That(poly.IsDynamicClass, Is.True);
+        Assert.That(poly.IsAggregate, Is.False);
+        Assert.That(poly.IsEmpty, Is.False);
+        Assert.That(poly.IsPOD, Is.False);
+        Assert.That(poly.IsTrivial, Is.False);
+        Assert.That(poly.HasUserDeclaredConstructor, Is.True);
+        Assert.That(poly.HasMutableFields, Is.True);
+        Assert.That(poly.HasPrivateFields, Is.True);
+        Assert.That(poly.HasNonTrivialDestructor, Is.False);
+    }
+
 
     [Test]
     public void QualifiedNameTest()

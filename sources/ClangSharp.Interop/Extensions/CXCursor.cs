@@ -997,11 +997,15 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool HasDefaultArg => clangsharp.Cursor_getHasDefaultArg(this) != 0;
 
+    public readonly bool HasDeletedDestructor => clangsharp.Cursor_getHasDeletedDestructor(this) != 0;
+
     public readonly bool HasElseStorage => clangsharp.Cursor_getHasElseStorage(this) != 0;
 
     public readonly bool HasExplicitTemplateArgs => clangsharp.Cursor_getHasExplicitTemplateArgs(this) != 0;
 
     public readonly bool HasImplicitReturnZero => clangsharp.Cursor_getHasImplicitReturnZero(this) != 0;
+
+    public readonly bool HasInClassInitializer => clangsharp.Cursor_getHasInClassInitializer(this) != 0;
 
     public readonly bool HasInheritedDefaultArg => clangsharp.Cursor_getHasInheritedDefaultArg(this) != 0;
 
@@ -1013,11 +1017,25 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool HasLocalStorage => clangsharp.Cursor_getHasLocalStorage(this) != 0;
 
+    public readonly bool HasMutableFields => clangsharp.Cursor_getHasMutableFields(this) != 0;
+
+    public readonly bool HasNonTrivialDefaultConstructor => clangsharp.Cursor_getHasNonTrivialDefaultConstructor(this) != 0;
+
+    public readonly bool HasNonTrivialDestructor => clangsharp.Cursor_getHasNonTrivialDestructor(this) != 0;
+
     public readonly bool HasPlaceholderTypeConstraint => clangsharp.Cursor_getHasPlaceholderTypeConstraint(this) != 0;
+
+    public readonly bool HasPrivateFields => clangsharp.Cursor_getHasPrivateFields(this) != 0;
+
+    public readonly bool HasProtectedFields => clangsharp.Cursor_getHasProtectedFields(this) != 0;
 
     public readonly uint Hash => clang.hashCursor(this);
 
     public readonly bool HasTemplateKeyword => clangsharp.Cursor_getHasTemplateKeyword(this) != 0;
+
+    public readonly bool HasTrivialCopyConstructor => clangsharp.Cursor_getHasTrivialCopyConstructor(this) != 0;
+
+    public readonly bool HasTrivialDefaultConstructor => clangsharp.Cursor_getHasTrivialDefaultConstructor(this) != 0;
 
     public readonly bool HasUninstantiatedDefaultArg => clangsharp.Cursor_getHasUninstantiatedDefaultArg(this) != 0;
 
@@ -1063,6 +1081,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly ulong UnsignedIntegerLiteralValue => clangsharp.Cursor_getUnsignedIntegerLiteralValue(this);
 
+    public readonly bool IsAggregate => clangsharp.Cursor_getIsAggregate(this) != 0;
+
     public readonly bool IsAllEnumCasesCovered => clangsharp.Cursor_getIsAllEnumCasesCovered(this) != 0;
 
     public readonly bool IsAlwaysNull => clangsharp.Cursor_getIsAlwaysNull(this) != 0;
@@ -1103,6 +1123,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsCopyOrMoveConstructor => clangsharp.Cursor_getIsCopyOrMoveConstructor(this) != 0;
 
+    public readonly bool IsCXX11StandardLayout => clangsharp.Cursor_getIsCXX11StandardLayout(this) != 0;
+
     public readonly bool IsCXXTry => clangsharp.Cursor_getIsCXXTry(this) != 0;
 
     public readonly bool IsDeclaration => clang.isDeclaration(Kind) != 0;
@@ -1119,7 +1141,13 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsDynamicCall => clang.Cursor_isDynamicCall(this) != 0;
 
+    public readonly bool IsDynamicClass => clangsharp.Cursor_getIsDynamicClass(this) != 0;
+
+    public readonly bool IsEffectivelyFinal => clangsharp.Cursor_getIsEffectivelyFinal(this) != 0;
+
     public readonly bool IsElidable => clangsharp.Cursor_getIsElidable(this) != 0;
+
+    public readonly bool IsEmpty => clangsharp.Cursor_getIsEmpty(this) != 0;
 
     public readonly bool IsExplicitlyDefaulted => clangsharp.Cursor_getIsExplicitlyDefaulted(this) != 0;
 
@@ -1155,6 +1183,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsListInitialization => clangsharp.Cursor_getIsListInitialization(this) != 0;
 
+    public readonly bool IsLiteral => clangsharp.Cursor_getIsLiteral(this) != 0;
+
     public readonly bool IsLocalVarDecl => clangsharp.Cursor_getIsLocalVarDecl(this) != 0;
 
     public readonly bool IsLocalVarDeclOrParm => clangsharp.Cursor_getIsLocalVarDeclOrParm(this) != 0;
@@ -1185,6 +1215,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsPartiallySubstituted => clangsharp.Cursor_getIsPartiallySubstituted(this) != 0;
 
+    public readonly bool IsPolymorphic => clangsharp.Cursor_getIsPolymorphic(this) != 0;
+
     public readonly bool IsPotentiallyEvaluated => clangsharp.Cursor_getIsPotentiallyEvaluated(this) != 0;
 
     public readonly bool IsPreprocessing => clang.isPreprocessing(Kind) != 0;
@@ -1196,6 +1228,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly bool IsResultDependent => clangsharp.Cursor_getIsResultDependent(this) != 0;
 
     public readonly bool IsReversed => clangsharp.Cursor_getIsReversed(this) != 0;
+
+    public readonly bool IsStandardLayout => clangsharp.Cursor_getIsStandardLayout(this) != 0;
 
     public readonly bool IsStdInitListInitialization => clangsharp.Cursor_getIsStdInitListInitialization(this) != 0;
 
@@ -1220,6 +1254,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly bool IsTranslationUnit => clang.isTranslationUnit(Kind) != 0;
 
     public readonly bool IsTransparent => clangsharp.Cursor_getIsTransparent(this) != 0;
+
+    public readonly bool IsTrivial => clangsharp.Cursor_getIsTrivial(this) != 0;
+
+    public readonly bool IsTriviallyCopyable => clangsharp.Cursor_getIsTriviallyCopyable(this) != 0;
 
     public readonly bool IsTypeConcept => clangsharp.Cursor_getIsTypeConcept(this) != 0;
 

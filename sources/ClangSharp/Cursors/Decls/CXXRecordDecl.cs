@@ -52,7 +52,27 @@ public class CXXRecordDecl : RecordDecl
 
     public bool IsAbstract => Handle.CXXRecord_IsAbstract;
 
+    public bool IsAggregate => Handle.IsAggregate;
+
+    public bool IsCXX11StandardLayout => Handle.IsCXX11StandardLayout;
+
+    public bool IsDynamicClass => Handle.IsDynamicClass;
+
+    public bool IsEffectivelyFinal => Handle.IsEffectivelyFinal;
+
+    public bool IsEmpty => Handle.IsEmpty;
+
+    public bool IsLiteral => Handle.IsLiteral;
+
     public bool IsPOD => Handle.CXXRecord_IsPOD;
+
+    public bool IsPolymorphic => Handle.IsPolymorphic;
+
+    public bool IsStandardLayout => Handle.IsStandardLayout;
+
+    public bool IsTrivial => Handle.IsTrivial;
+
+    public bool IsTriviallyCopyable => Handle.IsTriviallyCopyable;
 
     public IReadOnlyList<CXXBaseSpecifier> Bases => _bases;
 
@@ -72,7 +92,25 @@ public class CXXRecordDecl : RecordDecl
 
     public bool HasDefinition => Definition is not null;
 
+    public bool HasDeletedDestructor => Handle.HasDeletedDestructor;
+
     public bool HasFriends => Handle.NumFriends != 0;
+
+    public bool HasInClassInitializer => Handle.HasInClassInitializer;
+
+    public bool HasMutableFields => Handle.HasMutableFields;
+
+    public bool HasNonTrivialDefaultConstructor => Handle.HasNonTrivialDefaultConstructor;
+
+    public bool HasNonTrivialDestructor => Handle.HasNonTrivialDestructor;
+
+    public bool HasPrivateFields => Handle.HasPrivateFields;
+
+    public bool HasProtectedFields => Handle.HasProtectedFields;
+
+    public bool HasTrivialCopyConstructor => Handle.HasTrivialCopyConstructor;
+
+    public bool HasTrivialDefaultConstructor => Handle.HasTrivialDefaultConstructor;
 
     public bool HasUserDeclaredConstructor => Handle.HasUserDeclaredConstructor;
 
