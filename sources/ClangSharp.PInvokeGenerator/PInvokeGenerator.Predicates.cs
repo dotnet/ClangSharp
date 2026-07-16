@@ -635,10 +635,6 @@ public sealed partial class PInvokeGenerator
         {
             return IsFixedSize(cursor, decltypeType.UnderlyingType);
         }
-        else if (type is ElaboratedType elaboratedType)
-        {
-            return IsFixedSize(cursor, elaboratedType.NamedType);
-        }
         else if (type is EnumType enumType)
         {
             return IsFixedSize(cursor, enumType.Decl.IntegerType);
@@ -835,10 +831,6 @@ public sealed partial class PInvokeGenerator
             {
                 return IsType(cursor, dependentNameType.Desugar, out value);
             }
-        }
-        else if (type is ElaboratedType elaboratedType)
-        {
-            return IsType(cursor, elaboratedType.NamedType, out value);
         }
         else if (type is InjectedClassNameType injectedClassNameType)
         {

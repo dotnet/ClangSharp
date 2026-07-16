@@ -304,19 +304,6 @@ public sealed partial class PInvokeGenerator
                     // The default name should be correct
                 }
             }
-            else if (type is ElaboratedType elaboratedType)
-            {
-                result.typeName = GetTypeName(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativeNamedTypeName);
-
-                if (!string.IsNullOrWhiteSpace(nativeNamedTypeName) &&
-                    !result.nativeTypeName.StartsWith("const ", StringComparison.Ordinal) &&
-                    !result.nativeTypeName.StartsWith("enum ", StringComparison.Ordinal) &&
-                    !result.nativeTypeName.StartsWith("struct ", StringComparison.Ordinal) &&
-                    !result.nativeTypeName.StartsWith("union ", StringComparison.Ordinal))
-                {
-                    result.nativeTypeName = nativeNamedTypeName;
-                }
-            }
             else if (type is FunctionType functionType)
             {
                 result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, functionType, ignoreTransparentStructsWhereRequired, isTemplate, out _, out _);
@@ -589,20 +576,6 @@ public sealed partial class PInvokeGenerator
         if (pointeeType is AttributedType attributedType)
         {
             name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativeModifiedTypeName, out isAdjusted);
-        }
-        else if (pointeeType is ElaboratedType elaboratedType)
-        {
-            name = GetTypeNameForPointeeType(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativeNamedTypeName, out isAdjusted);
-
-            if (!string.IsNullOrWhiteSpace(nativeNamedTypeName) &&
-                !nativePointeeTypeName.StartsWith("const ", StringComparison.Ordinal) &&
-                !nativePointeeTypeName.StartsWith("enum ", StringComparison.Ordinal) &&
-                !nativePointeeTypeName.StartsWith("struct ", StringComparison.Ordinal) &&
-                !nativePointeeTypeName.StartsWith("union ", StringComparison.Ordinal))
-            {
-                nativePointeeTypeName = nativeNamedTypeName;
-                isAdjusted = true;
-            }
         }
         else if (pointeeType is FunctionType functionType)
         {
@@ -926,10 +899,6 @@ public sealed partial class PInvokeGenerator
         else if (type is DecltypeType decltypeType)
         {
             GetTypeSize(cursor, decltypeType.UnderlyingType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out size32, out size64);
-        }
-        else if (type is ElaboratedType elaboratedType)
-        {
-            GetTypeSize(cursor, elaboratedType.NamedType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out size32, out size64);
         }
         else if (type is EnumType enumType)
         {
