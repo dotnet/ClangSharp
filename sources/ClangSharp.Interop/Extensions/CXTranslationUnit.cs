@@ -156,15 +156,13 @@ public unsafe partial struct CXTranslationUnit(IntPtr handle) : IDisposable, IEq
     public readonly CXFile GetFile(string fileName)
     {
         using var marshaledFileName = new MarshaledString(fileName);
-        return GetFile(marshaledFileName.AsSpan());
+        return (CXFile)clang.getFile(this, marshaledFileName);
     }
 
     public readonly CXFile GetFile(ReadOnlySpan<byte> fileName)
     {
-        fixed (byte* pFileName = fileName)
-        {
-            return (CXFile)clang.getFile(this, (sbyte*)pFileName);
-        }
+        using var marshaledFileName = new MarshaledString(fileName);
+        return (CXFile)clang.getFile(this, marshaledFileName);
     }
 
     public readonly ReadOnlySpan<byte> GetFileContents(CXFile file, out UIntPtr size)
