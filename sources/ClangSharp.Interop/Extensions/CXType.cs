@@ -25,6 +25,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public readonly CX_AttrKind AttrKind => clangsharp.Type_getAttrKind(this);
 
+    public readonly CX_AutoTypeKeyword AutoTypeKeyword => clangsharp.Type_getAutoTypeKeyword(this);
+
     public readonly CXType BaseType => clangsharp.Type_getBaseType(this);
 
     public readonly CXType CanonicalType => clang.getCanonicalType(this);
@@ -40,6 +42,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
     public readonly CXCursor Declaration => (kind != CXType_Invalid) ? clangsharp.Type_getDeclaration(this) : default;
 
     public readonly CXType DeducedType => (kind != CXType_Invalid) ? clangsharp.Type_getDeducedType(this) : default;
+
+    public readonly CX_TypeDependence Dependence => clangsharp.Type_getDependence(this);
 
     public readonly int Depth => clangsharp.Type_getDepth(this);
 
@@ -82,6 +86,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
     public readonly bool IsUnsigned => clangsharp.Type_getIsUnsigned(this) != 0;
 
     public readonly bool IsVolatileQualified => clang.isVolatileQualifiedType(this) != 0;
+
+    public readonly CX_ElaboratedTypeKeyword Keyword => clangsharp.Type_getKeyword(this);
 
     public readonly CXString KindSpelling => clang.getTypeKindSpelling(kind);
 
