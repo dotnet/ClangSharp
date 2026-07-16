@@ -43,6 +43,8 @@ public class VarDecl : DeclaratorDecl, IRedeclarable<VarDecl>
 
     public Expr Init => _init.GetValue(this);
 
+    public CX_InitializationStyle InitStyle => Handle.InitStyle;
+
     public VarDecl InstantiatedFromStaticDataMember => _instantiatedFromStaticDataMember.GetValue(this);
 
     public bool IsExternC => Handle.IsExternC;

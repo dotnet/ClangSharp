@@ -265,6 +265,60 @@ private:
         Assert.That(poly.HasNonTrivialDestructor, Is.False);
     }
 
+    [Test]
+    public void FunctionConstexprKindTest()
+    {
+        var inputContents = """
+constexpr int CxFunc() { return 0; }
+consteval int CvFunc() { return 0; }
+int PlainFunc() { return 0; }
+""";
+
+        string[] commandLineArgs = ["-std=c++20", "-Wno-pragma-once-outside-header"];
+        using var translationUnit = CreateTranslationUnit(inputContents, commandLineArgs: commandLineArgs);
+
+        var funcs = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionDecl>()
+                                   .ToDictionary((functionDecl) => functionDecl.Name, StringComparer.Ordinal);
+
+        Assert.That(funcs["CxFunc"].ConstexprKind, Is.EqualTo(CX_ConstexprSpecKind.CX_CSK_Constexpr));
+        Assert.That(funcs["CxFunc"].IsConstexpr, Is.True);
+        Assert.That(funcs["CxFunc"].IsConsteval, Is.False);
+
+        Assert.That(funcs["CvFunc"].ConstexprKind, Is.EqualTo(CX_ConstexprSpecKind.CX_CSK_Consteval));
+        Assert.That(funcs["CvFunc"].IsConstexpr, Is.True);
+        Assert.That(funcs["CvFunc"].IsConsteval, Is.True);
+
+        Assert.That(funcs["PlainFunc"].ConstexprKind, Is.EqualTo(CX_ConstexprSpecKind.CX_CSK_Unspecified));
+        Assert.That(funcs["PlainFunc"].IsConstexpr, Is.False);
+        Assert.That(funcs["PlainFunc"].IsConsteval, Is.False);
+    }
+
+    [Test]
+    public void VarInitStyleTest()
+    {
+        var inputContents = """
+void f()
+{
+    int cinit = 0;
+    int listinit{0};
+    int callinit(0);
+}
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var func = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionDecl>()
+                                  .Single((functionDecl) => functionDecl.Name.Equals("f", StringComparison.Ordinal));
+        var vars = func.CursorChildren.OfType<CompoundStmt>().Single()
+                       .Children.OfType<DeclStmt>()
+                       .Select((declStmt) => (VarDecl)declStmt.SingleDecl!)
+                       .ToDictionary((varDecl) => varDecl.Name, StringComparer.Ordinal);
+
+        Assert.That(vars["cinit"].InitStyle, Is.EqualTo(CX_InitializationStyle.CX_IS_CInit));
+        Assert.That(vars["listinit"].InitStyle, Is.EqualTo(CX_InitializationStyle.CX_IS_ListInit));
+        Assert.That(vars["callinit"].InitStyle, Is.EqualTo(CX_InitializationStyle.CX_IS_CallInit));
+    }
+
 
     [Test]
     public void QualifiedNameTest()

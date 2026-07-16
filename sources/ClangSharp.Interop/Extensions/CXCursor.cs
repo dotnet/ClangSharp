@@ -700,6 +700,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXType ComputationResultType => clangsharp.Cursor_getComputationResultType(this);
 
+    public readonly CX_ConstexprSpecKind ConstexprKind => clangsharp.Cursor_getConstexprKind(this);
+
     public readonly CXCursor ConstraintExpr => clangsharp.Cursor_getConstraintExpr(this);
 
     public readonly CXCursor ConstructedBaseClass => clangsharp.Cursor_getConstructedBaseClass(this);
@@ -1063,6 +1065,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXType IBOutletCollectionType => clang.getIBOutletCollectionType(this);
 
+    public readonly CX_IfStatementKind IfStatementKind => clangsharp.Cursor_getIfStatementKind(this);
+
     public readonly CXFile IncludedFile => (CXFile)clang.getIncludedFile(this);
 
     public readonly CXCursor InClassInitializer => clangsharp.Cursor_getInClassInitializer(this);
@@ -1072,6 +1076,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly bool InheritedFromVBase => clangsharp.Cursor_getInheritedFromVBase(this) != 0;
 
     public readonly CXCursor InitExpr => clangsharp.Cursor_getInitExpr(this);
+
+    public readonly CX_InitializationStyle InitStyle => clangsharp.Cursor_getInitStyle(this);
 
     public readonly CXType InjectedSpecializationType => clangsharp.Cursor_getInjectedSpecializationType(this);
 
