@@ -178,7 +178,7 @@ using SpecT = Tmpl<int>;
         using var translationUnit = CreateTranslationUnit(inputContents);
 
         var spec = translationUnit.TranslationUnitDecl.Decls.OfType<TypedefNameDecl>().Single((typedef) => typedef.Name.Equals("SpecT", StringComparison.Ordinal));
-        var templateSpecializationType = (TemplateSpecializationType)spec.UnderlyingType.Desugar;
+        var templateSpecializationType = (TemplateSpecializationType)spec.UnderlyingType;
         var templateName = templateSpecializationType.TemplateName;
 
         Assert.That(templateName.IsNull, Is.False);
