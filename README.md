@@ -150,6 +150,8 @@ The change-detection and version-verification the workflow gates on live in the 
 
 The staged binary is written to `artifacts/native/<rid>/`. The LLVM release distribution bundles both the prebuilt `libclang` and the `lib/cmake/{llvm,clang}` config, headers, and import libraries used as `PATH_TO_LLVM` when building `libClangSharp`, so no from-source LLVM build is required (the manual [Building Native](#building-native) steps remain the way to reproduce a build locally). Because lifting `libclang` is just unpacking prebuilt binaries, the workflow does all five runtimes on a single Windows runner (its bundled `bsdtar` handles `.tar.xz`); `libClangSharp` is compiled per-runtime on native runners.
 
+The `win-arm64` runtime is compiled with the LLVM release's own `clang-cl` (via `-G Ninja`) rather than MSVC. The official LLVM binaries are clang-built, and on Arm64 clang and MSVC disagree on the record layout of over-aligned non-POD base classes (e.g. `clang::TemplateSpecializationType`), so an MSVC-built shim reads members of clang-built types at the wrong offset. The other runtimes are unaffected (`win-x64` layouts agree between the two, and the Unix runtimes already use clang).
+
 The jobs run when:
 
 * **libclang** — the tracked LLVM major/minor version changes, or the workflow is dispatched manually with the `libclang` input set.

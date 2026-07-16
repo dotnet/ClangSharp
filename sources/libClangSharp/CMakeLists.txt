@@ -42,20 +42,37 @@ find_package(Clang REQUIRED CONFIG
 # into the imported LLVMDebugInfoPDB target in LLVMExports.cmake. That path
 # won't exist on another machine (or a CI runner) with a different Visual
 # Studio, causing LNK1181. Repoint it at the DIA SDK of the Visual Studio
-# actually being used for this build.
-if(MSVC AND CMAKE_GENERATOR_INSTANCE AND TARGET LLVMDebugInfoPDB)
-  if(CMAKE_GENERATOR_PLATFORM MATCHES "[Aa][Rr][Mm]64")
-    set(_clangsharp_diaguids "${CMAKE_GENERATOR_INSTANCE}/DIA SDK/lib/arm64/diaguids.lib")
-  elseif(CMAKE_GENERATOR_PLATFORM MATCHES "[Ww]in32")
-    set(_clangsharp_diaguids "${CMAKE_GENERATOR_INSTANCE}/DIA SDK/lib/diaguids.lib")
+# actually being used for this build. The Visual Studio generator (win-x64)
+# exposes its root and target as CMAKE_GENERATOR_INSTANCE/PLATFORM; Ninja +
+# clang-cl (win-arm64) gets them from VSINSTALLDIR and the compiler arch id.
+if(MSVC AND TARGET LLVMDebugInfoPDB)
+  if(CMAKE_GENERATOR_INSTANCE)
+    set(_clangsharp_vs "${CMAKE_GENERATOR_INSTANCE}")
   else()
-    set(_clangsharp_diaguids "${CMAKE_GENERATOR_INSTANCE}/DIA SDK/lib/amd64/diaguids.lib")
+    file(TO_CMAKE_PATH "$ENV{VSINSTALLDIR}" _clangsharp_vs)
+  endif()
+  string(REGEX REPLACE "/+$" "" _clangsharp_vs "${_clangsharp_vs}")
+
+  if(CMAKE_GENERATOR_PLATFORM)
+    set(_clangsharp_arch "${CMAKE_GENERATOR_PLATFORM}")
+  else()
+    set(_clangsharp_arch "${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}")
   endif()
 
-  get_target_property(_clangsharp_pdb_libs LLVMDebugInfoPDB INTERFACE_LINK_LIBRARIES)
-  if(EXISTS "${_clangsharp_diaguids}")
-    string(REGEX REPLACE "[^;]*[Dd][Ii][Aa] SDK[^;]*diaguids\\.lib" "${_clangsharp_diaguids}" _clangsharp_pdb_libs "${_clangsharp_pdb_libs}")
-    set_target_properties(LLVMDebugInfoPDB PROPERTIES INTERFACE_LINK_LIBRARIES "${_clangsharp_pdb_libs}")
+  if(_clangsharp_vs)
+    if(_clangsharp_arch MATCHES "[Aa][Rr][Mm]64")
+      set(_clangsharp_diaguids "${_clangsharp_vs}/DIA SDK/lib/arm64/diaguids.lib")
+    elseif(_clangsharp_arch MATCHES "[Ww]in32|[Xx]86")
+      set(_clangsharp_diaguids "${_clangsharp_vs}/DIA SDK/lib/diaguids.lib")
+    else()
+      set(_clangsharp_diaguids "${_clangsharp_vs}/DIA SDK/lib/amd64/diaguids.lib")
+    endif()
+
+    get_target_property(_clangsharp_pdb_libs LLVMDebugInfoPDB INTERFACE_LINK_LIBRARIES)
+    if(EXISTS "${_clangsharp_diaguids}")
+      string(REGEX REPLACE "[^;]*[Dd][Ii][Aa] SDK[^;]*diaguids\\.lib" "${_clangsharp_diaguids}" _clangsharp_pdb_libs "${_clangsharp_pdb_libs}")
+      set_target_properties(LLVMDebugInfoPDB PROPERTIES INTERFACE_LINK_LIBRARIES "${_clangsharp_pdb_libs}")
+    endif()
   endif()
 endif()
 
