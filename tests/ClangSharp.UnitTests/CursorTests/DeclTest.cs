@@ -1,10 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using ClangSharp.Interop;
 using NUnit.Framework;
 using static ClangSharp.Interop.CX_CXXAccessSpecifier;
@@ -368,28 +366,14 @@ struct S
         Assert.That(Field("second").OffsetOfField, Is.EqualTo(32));
     }
 
-    // Some tests depend on native libClangSharp shims that the pinned 21.1 prebuilt package predates
-    // (e.g. clangsharp_Cursor_getNumTemplateArguments / getTemplateArgument and
-    // clangsharp_Cursor_getUsingEnumDeclEnumDecl). Skip those until the native lib is rebuilt for a
-    // newer libClang. Rebuilding off 21.1 auto-unskips them.
+    // The win-arm64 libClangSharp 22.1.8.2 prebuilt ships broken clangsharp shims that access-violate
+    // rather than return, crashing the test host. Skip the tests exercising them on that RID until the
+    // native package is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.
     private static void SkipUntilNativeRebuild()
     {
-        // The win-arm64 libClangSharp 22.1.8.2 prebuilt ships broken clangsharp shims: these
-        // accessors access-violate rather than return, crashing the test host. Skip on that RID
-        // until the native package is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.
         if (OperatingSystem.IsWindows() && (RuntimeInformation.ProcessArchitecture == Architecture.Arm64))
         {
             Assert.Ignore("The win-arm64 libClangSharp prebuilt ships broken clangsharp shims that crash the host. Remove this guard once the native lib is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.");
-        }
-
-        using var versionString = clang.getClangVersion();
-        var match = Regex.Match(versionString.ToString(), @"version (\d+)\.(\d+)");
-
-        if (match.Success
-            && (int.Parse(match.Groups[1].ValueSpan, CultureInfo.InvariantCulture) == 21)
-            && (int.Parse(match.Groups[2].ValueSpan, CultureInfo.InvariantCulture) == 1))
-        {
-            Assert.Ignore("Requires a native libClangSharp rebuild that includes the template-argument accessor fix; the pinned 21.1 prebuilt package predates it. Remove this guard once libClang moves off 21.1 and the native lib is rebuilt.");
         }
     }
 }
