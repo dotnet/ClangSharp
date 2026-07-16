@@ -197,6 +197,12 @@ public partial class PInvokeGenerator
                         }
                         flags |= ValueFlags.Copy;
                     }
+                    else if (IsStmtAsWritten<CXXNullPtrLiteralExpr>(varDecl.Init, out _, removeParens: true))
+                    {
+                        // A null pointer literal has no backing storage to return by
+                        // reference, so emit it as a copied value rather than a ref constant
+                        flags |= ValueFlags.Copy;
+                    }
                 }
 
                 if (IsType<ArrayType>(varDecl, type, out var arrayType))

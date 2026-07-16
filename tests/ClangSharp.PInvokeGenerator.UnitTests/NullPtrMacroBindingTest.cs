@@ -18,4 +18,12 @@ public sealed class NullPtrMacroBindingTest : StandaloneBaselineTest
 
         return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents);
     }
+
+    [Test]
+    public Task NullPtrGenerateUnmanagedConstantsMacroTest()
+    {
+        var inputContents = @"#define MY_NULL_HANDLE nullptr";
+
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, PInvokeGeneratorConfigurationOptions.GenerateUnmanagedConstants);
+    }
 }
