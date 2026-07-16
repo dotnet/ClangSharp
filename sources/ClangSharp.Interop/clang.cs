@@ -14,7 +14,7 @@ public static unsafe partial class @clang
 {
     public static event DllImportResolver? ResolveLibrary;
 
-    public const int MajorVersion = 21;
+    public const int MajorVersion = 22;
     public const int MinorVersion = 1;
 
     static @clang()
