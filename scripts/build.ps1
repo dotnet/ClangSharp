@@ -279,6 +279,48 @@ function Verify-Packages() {
     }
   }
 
+  # The native version string reported by clangsharp_getVersion must track the LLVM version exactly.
+  $clangSharpCpp = Join-Path -Path $RepoRoot -ChildPath "sources\libClangSharp\ClangSharp.cpp"
+
+  if ((Get-Content -Path $clangSharpCpp -Raw) -match "clangsharp version ([0-9][0-9.]*)") {
+    if ($Matches[1] -ne $version) {
+      Write-Host -Object "sources\libClangSharp\ClangSharp.cpp: clangsharp_getVersion string '$($Matches[1])' does not match LLVM version '$version'"
+      $failed = $true
+    }
+  }
+  else {
+    Write-Host -Object "sources\libClangSharp\ClangSharp.cpp: could not find the clangsharp_getVersion version string"
+    $failed = $true
+  }
+
+  # The managed package pins consume the native packages. Native may be updated ahead of managed,
+  # but managed must never lead native (managed <= native).
+  $nativeLibClangSharp = $null
+
+  if ((Get-Content -Path (Join-Path -Path $RepoRoot -ChildPath "packages\libClangSharp\libClangSharp\libClangSharp.nuspec") -Raw) -match "<version>([^<]*)</version>") {
+    $nativeLibClangSharp = $Matches[1]
+  }
+
+  $packagesProps = Get-Content -Path (Join-Path -Path $RepoRoot -ChildPath "Directory.Packages.props") -Raw
+
+  if ($packagesProps -match 'Include="libClang"\s+Version="([0-9.]+)"') {
+    $managedLibClang = $Matches[1]
+
+    if ([version]$managedLibClang -gt [version]$version) {
+      Write-Host -Object "Directory.Packages.props: managed libClang pin '$managedLibClang' leads the native libclang version '$version' (managed must be <= native)"
+      $failed = $true
+    }
+  }
+
+  if (($null -ne $nativeLibClangSharp) -and ($packagesProps -match 'Include="libClangSharp"\s+Version="([0-9.]+)"')) {
+    $managedLibClangSharp = $Matches[1]
+
+    if ([version]$managedLibClangSharp -gt [version]$nativeLibClangSharp) {
+      Write-Host -Object "Directory.Packages.props: managed libClangSharp pin '$managedLibClangSharp' leads the native libClangSharp version '$nativeLibClangSharp' (managed must be <= native)"
+      $failed = $true
+    }
+  }
+
   if ($failed) {
     throw "Update the package versions to match the tracked LLVM version ($version) before regenerating."
   }
