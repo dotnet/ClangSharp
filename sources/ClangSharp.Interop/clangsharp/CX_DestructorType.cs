@@ -5,8 +5,8 @@ namespace ClangSharp.Interop;
 
 public enum CX_DestructorType
 {
-    Deleting,
-    Complete,
-    Base,
-    Comdat,
+    Deleting = 0,
+    Complete = 1,
+    Base = 2,
+    Comdat = 3,
 }

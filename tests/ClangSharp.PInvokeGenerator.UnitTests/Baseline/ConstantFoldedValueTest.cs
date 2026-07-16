@@ -13,6 +13,7 @@ public sealed class ConstantFoldedValueTest : BaselineTest
     private static readonly string[] ValueFoldedValues = ["MyValue"];
     private static readonly string[] StarFoldedValues = ["*"];
     private static readonly string[] TargetKeepOptOut = ["Target.Target_Keep"];
+    private static readonly string[] TargetLastFoldedValues = ["Target.Target_Last"];
 
     public ConstantFoldedValueTest(BaselineVariant variant) : base(variant)
     {
@@ -57,4 +58,33 @@ constexpr int MyValue = static_cast<int>(Companion_A) + 2;
     Target_Keep = 2 + 2,
 };
 ", withConstantFoldedValues: StarFoldedValues, withoutConstantFoldedValues: TargetKeepOptOut);
+
+    // Even when folding is requested, an initializer that is purely an alias to (or an `|` combination
+    // of) sibling enumerators stays symbolic -- those references are themselves generated, so keeping
+    // them readable (e.g. range markers) is preferable. Only non-alias arithmetic is folded.
+    [Test]
+    public Task EnumeratorAliasPreservedTest()
+        => ValidateAsync(nameof(EnumeratorAliasPreservedTest), @"enum Target : int
+{
+    Target_A,
+    Target_B,
+    Target_First = Target_A,
+    Target_Combined = Target_A | Target_B,
+    Target_Computed = Target_B + 1,
+};
+", withConstantFoldedValues: StarFoldedValues);
+
+    // A member whose initializer is opaque arithmetic (not an alias `DeclRefExpr`) but whose folded value
+    // equals a prior sibling emits that sibling symbolically rather than the literal -- e.g. `_Last` range
+    // markers built from an X-macro count. Only prior siblings are considered.
+    [Test]
+    public Task FoldedValueAliasesSiblingTest()
+        => ValidateAsync(nameof(FoldedValueAliasesSiblingTest), @"enum Target : int
+{
+    Target_A,
+    Target_B,
+    Target_C,
+    Target_Last = 1 + 1,
+};
+", withConstantFoldedValues: TargetLastFoldedValues);
 }

@@ -4,23 +4,23 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
-    [GeneratedCode("ClangSharp", "21.1.8.4")]
+    [GeneratedCode("ClangSharp", "22.1.8.0")]
     public enum MyEnum
     {
         MyEnum_Value,
     }
 
-    [GeneratedCode("ClangSharp", "21.1.8.4")]
+    [GeneratedCode("ClangSharp", "22.1.8.0")]
     public partial struct MyStruct
     {
         public int value;
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    [GeneratedCode("ClangSharp", "21.1.8.4")]
+    [GeneratedCode("ClangSharp", "22.1.8.0")]
     public delegate void MyCallback(int value);
 
-    [GeneratedCode("ClangSharp", "21.1.8.4")]
+    [GeneratedCode("ClangSharp", "22.1.8.0")]
     public static partial class Methods
     {
         [DllImport("ClangSharpPInvokeGenerator", CallingConvention = CallingConvention.Cdecl, EntryPoint = "?MyFunction@@YAXP6AXH@Z@Z", ExactSpelling = true)]

@@ -15,5 +15,5 @@ public enum CX_UnaryExprOrTypeTrait
     CX_UETT_VecStep,
     CX_UETT_OpenMPRequiredSimdAlign,
     CX_UETT_VectorElements,
-    CX_UETT_Last = -1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1,
+    CX_UETT_Last = CX_UETT_VectorElements,
 }

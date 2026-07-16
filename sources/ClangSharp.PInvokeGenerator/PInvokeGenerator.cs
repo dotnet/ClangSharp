@@ -50,6 +50,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private static readonly string GeneratedCodeAttribute = $"GeneratedCode(\"ClangSharp\", \"{typeof(PInvokeGenerator).Assembly.GetName().Version?.ToString() ?? ""}\")";
 
     private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+    private static readonly SearchValues<char> s_lowercaseAsciiLetters = SearchValues.Create("abcdefghijklmnopqrstuvwxyz");
     private static readonly string[] s_doubleColonSeparator = ["::"];
     private static readonly char[] s_doubleQuoteSeparator = ['"'];
     private static readonly SearchValues<char> s_qualifiedNameSeparatorChars = SearchValues.Create(".:");
@@ -568,6 +569,16 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             var diagnostic = new Diagnostic(DiagnosticLevel.Error, e.ToString());
             _diagnostics.Add(diagnostic);
+
+            // Generation was aborted mid-visit, leaving the transient output-builder state dangling.
+            // Reset it so the generator still satisfies its `_outputBuilder is null` invariant on
+            // disposal, rather than tripping the finalizer assert and crashing the test host.
+            _outputBuilder = null;
+            _testOutputBuilder = null;
+            _stmtOutputBuilder = null;
+            _testStmtOutputBuilder = null;
+            _outputBuilderUsers = 0;
+            _stmtOutputBuilderUsers = 0;
         }
 
 #pragma warning restore CA1031 // Do not catch general exception types
@@ -828,7 +839,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     sw.Write("class ");
                 }
 
-                sw.Write(outputBuilder.Name);
+                sw.Write(outputBuilder.Name is { Length: > 0 } topLevelClassName && IsLowercaseAsciiOnly(topLevelClassName) ? $"@{topLevelClassName}" : outputBuilder.Name);
 
                 if (_topLevelClassHasGuidMember.TryGetValue(outputBuilder.Name, out var hasGuidMember) && hasGuidMember)
                 {
@@ -1049,6 +1060,24 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
         }
     }
+
+    private static bool IsLowercaseAsciiOnly(string name)
+    {
+        // A type name composed solely of lowercase ASCII letters (e.g. `clang`) is reserved by C# for
+        // future contextual keywords and triggers CS8981. Escaping the declaration with `@` preserves
+        // the name while silencing the warning.
+        return (name.Length != 0) && !name.AsSpan().ContainsAnyExcept(s_lowercaseAsciiLetters);
+    }
+
+    // Strips a leading `@` that `GetRemappedCursorName` implicitly adds to a lowercase-only type name
+    // (see `IsLowercaseAsciiOnly`). User-provided `--with-*`/`--without-*`/`--remap-*` keys never carry
+    // that escape, so config lookups and opt-out comparisons must match against the un-escaped name;
+    // native names can't contain `@`, so this only ever undoes our own escaping.
+    private static ReadOnlySpan<char> StripNameEscape(ReadOnlySpan<char> name)
+        => ((name.Length != 0) && (name[0] == '@')) ? name[1..] : name;
+
+    private static string StripNameEscape(string name)
+        => ((name.Length != 0) && (name[0] == '@')) ? name[1..] : name;
 
     private string EscapeAndStripMethodName(string name)
     {
@@ -2043,7 +2072,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             _testOutputBuilder = _outputBuilderFactory.CreateTests(nameTests);
 
-            var isTopLevelStruct = _config.WithTypes.TryGetValue(name, out var withType) && withType.Equals("struct", StringComparison.Ordinal);
+            var isTopLevelStruct = _config.WithTypes.TryGetValue(StripNameEscape(name), out var withType) && withType.Equals("struct", StringComparison.Ordinal);
 
             if (!_topLevelClassNames.Contains(name) || isTopLevelStruct)
             {
@@ -2637,6 +2666,8 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool TryGetClass(ReadOnlySpan<char> remappedName, [MaybeNullWhen(false)] out string className, bool disallowPrefixMatch = false)
     {
+        remappedName = StripNameEscape(remappedName);
+
         var index = remappedName.IndexOf('*');
 
         if (index != -1)
@@ -2695,6 +2726,8 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool TryGetNamespace(ReadOnlySpan<char> remappedName, [MaybeNullWhen(false)] out string namespaceName)
     {
+        remappedName = StripNameEscape(remappedName);
+
         var index = remappedName.IndexOf('*');
 
         if (index != -1)
@@ -2727,7 +2760,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             return true;
         }
 
-        var remappedName = StripMacroPrefix(GetRemappedCursorName(namedDecl));
+        var remappedName = StripNameEscape(StripMacroPrefix(GetRemappedCursorName(namedDecl)));
 
         if (entriesLookup.Contains(remappedName))
         {
@@ -2796,6 +2829,8 @@ public sealed partial class PInvokeGenerator : IDisposable
     // option doesn't opt the name back out.
     private bool TryGetValueOrStar<T>(IReadOnlyDictionary<string, T> map, string name, HashSet<string>? optOuts, [MaybeNullWhen(false)] out T value)
     {
+        name = StripNameEscape(name);
+
         if (map.TryGetValue(name, out value))
         {
             return true;
@@ -2840,7 +2875,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             return true;
         }
 
-        var remappedName = StripMacroPrefix(GetRemappedCursorName(namedDecl));
+        var remappedName = StripNameEscape(StripMacroPrefix(GetRemappedCursorName(namedDecl)));
 
         if (remappingsLookup.TryGetValue(remappedName, out value))
         {

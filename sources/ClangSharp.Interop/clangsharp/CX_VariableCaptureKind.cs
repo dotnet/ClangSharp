@@ -6,8 +6,8 @@ namespace ClangSharp.Interop;
 public enum CX_VariableCaptureKind
 {
     CX_VCK_Invalid,
-    CX_VCK_This,
-    CX_VCK_ByRef,
-    CX_VCK_ByCopy,
-    CX_VCK_VLAType,
+    CX_VCK_This = 1,
+    CX_VCK_ByRef = 2,
+    CX_VCK_ByCopy = 3,
+    CX_VCK_VLAType = 4,
 }

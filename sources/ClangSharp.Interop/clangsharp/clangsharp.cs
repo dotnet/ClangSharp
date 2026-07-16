@@ -11,6 +11,15 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getArgument", ExactSpelling = true)]
     public static extern CXCursor Cursor_getArgument(CXCursor C, [NativeTypeName("unsigned int")] uint i);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAllocate", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getAllocate(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAsmString", ExactSpelling = true)]
+    public static extern CXString Cursor_getAsmString(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAsmStringExpr", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getAsmStringExpr(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getArgumentType", ExactSpelling = true)]
     public static extern CXType Cursor_getArgumentType(CXCursor C);
 
@@ -32,6 +41,9 @@ public static unsafe partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAttrKind", ExactSpelling = true)]
     public static extern CX_AttrKind Cursor_getAttrKind(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAttrSpelling", ExactSpelling = true)]
+    public static extern CXString Cursor_getAttrSpelling(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAvailabilityAttributeDeprecated", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
@@ -85,6 +97,9 @@ public static unsafe partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getCallResultType", ExactSpelling = true)]
     public static extern CXType Cursor_getCallResultType(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getClobber", ExactSpelling = true)]
+    public static extern CXString Cursor_getClobber(CXCursor C, [NativeTypeName("unsigned int")] uint i);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getCanAvoidCopyToHeap", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
@@ -176,6 +191,9 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getConstructionKind", ExactSpelling = true)]
     public static extern CX_ConstructionKind Cursor_getConstructionKind(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getConstexprKind", ExactSpelling = true)]
+    public static extern CX_ConstexprSpecKind Cursor_getConstexprKind(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getConstructsVirtualBase", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getConstructsVirtualBase(CXCursor C);
@@ -197,8 +215,23 @@ public static unsafe partial class @clangsharp
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getBoolLiteralValue(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getCookedLiteral", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getCookedLiteral(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getDeclaredReturnType", ExactSpelling = true)]
     public static extern CXType Cursor_getDeclaredReturnType(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getDeallocate", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getDeallocate(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getExceptionHandler", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getExceptionHandler(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFallthroughHandler", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getFallthroughHandler(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFinalSuspendStmt", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getFinalSuspendStmt(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getDecl", ExactSpelling = true)]
     public static extern CXCursor Cursor_getDecl(CXCursor C, [NativeTypeName("unsigned int")] uint i);
@@ -288,9 +321,21 @@ public static unsafe partial class @clangsharp
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getHadMultipleCandidates(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasAPValueResult", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasAPValueResult(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasBody", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getHasBody(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasBraces", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasBraces(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasDependentPromiseType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasDependentPromiseType(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasDefaultArg", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
@@ -372,6 +417,46 @@ public static unsafe partial class @clangsharp
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getHasUserDeclaredMoveOperation(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasDeletedDestructor", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasDeletedDestructor(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasInClassInitializer", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasInClassInitializer(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasMutableFields", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasMutableFields(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasNonTrivialDefaultConstructor", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasNonTrivialDefaultConstructor(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasNonTrivialDestructor", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasNonTrivialDestructor(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasPrivateFields", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasPrivateFields(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasProtectedFields", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasProtectedFields(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasTrivialCopyConstructor", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasTrivialCopyConstructor(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasTrivialDefaultConstructor", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasTrivialDefaultConstructor(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasTrivialDestructor", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasTrivialDestructor(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasVarStorage", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getHasVarStorage(CXCursor C);
@@ -382,6 +467,15 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInClassInitializer", ExactSpelling = true)]
     public static extern CXCursor Cursor_getInClassInitializer(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIdentKind", ExactSpelling = true)]
+    public static extern CX_PredefinedIdentKind Cursor_getIdentKind(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIfStatementKind", ExactSpelling = true)]
+    public static extern CX_IfStatementKind Cursor_getIfStatementKind(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIgnoreParenNoopCasts", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getIgnoreParenNoopCasts(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInheritedConstructor", ExactSpelling = true)]
     public static extern CXCursor Cursor_getInheritedConstructor(CXCursor C);
 
@@ -391,6 +485,21 @@ public static unsafe partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInitExpr", ExactSpelling = true)]
     public static extern CXCursor Cursor_getInitExpr(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInitSuspendStmt", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getInitSuspendStmt(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInputConstraint", ExactSpelling = true)]
+    public static extern CXString Cursor_getInputConstraint(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInputExpr", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getInputExpr(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInputName", ExactSpelling = true)]
+    public static extern CXString Cursor_getInputName(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInitStyle", ExactSpelling = true)]
+    public static extern CX_InitializationStyle Cursor_getInitStyle(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInjectedSpecializationType", ExactSpelling = true)]
     public static extern CXType Cursor_getInjectedSpecializationType(CXCursor C);
@@ -502,6 +611,10 @@ public static unsafe partial class @clangsharp
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsFileScope(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsFixed", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsFixed(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsGlobal", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsGlobal(CXCursor C);
@@ -518,13 +631,85 @@ public static unsafe partial class @clangsharp
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsImplicit(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsAsmGoto", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsAsmGoto(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsSimple", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsSimple(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsVolatile", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsVolatile(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsIncomplete", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsIncomplete(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsInherited", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsInherited(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsInheritingConstructor", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsInheritingConstructor(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsAggregate", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsAggregate(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsCapturelessLambda", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsCapturelessLambda(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsCXX11StandardLayout", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsCXX11StandardLayout(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsDynamicClass", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsDynamicClass(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsEffectivelyFinal", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsEffectivelyFinal(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsEmpty", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsEmpty(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsGenericLambda", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsGenericLambda(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsLambda", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsLambda(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsLiteral", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsLiteral(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsPolymorphic", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsPolymorphic(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsStandardLayout", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsStandardLayout(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsTrivial", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsTrivial(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsTriviallyCopyable", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsTriviallyCopyable(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsLateParsed", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsLateParsed(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsListInitialization", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
@@ -545,6 +730,10 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsNegative", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsNegative(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsNested", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsNested(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsNonNegative", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
@@ -662,8 +851,15 @@ public static unsafe partial class @clangsharp
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsVariadic(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsZeroLengthBitField", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsZeroLengthBitField(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getLambdaCallOperator", ExactSpelling = true)]
     public static extern CXCursor Cursor_getLambdaCallOperator(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getLambdaCaptureDefault", ExactSpelling = true)]
+    public static extern CX_LambdaCaptureDefault Cursor_getLambdaCaptureDefault(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getLambdaContextDecl", ExactSpelling = true)]
     public static extern CXCursor Cursor_getLambdaContextDecl(CXCursor C);
@@ -671,8 +867,17 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getLambdaStaticInvoker", ExactSpelling = true)]
     public static extern CXCursor Cursor_getLambdaStaticInvoker(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getLabelExpr", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getLabelExpr(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getLabelName", ExactSpelling = true)]
+    public static extern CXString Cursor_getLabelName(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getLhsExpr", ExactSpelling = true)]
     public static extern CXCursor Cursor_getLhsExpr(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getLiteralOperatorKind", ExactSpelling = true)]
+    public static extern CX_LiteralOperatorKind Cursor_getLiteralOperatorKind(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getMaxAlignment", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
@@ -708,6 +913,22 @@ public static unsafe partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumArguments", ExactSpelling = true)]
     public static extern int Cursor_getNumArguments(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumClobbers", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getNumClobbers(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumInputs", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getNumInputs(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumLabels", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getNumLabels(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumOutputs", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getNumOutputs(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumAssocs", ExactSpelling = true)]
     public static extern int Cursor_getNumAssocs(CXCursor C);
@@ -781,8 +1002,23 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getObjCRuntimeNameAttrMetadataName", ExactSpelling = true)]
     public static extern CXString Cursor_getObjCRuntimeNameAttrMetadataName(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getObjectKind", ExactSpelling = true)]
+    public static extern CX_ExprObjectKind Cursor_getObjectKind(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getOpaqueValue", ExactSpelling = true)]
     public static extern CXCursor Cursor_getOpaqueValue(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getOperand", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getOperand(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getOutputConstraint", ExactSpelling = true)]
+    public static extern CXString Cursor_getOutputConstraint(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getOutputExpr", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getOutputExpr(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getOutputName", ExactSpelling = true)]
+    public static extern CXString Cursor_getOutputName(CXCursor C, [NativeTypeName("unsigned int")] uint i);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getOriginalType", ExactSpelling = true)]
     public static extern CXType Cursor_getOriginalType(CXCursor C);
@@ -795,6 +1031,12 @@ public static unsafe partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getParentFunctionOrMethod", ExactSpelling = true)]
     public static extern CXCursor Cursor_getParentFunctionOrMethod(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getPromiseCall", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getPromiseCall(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getPromiseDecl", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getPromiseDecl(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getPlaceholderTypeConstraint", ExactSpelling = true)]
     public static extern CXCursor Cursor_getPlaceholderTypeConstraint(CXCursor C);
@@ -821,12 +1063,34 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getReferenced", ExactSpelling = true)]
     public static extern CXCursor Cursor_getReferenced(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getRefQualifier", ExactSpelling = true)]
+    public static extern CXRefQualifierKind Cursor_getRefQualifier(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getRequiresZeroInitialization", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getRequiresZeroInitialization(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getResultAsAPSInt", ExactSpelling = true)]
+    [return: NativeTypeName("int64_t")]
+    public static extern long Cursor_getResultAsAPSInt(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getResultIndex", ExactSpelling = true)]
     public static extern int Cursor_getResultIndex(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getResultDecl", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getResultDecl(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getReturnStmt", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getReturnStmt(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getReturnStmtOnAllocFailure", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getReturnStmtOnAllocFailure(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getReturnValue", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getReturnValue(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getReturnValueInit", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getReturnValueInit(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getReturnType", ExactSpelling = true)]
     public static extern CXType Cursor_getReturnType(CXCursor C);
@@ -913,6 +1177,99 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getTypedefNameForAnonDecl", ExactSpelling = true)]
     public static extern CXCursor Cursor_getTypedefNameForAnonDecl(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInclusionDirectiveKind", ExactSpelling = true)]
+    public static extern CX_InclusionDirectiveKind Cursor_getInclusionDirectiveKind(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInclusionDirectiveImportedModule", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getInclusionDirectiveImportedModule(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInclusionDirectiveWasInQuotes", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getInclusionDirectiveWasInQuotes(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsMacroC99Varargs", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsMacroC99Varargs(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsMacroGNUVarargs", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsMacroGNUVarargs(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsMacroVariadic", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsMacroVariadic(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getMacroExpansionDefinition", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getMacroExpansionDefinition(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getMacroParamName", ExactSpelling = true)]
+    public static extern CXString Cursor_getMacroParamName(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getMacroTokenKind", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getMacroTokenKind(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getMacroTokenSpelling", ExactSpelling = true)]
+    public static extern CXString Cursor_getMacroTokenSpelling(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumMacroParams", ExactSpelling = true)]
+    public static extern int Cursor_getNumMacroParams(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumMacroTokens", ExactSpelling = true)]
+    public static extern int Cursor_getNumMacroTokens(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasCatchAll", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasCatchAll(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasObjCAvailabilityVersion", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasObjCAvailabilityVersion(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsDelegateInitCall", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsDelegateInitCall(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsMessagingGetter", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsMessagingGetter(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsMessagingSetter", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsMessagingSetter(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumCatchStmts", ExactSpelling = true)]
+    public static extern int Cursor_getNumCatchStmts(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumObjCLiteralElements", ExactSpelling = true)]
+    public static extern int Cursor_getNumObjCLiteralElements(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getObjCAvailabilityVersion", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getObjCAvailabilityVersion(CXCursor C, [NativeTypeName("llvm::VersionTuple *")] VersionTuple* version);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getObjCDictionaryKey", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getObjCDictionaryKey(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getObjCDictionaryValue", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getObjCDictionaryValue(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getObjCMessageReceiverKind", ExactSpelling = true)]
+    public static extern CX_ObjCMessageReceiverKind Cursor_getObjCMessageReceiverKind(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getObjCMessageReceiverType", ExactSpelling = true)]
+    public static extern CXType Cursor_getObjCMessageReceiverType(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getObjCPropertyRefClassReceiver", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getObjCPropertyRefClassReceiver(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getObjCPropertyRefReceiverKind", ExactSpelling = true)]
+    public static extern CX_ObjCPropertyRefReceiverKind Cursor_getObjCPropertyRefReceiverKind(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getSetAtIndexMethodDecl", ExactSpelling = true)]
+    public static extern CXCursor Cursor_getSetAtIndexMethodDecl(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getTypeOperand", ExactSpelling = true)]
     public static extern CXType Cursor_getTypeOperand(CXCursor C);
 
@@ -941,6 +1298,12 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getTypeParamVariance", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getTypeParamVariance(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getTypeTrait", ExactSpelling = true)]
+    public static extern CX_TypeTrait Cursor_getTypeTrait(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getValueKind", ExactSpelling = true)]
+    public static extern CX_ExprValueKind Cursor_getValueKind(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getVBase", ExactSpelling = true)]
     public static extern CXCursor Cursor_getVBase(CXCursor C, [NativeTypeName("unsigned int")] uint i);
@@ -987,6 +1350,10 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgument_getIntegralType", ExactSpelling = true)]
     public static extern CXType TemplateArgument_getIntegralType(CX_TemplateArgument T);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgument_getIsDefaulted", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint TemplateArgument_getIsDefaulted(CX_TemplateArgument T);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgument_getNonTypeTemplateArgumentType", ExactSpelling = true)]
     public static extern CXType TemplateArgument_getNonTypeTemplateArgumentType(CX_TemplateArgument T);
 
@@ -995,6 +1362,9 @@ public static unsafe partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgument_getNumPackElements", ExactSpelling = true)]
     public static extern int TemplateArgument_getNumPackElements(CX_TemplateArgument T);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgument_getNumTemplateExpansions", ExactSpelling = true)]
+    public static extern int TemplateArgument_getNumTemplateExpansions(CX_TemplateArgument T);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgument_getPackElement", ExactSpelling = true)]
     public static extern CX_TemplateArgument TemplateArgument_getPackElement(CX_TemplateArgument T, [NativeTypeName("unsigned int")] uint i);
@@ -1029,8 +1399,29 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgumentLoc_getSourceRangeRaw", ExactSpelling = true)]
     public static extern CXSourceRange TemplateArgumentLoc_getSourceRangeRaw(CX_TemplateArgumentLoc T);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgumentLoc_getTemplateEllipsisLoc", ExactSpelling = true)]
+    public static extern CXSourceLocation TemplateArgumentLoc_getTemplateEllipsisLoc(CX_TemplateArgumentLoc T);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgumentLoc_getTemplateNameLoc", ExactSpelling = true)]
+    public static extern CXSourceLocation TemplateArgumentLoc_getTemplateNameLoc(CX_TemplateArgumentLoc T);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateName_getAsTemplateDecl", ExactSpelling = true)]
     public static extern CXCursor TemplateName_getAsTemplateDecl(CX_TemplateName T);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateName_getContainsUnexpandedParameterPack", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint TemplateName_getContainsUnexpandedParameterPack(CX_TemplateName T);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateName_getIsDependent", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint TemplateName_getIsDependent(CX_TemplateName T);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateName_getIsInstantiationDependent", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint TemplateName_getIsInstantiationDependent(CX_TemplateName T);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateName_getUnderlying", ExactSpelling = true)]
+    public static extern CX_TemplateName TemplateName_getUnderlying(CX_TemplateName T);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_desugar", ExactSpelling = true)]
     public static extern CXType Type_desugar(CXType CT);
@@ -1044,11 +1435,18 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getAttrKind", ExactSpelling = true)]
     public static extern CX_AttrKind Type_getAttrKind(CXType CT);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getAutoTypeKeyword", ExactSpelling = true)]
+    public static extern CX_AutoTypeKeyword Type_getAutoTypeKeyword(CXType CT);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getBaseType", ExactSpelling = true)]
     public static extern CXType Type_getBaseType(CXType CT);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getColumnExpr", ExactSpelling = true)]
     public static extern CXCursor Type_getColumnExpr(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getContainsUnexpandedParameterPack", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getContainsUnexpandedParameterPack(CXType CT);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getDecayedType", ExactSpelling = true)]
     public static extern CXType Type_getDecayedType(CXType CT);
@@ -1059,6 +1457,9 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getDeducedType", ExactSpelling = true)]
     public static extern CXType Type_getDeducedType(CXType CT);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getDependence", ExactSpelling = true)]
+    public static extern CX_TypeDependence Type_getDependence(CXType CT);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getDepth", ExactSpelling = true)]
     public static extern int Type_getDepth(CXType CT);
 
@@ -1067,6 +1468,28 @@ public static unsafe partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getEquivalentType", ExactSpelling = true)]
     public static extern CXType Type_getEquivalentType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getExceptionSpecType", ExactSpelling = true)]
+    public static extern CX_ExceptionSpecificationType Type_getExceptionSpecType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getExceptionType", ExactSpelling = true)]
+    public static extern CXType Type_getExceptionType(CXType C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getHasFloatingRepresentation", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getHasFloatingRepresentation(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getHasIntegerRepresentation", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getHasIntegerRepresentation(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getHasPointerRepresentation", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getHasPointerRepresentation(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getHasTrailingReturn", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getHasTrailingReturn(CXType CT);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIndex", ExactSpelling = true)]
     public static extern int Type_getIndex(CXType CT);
@@ -1077,9 +1500,61 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getInjectedTST", ExactSpelling = true)]
     public static extern CXType Type_getInjectedTST(CXType CT);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsAggregateType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsAggregateType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsArithmeticType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsArithmeticType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsConst", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsConst(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsConstrained", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsConstrained(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsDecltypeAuto", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsDecltypeAuto(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsDependentType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsDependentType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsFloatingType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsFloatingType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsGNUAutoType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsGNUAutoType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsInstantiationDependentType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsInstantiationDependentType(CXType CT);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsObjCInstanceType", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Type_getIsObjCInstanceType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsObjectType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsObjectType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsParameterPack", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsParameterPack(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsRealFloatingType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsRealFloatingType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsScalarType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsScalarType(CXType CT);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsSigned", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
@@ -1097,8 +1572,18 @@ public static unsafe partial class @clangsharp
     [return: NativeTypeName("unsigned int")]
     public static extern uint Type_getIsUnsigned(CXType CT);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsVariablyModifiedType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsVariablyModifiedType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getKeyword", ExactSpelling = true)]
+    public static extern CX_ElaboratedTypeKeyword Type_getKeyword(CXType CT);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getModifiedType", ExactSpelling = true)]
     public static extern CXType Type_getModifiedType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getNoexceptExpr", ExactSpelling = true)]
+    public static extern CXCursor Type_getNoexceptExpr(CXType CT);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getNumBits", ExactSpelling = true)]
     public static extern int Type_getNumBits(CXType CT);
@@ -1145,6 +1630,50 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getUnderlyingExpr", ExactSpelling = true)]
     public static extern CXCursor Type_getUnderlyingExpr(CXType CT);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsObjCClassType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsObjCClassType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsObjCIdType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsObjCIdType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsObjCKindOfType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsObjCKindOfType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsObjCKindOfTypeAsWritten", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsObjCKindOfTypeAsWritten(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsObjCObjectSpecialized", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsObjCObjectSpecialized(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsObjCObjectSpecializedAsWritten", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsObjCObjectSpecializedAsWritten(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsObjCQualifiedClassType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsObjCQualifiedClassType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsObjCQualifiedIdType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsObjCQualifiedIdType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getNumObjCTypeParamProtocols", ExactSpelling = true)]
+    public static extern int Type_getNumObjCTypeParamProtocols(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getObjCSuperClassType", ExactSpelling = true)]
+    public static extern CXType Type_getObjCSuperClassType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getObjCTypeParamProtocol", ExactSpelling = true)]
+    public static extern CXCursor Type_getObjCTypeParamProtocol(CXType CT, [NativeTypeName("unsigned int")] uint i);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getUnderlyingType", ExactSpelling = true)]
     public static extern CXType Type_getUnderlyingType(CXType CT);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getVectorKind", ExactSpelling = true)]
+    public static extern CX_VectorKind Type_getVectorKind(CXType CT);
 }

@@ -3,7 +3,7 @@ using System.CodeDom.Compiler;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-[assembly: GeneratedCode("ClangSharp", "21.1.8.4")]
+[assembly: GeneratedCode("ClangSharp", "22.1.8.0")]
 
 namespace ClangSharp.Test;
 

@@ -123,7 +123,14 @@ public sealed partial class PInvokeGenerator
     {
         if (!_typeNames.TryGetValue((cursor, context, type), out var result))
         {
+            // clang 22 changed the type printer to spell an unnamed tag as `(unnamed at ...)`,
+            // dropping the tag keyword that older releases embedded (`(anonymous struct at ...)`
+            // and, at one point, `(unnamed struct at ...)`). The keyword is still present as the
+            // elaborated prefix, so key off it to restore the historical, version-stable spelling.
             result.typeName = type.AsString.NormalizePath()
+                                           .Replace("enum (unnamed at", "enum (anonymous enum at", StringComparison.Ordinal)
+                                           .Replace("struct (unnamed at", "struct (anonymous struct at", StringComparison.Ordinal)
+                                           .Replace("union (unnamed at", "union (anonymous union at", StringComparison.Ordinal)
                                            .Replace("unnamed enum at", "anonymous enum at", StringComparison.Ordinal)
                                            .Replace("unnamed struct at", "anonymous struct at", StringComparison.Ordinal)
                                            .Replace("unnamed union at", "anonymous union at", StringComparison.Ordinal);
@@ -302,19 +309,6 @@ public sealed partial class PInvokeGenerator
                 else
                 {
                     // The default name should be correct
-                }
-            }
-            else if (type is ElaboratedType elaboratedType)
-            {
-                result.typeName = GetTypeName(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativeNamedTypeName);
-
-                if (!string.IsNullOrWhiteSpace(nativeNamedTypeName) &&
-                    !result.nativeTypeName.StartsWith("const ", StringComparison.Ordinal) &&
-                    !result.nativeTypeName.StartsWith("enum ", StringComparison.Ordinal) &&
-                    !result.nativeTypeName.StartsWith("struct ", StringComparison.Ordinal) &&
-                    !result.nativeTypeName.StartsWith("union ", StringComparison.Ordinal))
-                {
-                    result.nativeTypeName = nativeNamedTypeName;
                 }
             }
             else if (type is FunctionType functionType)
@@ -589,20 +583,6 @@ public sealed partial class PInvokeGenerator
         if (pointeeType is AttributedType attributedType)
         {
             name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativeModifiedTypeName, out isAdjusted);
-        }
-        else if (pointeeType is ElaboratedType elaboratedType)
-        {
-            name = GetTypeNameForPointeeType(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativeNamedTypeName, out isAdjusted);
-
-            if (!string.IsNullOrWhiteSpace(nativeNamedTypeName) &&
-                !nativePointeeTypeName.StartsWith("const ", StringComparison.Ordinal) &&
-                !nativePointeeTypeName.StartsWith("enum ", StringComparison.Ordinal) &&
-                !nativePointeeTypeName.StartsWith("struct ", StringComparison.Ordinal) &&
-                !nativePointeeTypeName.StartsWith("union ", StringComparison.Ordinal))
-            {
-                nativePointeeTypeName = nativeNamedTypeName;
-                isAdjusted = true;
-            }
         }
         else if (pointeeType is FunctionType functionType)
         {
@@ -926,10 +906,6 @@ public sealed partial class PInvokeGenerator
         else if (type is DecltypeType decltypeType)
         {
             GetTypeSize(cursor, decltypeType.UnderlyingType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out size32, out size64);
-        }
-        else if (type is ElaboratedType elaboratedType)
-        {
-            GetTypeSize(cursor, elaboratedType.NamedType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out size32, out size64);
         }
         else if (type is EnumType enumType)
         {

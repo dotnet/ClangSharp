@@ -92,7 +92,11 @@ public sealed partial class PInvokeGenerator
 
     private static ReadOnlySpan<char> StripCursorNameAnonymousQualifier(ReadOnlySpan<char> name, scoped ref string? nameString)
     {
-        var anonymousNameStartIndex = name.IndexOf("::(", StringComparison.Ordinal);
+        // A nested anonymous decl is spelled as a qualifier chain such as
+        // `Outer::(anonymous struct)::(anonymous struct at file:line:col)`, where clang 22 renders
+        // the intermediate scopes without a location. Reduce it to the innermost segment (the decl's
+        // own `(anonymous ... at ...)`) by stripping through the last qualifier rather than the first.
+        var anonymousNameStartIndex = name.LastIndexOf("::(", StringComparison.Ordinal);
 
         if (anonymousNameStartIndex != -1)
         {
@@ -548,6 +552,14 @@ public sealed partial class PInvokeGenerator
             remappedName = declashedName;
         }
 
+        if ((namedDecl is TypeDecl) && IsLowercaseAsciiOnly(remappedName))
+        {
+            // A type name composed solely of lowercase ASCII letters (e.g. `clang`) is reserved by C#
+            // for future contextual keywords and triggers CS8981. Escaping it here keeps the declaration
+            // and every reference (both of which resolve the name through this method) in agreement.
+            remappedName = $"@{remappedName}";
+        }
+
         return remappedName;
     }
 
@@ -572,7 +584,14 @@ public sealed partial class PInvokeGenerator
 
         if ((tagType.Decl is RecordDecl recordDecl) && TryDeclashRecordName(recordDecl, leafName, out var declashedName))
         {
-            return declashedName;
+            leafName = declashedName;
+        }
+
+        // Mirror the declaration side (see GetRemappedCursorName): a lowercase-only type name is
+        // `@`-escaped so the reference resolves to the same escaped C# type and compiles without CS8981.
+        if (IsLowercaseAsciiOnly(leafName))
+        {
+            leafName = $"@{leafName}";
         }
 
         return leafName;

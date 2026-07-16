@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Interop;
 using NUnit.Framework;
@@ -62,5 +63,16 @@ public abstract class TranslationUnitTest
         }
 
         return TranslationUnit.GetOrCreate(translationUnit);
+    }
+
+    // The win-arm64 libClangSharp 22.1.8.2 prebuilt ships broken clangsharp shims: the new accessors
+    // return invalid data or access-violate, crashing or failing the tests that exercise them. Skip on
+    // that RID until the native package is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.
+    protected static void SkipUntilNativeRebuild()
+    {
+        if (OperatingSystem.IsWindows() && (RuntimeInformation.ProcessArchitecture == Architecture.Arm64))
+        {
+            Assert.Ignore("The win-arm64 libClangSharp prebuilt ships broken clangsharp shims. Remove this guard once the native lib is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.");
+        }
     }
 }

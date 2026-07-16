@@ -4,7 +4,7 @@ using ClangSharp.Interop;
 
 namespace ClangSharp;
 
-public class TagType : Type
+public class TagType : TypeWithKeyword
 {
     private ValueLazy<TagType, TagDecl> _decl;
 

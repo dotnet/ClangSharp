@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <enumeration name="Target" access="public">
+      <type>int</type>
+      <enumerator name="Target_A" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+      <enumerator name="Target_B" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+      <enumerator name="Target_First" access="public">
+        <type primitive="False">int</type>
+        <value>
+          <code>Target_A</code>
+        </value>
+      </enumerator>
+      <enumerator name="Target_Combined" access="public">
+        <type primitive="False">int</type>
+        <value>
+          <code>Target_A | Target_B</code>
+        </value>
+      </enumerator>
+      <enumerator name="Target_Computed" access="public">
+        <type primitive="False">int</type>
+        <value>2</value>
+      </enumerator>
+    </enumeration>
+  </namespace>
+</bindings>

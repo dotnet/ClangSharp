@@ -10,4 +10,6 @@ public class TypeWithKeyword : Type
     private protected TypeWithKeyword(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass, params ReadOnlySpan<CXTypeKind> additionalExpectedKinds) : base(handle, expectedTypeKind, expectedTypeClass, additionalExpectedKinds)
     {
     }
+
+    public CX_ElaboratedTypeKeyword Keyword => Handle.Keyword;
 }

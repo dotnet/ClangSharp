@@ -8,7 +8,7 @@ using static ClangSharp.Interop.CXTypeKind;
 
 namespace ClangSharp;
 
-public sealed class TemplateSpecializationType : Type
+public sealed class TemplateSpecializationType : TypeWithKeyword
 {
     private readonly LazyList<TemplateArgument> _templateArgs;
     private ValueLazy<TemplateSpecializationType, TemplateName> _templateName;

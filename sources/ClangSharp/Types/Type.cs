@@ -5,6 +5,7 @@ using System.Diagnostics;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXTypeKind;
 using static ClangSharp.Interop.CX_TypeClass;
+using static ClangSharp.Interop.CX_TypeDependence;
 
 namespace ClangSharp;
 
@@ -91,6 +92,12 @@ public unsafe class Type : IEquatable<Type>
 
     public Type CanonicalType => _canonicalType.GetValue(this);
 
+    public bool ContainsErrors => (Dependence & CX_TD_Error) != 0;
+
+    public bool ContainsUnexpandedParameterPack => (Dependence & CX_TD_UnexpandedPack) != 0;
+
+    public CX_TypeDependence Dependence => Handle.Dependence;
+
     public Type Desugar => _desugar.GetValue(this);
 
     public CXType Handle { get; }
@@ -109,9 +116,13 @@ public unsafe class Type : IEquatable<Type>
 
     public bool IsCharType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind is CXType_Char_U or CXType_UChar or CXType_Char_S or CXType_SChar;
 
+    public bool IsDependentType => (Dependence & CX_TD_Dependent) != 0;
+
     public bool IsEnumeralType => CanonicalType is EnumType;
 
     public bool IsFunctionType => CanonicalType is FunctionType;
+
+    public bool IsInstantiationDependentType => (Dependence & CX_TD_Instantiation) != 0;
 
     public bool IsIntegerType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind is >= CXType_Bool and <= CXType_Int128;
 
@@ -154,6 +165,8 @@ public unsafe class Type : IEquatable<Type>
     public bool IsReferenceType => CanonicalType is ReferenceType;
 
     public bool IsSugared => Handle.IsSugared;
+
+    public bool IsVariablyModifiedType => (Dependence & CX_TD_VariablyModified) != 0;
 
     public bool IsVectorType => CanonicalType is VectorType or ExtVectorType;
 
@@ -224,9 +237,7 @@ public unsafe class Type : IEquatable<Type>
         CX_TypeClass_DependentBitInt => new DependentBitIntType(handle),
         CX_TypeClass_DependentName => new DependentNameType(handle),
         CX_TypeClass_DependentSizedExtVector => new DependentSizedExtVectorType(handle),
-        CX_TypeClass_DependentTemplateSpecialization => new DependentTemplateSpecializationType(handle),
         CX_TypeClass_DependentVector => new DependentVectorType(handle),
-        CX_TypeClass_Elaborated => new ElaboratedType(handle),
         CX_TypeClass_FunctionNoProto => new FunctionNoProtoType(handle),
         CX_TypeClass_FunctionProto => new FunctionProtoType(handle),
         CX_TypeClass_HLSLAttributedResource => new HLSLAttributedResourceType(handle),

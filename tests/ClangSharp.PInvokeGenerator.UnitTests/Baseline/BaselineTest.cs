@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -20,6 +21,17 @@ public abstract class BaselineTest : PInvokeGeneratorTest
     }
 
     protected abstract string Area { get; }
+
+    // The win-arm64 libClangSharp 22.1.8.2 prebuilt returns invalid template names (see
+    // https://github.com/dotnet/ClangSharp/issues/806), so the generator can't emit correct bindings for
+    // template specializations on that RID. Skip the affected cases until the native package is rebuilt.
+    protected static void SkipUntilNativeRebuild()
+    {
+        if (OperatingSystem.IsWindows() && (RuntimeInformation.ProcessArchitecture == Architecture.Arm64))
+        {
+            Assert.Ignore("The win-arm64 libClangSharp prebuilt returns invalid template names. Remove this guard once the native lib is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.");
+        }
+    }
 
     // The variant this fixture instance is exercising. Exposed so a migrated case can replicate a legacy no-op
     // (a folder that stubbed its *Impl to Task.CompletedTask) for the specific variants it was never run under.

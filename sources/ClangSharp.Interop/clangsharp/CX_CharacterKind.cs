@@ -6,9 +6,9 @@ namespace ClangSharp.Interop;
 public enum CX_CharacterKind
 {
     CX_CLK_Invalid,
-    CX_CLK_Ascii,
-    CX_CLK_Wide,
-    CX_CLK_UTF8,
-    CX_CLK_UTF16,
-    CX_CLK_UTF32,
+    CX_CLK_Ascii = 1,
+    CX_CLK_Wide = 2,
+    CX_CLK_UTF8 = 3,
+    CX_CLK_UTF16 = 4,
+    CX_CLK_UTF32 = 5,
 }

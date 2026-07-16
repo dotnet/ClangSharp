@@ -467,9 +467,6 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
             Assert.That(functionProtoType.ParamTypes.Count, Is.EqualTo(1), "functionProtoType.ParamTypes.Count()");
             var paramType = functionProtoType.ParamTypes[0];
             Assert.That(paramType.Kind, Is.EqualTo(i.Type), "paramType.Kind");
-            var elaboratedParamType = (ElaboratedType)paramType;
-            Assert.That(elaboratedParamType, Is.Not.Null, "elaboratedParamType");
-            Assert.That(elaboratedParamType.Desugar, Is.Not.Null, "elaboratedParamType.Desugar");
         }
     }
 

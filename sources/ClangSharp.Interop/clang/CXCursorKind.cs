@@ -239,6 +239,7 @@ public enum CXCursorKind
     CXCursor_OMPInterchangeDirective = 308,
     CXCursor_OMPAssumeDirective = 309,
     CXCursor_OMPStripeDirective = 310,
+    CXCursor_OMPFuseDirective = 311,
     CXCursor_OpenACCComputeConstruct = 320,
     CXCursor_OpenACCLoopConstruct = 321,
     CXCursor_OpenACCCombinedConstruct = 322,

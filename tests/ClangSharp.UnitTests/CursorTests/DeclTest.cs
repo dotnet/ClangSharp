@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
-using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using ClangSharp.Interop;
 using NUnit.Framework;
 using static ClangSharp.Interop.CX_CXXAccessSpecifier;
@@ -365,22 +363,5 @@ struct S
 
         Assert.That(Field("first").OffsetOfField, Is.EqualTo(0));
         Assert.That(Field("second").OffsetOfField, Is.EqualTo(32));
-    }
-
-    // Some tests depend on native libClangSharp shims that the pinned 21.1 prebuilt package predates
-    // (e.g. clangsharp_Cursor_getNumTemplateArguments / getTemplateArgument and
-    // clangsharp_Cursor_getUsingEnumDeclEnumDecl). Skip those until the native lib is rebuilt for a
-    // newer libClang. Rebuilding off 21.1 auto-unskips them.
-    private static void SkipUntilNativeRebuild()
-    {
-        using var versionString = clang.getClangVersion();
-        var match = Regex.Match(versionString.ToString(), @"version (\d+)\.(\d+)");
-
-        if (match.Success
-            && (int.Parse(match.Groups[1].ValueSpan, CultureInfo.InvariantCulture) == 21)
-            && (int.Parse(match.Groups[2].ValueSpan, CultureInfo.InvariantCulture) == 1))
-        {
-            Assert.Ignore("Requires a native libClangSharp rebuild that includes the template-argument accessor fix; the pinned 21.1 prebuilt package predates it. Remove this guard once libClang moves off 21.1 and the native lib is rebuilt.");
-        }
     }
 }

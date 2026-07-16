@@ -20,6 +20,8 @@ public enum CX_AtomicOperatorKind
     CX_AO__atomic_fetch_nand,
     CX_AO__atomic_fetch_or,
     CX_AO__atomic_fetch_sub,
+    CX_AO__atomic_fetch_udec,
+    CX_AO__atomic_fetch_uinc,
     CX_AO__atomic_fetch_xor,
     CX_AO__atomic_load,
     CX_AO__atomic_load_n,
@@ -94,5 +96,7 @@ public enum CX_AtomicOperatorKind
     CX_AO__scoped_atomic_store,
     CX_AO__scoped_atomic_store_n,
     CX_AO__scoped_atomic_sub_fetch,
+    CX_AO__scoped_atomic_fetch_udec,
+    CX_AO__scoped_atomic_fetch_uinc,
     CX_AO__scoped_atomic_xor_fetch,
 }
