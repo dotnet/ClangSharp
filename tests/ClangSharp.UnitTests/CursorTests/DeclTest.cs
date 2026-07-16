@@ -3,6 +3,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using ClangSharp.Interop;
 using NUnit.Framework;
@@ -373,6 +374,14 @@ struct S
     // newer libClang. Rebuilding off 21.1 auto-unskips them.
     private static void SkipUntilNativeRebuild()
     {
+        // The win-arm64 libClangSharp 22.1.8.2 prebuilt ships broken clangsharp shims: these
+        // accessors access-violate rather than return, crashing the test host. Skip on that RID
+        // until the native package is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.
+        if (OperatingSystem.IsWindows() && (RuntimeInformation.ProcessArchitecture == Architecture.Arm64))
+        {
+            Assert.Ignore("The win-arm64 libClangSharp prebuilt ships broken clangsharp shims that crash the host. Remove this guard once the native lib is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.");
+        }
+
         using var versionString = clang.getClangVersion();
         var match = Regex.Match(versionString.ToString(), @"version (\d+)\.(\d+)");
 
