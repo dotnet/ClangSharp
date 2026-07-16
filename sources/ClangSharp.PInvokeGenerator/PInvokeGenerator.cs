@@ -569,6 +569,16 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             var diagnostic = new Diagnostic(DiagnosticLevel.Error, e.ToString());
             _diagnostics.Add(diagnostic);
+
+            // Generation was aborted mid-visit, leaving the transient output-builder state dangling.
+            // Reset it so the generator still satisfies its `_outputBuilder is null` invariant on
+            // disposal, rather than tripping the finalizer assert and crashing the test host.
+            _outputBuilder = null;
+            _testOutputBuilder = null;
+            _stmtOutputBuilder = null;
+            _testStmtOutputBuilder = null;
+            _outputBuilderUsers = 0;
+            _stmtOutputBuilderUsers = 0;
         }
 
 #pragma warning restore CA1031 // Do not catch general exception types
