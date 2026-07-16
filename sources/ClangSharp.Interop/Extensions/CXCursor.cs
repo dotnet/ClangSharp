@@ -1087,6 +1087,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsCanonical => Equals(CanonicalCursor);
 
+    public readonly bool IsCapturelessLambda => clangsharp.Cursor_getIsCapturelessLambda(this) != 0;
+
     public readonly bool IsCBuffer => clangsharp.Cursor_getIsCBuffer(this) != 0;
 
     public readonly bool IsClassExtension => clangsharp.Cursor_getIsClassExtension(this) != 0;
@@ -1130,6 +1132,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly bool IsFileScope => clangsharp.Cursor_getIsFileScope(this) != 0;
 
     public readonly bool IsFunctionInlined => clang.Cursor_isFunctionInlined(this) != 0;
+
+    public readonly bool IsGenericLambda => clangsharp.Cursor_getIsGenericLambda(this) != 0;
 
     public readonly bool IsGlobal => clangsharp.Cursor_getIsGlobal(this) != 0;
 
@@ -1242,6 +1246,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly CXString KindSpelling => (kind != default) ? clang.getCursorKindSpelling(Kind) : default;
 
     public readonly CXCursor LambdaCallOperator => clangsharp.Cursor_getLambdaCallOperator(this);
+
+    public readonly CX_LambdaCaptureDefault LambdaCaptureDefault => clangsharp.Cursor_getLambdaCaptureDefault(this);
 
     public readonly CXCursor LambdaContextDecl => clangsharp.Cursor_getLambdaContextDecl(this);
 

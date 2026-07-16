@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using ClangSharp.Interop;
 using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
@@ -29,30 +30,73 @@ public sealed class ExprTest : TranslationUnitTest
         return null;
     }
 
+    private static void CollectDescendants<T>(Cursor cursor, System.Collections.Generic.List<T> results)
+        where T : Cursor
+    {
+        if (cursor is T match)
+        {
+            results.Add(match);
+        }
+
+        foreach (var child in cursor.CursorChildren)
+        {
+            CollectDescendants(child, results);
+        }
+    }
+
     [Test]
     public void LambdaExprTest()
     {
         var inputContents = """
-auto mutableLambda = [](int x) mutable { return x; };
-auto constLambda = [](int x) { return x; };
+void f()
+{
+    int gInt = 0;
+    auto mutableLambda = [](int x) mutable { return x; };
+    auto constLambda = [](int x) { return x; };
+    auto genericLambda = [](auto x) { return x; };
+    auto byCopyLambda = [=]() { return gInt; };
+    auto byRefLambda = [&]() { return gInt; };
+}
 """;
 
         using var translationUnit = CreateTranslationUnit(inputContents, commandLineArgs: Cpp20CommandLineArgs);
 
-        var vars = translationUnit.TranslationUnitDecl.Decls.OfType<VarDecl>()
-                                  .ToDictionary((varDecl) => varDecl.Name, StringComparer.Ordinal);
+        var func = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionDecl>()
+                                   .Single((functionDecl) => functionDecl.Name.Equals("f", StringComparison.Ordinal));
+
+        var varDecls = new System.Collections.Generic.List<VarDecl>();
+        CollectDescendants(func, varDecls);
+        var vars = varDecls.Where((varDecl) => varDecl is not ParmVarDecl)
+                           .ToDictionary((varDecl) => varDecl.Name, StringComparer.Ordinal);
 
         var mutableLambda = FindDescendant<LambdaExpr>(vars["mutableLambda"].Init);
         var constLambda = FindDescendant<LambdaExpr>(vars["constLambda"].Init);
+        var genericLambda = FindDescendant<LambdaExpr>(vars["genericLambda"].Init);
+        var byCopyLambda = FindDescendant<LambdaExpr>(vars["byCopyLambda"].Init);
+        var byRefLambda = FindDescendant<LambdaExpr>(vars["byRefLambda"].Init);
 
         Assert.That(mutableLambda, Is.Not.Null);
         Assert.That(constLambda, Is.Not.Null);
+        Assert.That(genericLambda, Is.Not.Null);
+        Assert.That(byCopyLambda, Is.Not.Null);
+        Assert.That(byRefLambda, Is.Not.Null);
 
         Assert.That(mutableLambda!.CallOperator, Is.Not.Null);
         Assert.That(mutableLambda.CallOperator.Name, Is.EqualTo("operator()"));
+        Assert.That(mutableLambda.LambdaClass, Is.EqualTo(mutableLambda.Type.AsCXXRecordDecl));
 
         Assert.That(mutableLambda.IsMutable, Is.True);
         Assert.That(constLambda!.IsMutable, Is.False);
+
+        Assert.That(mutableLambda.IsGenericLambda, Is.False);
+        Assert.That(genericLambda!.IsGenericLambda, Is.True);
+
+        Assert.That(mutableLambda.IsCapturelessLambda, Is.True);
+        Assert.That(byCopyLambda!.IsCapturelessLambda, Is.False);
+
+        Assert.That(mutableLambda.CaptureDefault, Is.EqualTo(CX_LambdaCaptureDefault.CX_LCD_None));
+        Assert.That(byCopyLambda.CaptureDefault, Is.EqualTo(CX_LambdaCaptureDefault.CX_LCD_ByCopy));
+        Assert.That(byRefLambda!.CaptureDefault, Is.EqualTo(CX_LambdaCaptureDefault.CX_LCD_ByRef));
     }
 
     [Test]
