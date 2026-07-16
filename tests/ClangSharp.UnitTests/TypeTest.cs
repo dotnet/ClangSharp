@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 using NUnit.Framework;
 
@@ -170,6 +171,11 @@ using MemFuncT = void (S::*)();
     [Test]
     public void TemplateNameTest()
     {
+        if (OperatingSystem.IsWindows() && (RuntimeInformation.ProcessArchitecture == Architecture.Arm64))
+        {
+            Assert.Ignore("The win-arm64 libClangSharp prebuilt ships broken clangsharp shims. Remove this guard once the native lib is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.");
+        }
+
         var inputContents = """
 template <typename T> struct Tmpl { T value; };
 using SpecT = Tmpl<int>;

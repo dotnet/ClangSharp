@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -169,6 +170,11 @@ typedef struct
     [Test]
     public Task DependentTemplateBaseTest()
     {
+        if (OperatingSystem.IsWindows() && (RuntimeInformation.ProcessArchitecture == Architecture.Arm64))
+        {
+            Assert.Ignore("The win-arm64 libClangSharp prebuilt ships broken clangsharp shims. Remove this guard once the native lib is rebuilt. See https://github.com/dotnet/ClangSharp/issues/806.");
+        }
+
         // A dependent template-specialization base (`Base<T>` within a class template) previously
         // crashed `GetRecordDecl` with an `InvalidCastException` when both template bindings and
         // empty-record exclusion were enabled, as the base resolves to a `ClassTemplateDecl`
