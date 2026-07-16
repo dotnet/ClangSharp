@@ -58,8 +58,11 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             Debug.Assert(CX_AttrKind_FirstParameterABIAttr == CX_AttrKind_HLSLParamModifier);
             Debug.Assert(CX_AttrKind_LastParameterABIAttr == CX_AttrKind_SwiftIndirectResult);
 
-            Debug.Assert(CX_AttrKind_FirstHLSLAnnotationAttr == CX_AttrKind_HLSLPackOffset);
-            Debug.Assert(CX_AttrKind_LastHLSLAnnotationAttr == CX_AttrKind_HLSLSV_Position);
+            Debug.Assert(CX_AttrKind_FirstHLSLAnnotationAttr == CX_AttrKind_HLSLAppliedSemantic);
+            Debug.Assert(CX_AttrKind_LastHLSLAnnotationAttr == CX_AttrKind_HLSLVkLocation);
+
+            Debug.Assert(CX_AttrKind_FirstHLSLSemanticBaseAttr == CX_AttrKind_HLSLAppliedSemantic);
+            Debug.Assert(CX_AttrKind_LastHLSLSemanticBaseAttr == CX_AttrKind_HLSLParsedSemantic);
 
             return AttrKind switch {
                 CX_AttrKind_Invalid => "Invalid",
@@ -76,11 +79,13 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_ArmStreamingCompatible => "ArmStreamingCompatible",
                 CX_AttrKind_BTFTypeTag => "BTFTypeTag",
                 CX_AttrKind_Blocking => "Blocking",
+                CX_AttrKind_CFISalt => "CFISalt",
                 CX_AttrKind_CFIUncheckedCallee => "CFIUncheckedCallee",
                 CX_AttrKind_CmseNSCall => "CmseNSCall",
                 CX_AttrKind_ExtVectorType => "ExtVectorType",
                 CX_AttrKind_HLSLContainedType => "HLSLContainedType",
                 CX_AttrKind_HLSLGroupSharedAddressSpace => "HLSLGroupSharedAddressSpace",
+                CX_AttrKind_HLSLIsCounter => "HLSLIsCounter",
                 CX_AttrKind_HLSLROV => "HLSLROV",
                 CX_AttrKind_HLSLRawBuffer => "HLSLRawBuffer",
                 CX_AttrKind_HLSLResourceClass => "HLSLResourceClass",
@@ -127,7 +132,6 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_CDecl => "CDecl",
                 CX_AttrKind_CountedBy => "CountedBy",
                 CX_AttrKind_CountedByOrNull => "CountedByOrNull",
-                CX_AttrKind_DeviceKernel => "DeviceKernel",
                 CX_AttrKind_FastCall => "FastCall",
                 CX_AttrKind_IntelOclBicc => "IntelOclBicc",
                 CX_AttrKind_LifetimeBound => "LifetimeBound",
@@ -168,12 +172,11 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_PassObjectSize => "PassObjectSize",
                 CX_AttrKind_ReleaseHandle => "ReleaseHandle",
                 CX_AttrKind_UseHandle => "UseHandle",
+                CX_AttrKind_HLSLAppliedSemantic => "HLSLAppliedSemantic",
+                CX_AttrKind_HLSLParsedSemantic => "HLSLParsedSemantic",
                 CX_AttrKind_HLSLPackOffset => "HLSLPackOffset",
-                CX_AttrKind_HLSLSV_DispatchThreadID => "HLSLSV_DispatchThreadID",
-                CX_AttrKind_HLSLSV_GroupID => "HLSLSV_GroupID",
-                CX_AttrKind_HLSLSV_GroupIndex => "HLSLSV_GroupIndex",
-                CX_AttrKind_HLSLSV_GroupThreadID => "HLSLSV_GroupThreadID",
-                CX_AttrKind_HLSLSV_Position => "HLSLSV_Position",
+                CX_AttrKind_HLSLUnparsedSemantic => "HLSLUnparsedSemantic",
+                CX_AttrKind_HLSLVkLocation => "HLSLVkLocation",
                 CX_AttrKind_AMDGPUFlatWorkGroupSize => "AMDGPUFlatWorkGroupSize",
                 CX_AttrKind_AMDGPUMaxNumWorkGroups => "AMDGPUMaxNumWorkGroups",
                 CX_AttrKind_AMDGPUNumSGPR => "AMDGPUNumSGPR",
@@ -222,6 +225,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_CFUnknownTransfer => "CFUnknownTransfer",
                 CX_AttrKind_CPUDispatch => "CPUDispatch",
                 CX_AttrKind_CPUSpecific => "CPUSpecific",
+                CX_AttrKind_CUDAClusterDims => "CUDAClusterDims",
                 CX_AttrKind_CUDAConstant => "CUDAConstant",
                 CX_AttrKind_CUDADevice => "CUDADevice",
                 CX_AttrKind_CUDADeviceBuiltinSurfaceType => "CUDADeviceBuiltinSurfaceType",
@@ -231,6 +235,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_CUDAHost => "CUDAHost",
                 CX_AttrKind_CUDAInvalidTarget => "CUDAInvalidTarget",
                 CX_AttrKind_CUDALaunchBounds => "CUDALaunchBounds",
+                CX_AttrKind_CUDANoCluster => "CUDANoCluster",
                 CX_AttrKind_CUDAShared => "CUDAShared",
                 CX_AttrKind_CXX11NoReturn => "CXX11NoReturn",
                 CX_AttrKind_CallableWhen => "CallableWhen",
@@ -259,11 +264,13 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_CoroReturnType => "CoroReturnType",
                 CX_AttrKind_CoroWrapper => "CoroWrapper",
                 CX_AttrKind_DLLExport => "DLLExport",
+                CX_AttrKind_DLLExportOnDecl => "DLLExportOnDecl",
                 CX_AttrKind_DLLExportStaticLocal => "DLLExportStaticLocal",
                 CX_AttrKind_DLLImport => "DLLImport",
                 CX_AttrKind_DLLImportStaticLocal => "DLLImportStaticLocal",
                 CX_AttrKind_Deprecated => "Deprecated",
                 CX_AttrKind_Destructor => "Destructor",
+                CX_AttrKind_DeviceKernel => "DeviceKernel",
                 CX_AttrKind_DiagnoseAsBuiltin => "DiagnoseAsBuiltin",
                 CX_AttrKind_DiagnoseIf => "DiagnoseIf",
                 CX_AttrKind_DisableSanitizerInstrumentation => "DisableSanitizerInstrumentation",
@@ -284,6 +291,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_FormatArg => "FormatArg",
                 CX_AttrKind_FormatMatches => "FormatMatches",
                 CX_AttrKind_FunctionReturnThunks => "FunctionReturnThunks",
+                CX_AttrKind_GCCStruct => "GCCStruct",
                 CX_AttrKind_GNUInline => "GNUInline",
                 CX_AttrKind_GuardedBy => "GuardedBy",
                 CX_AttrKind_GuardedVar => "GuardedVar",
@@ -291,8 +299,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_HLSLNumThreads => "HLSLNumThreads",
                 CX_AttrKind_HLSLResourceBinding => "HLSLResourceBinding",
                 CX_AttrKind_HLSLShader => "HLSLShader",
+                CX_AttrKind_HLSLVkBinding => "HLSLVkBinding",
                 CX_AttrKind_HLSLVkConstantId => "HLSLVkConstantId",
                 CX_AttrKind_HLSLVkExtBuiltinInput => "HLSLVkExtBuiltinInput",
+                CX_AttrKind_HLSLVkPushConstant => "HLSLVkPushConstant",
                 CX_AttrKind_HLSLWaveSize => "HLSLWaveSize",
                 CX_AttrKind_Hot => "Hot",
                 CX_AttrKind_HybridPatchable => "HybridPatchable",
@@ -316,6 +326,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_MSP430Interrupt => "MSP430Interrupt",
                 CX_AttrKind_MSStruct => "MSStruct",
                 CX_AttrKind_MSVtorDisp => "MSVtorDisp",
+                CX_AttrKind_MallocSpan => "MallocSpan",
                 CX_AttrKind_MaxFieldAlignment => "MaxFieldAlignment",
                 CX_AttrKind_MayAlias => "MayAlias",
                 CX_AttrKind_MaybeUndef => "MaybeUndef",
@@ -326,6 +337,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_MipsInterrupt => "MipsInterrupt",
                 CX_AttrKind_MipsLongCall => "MipsLongCall",
                 CX_AttrKind_MipsShortCall => "MipsShortCall",
+                CX_AttrKind_ModularFormat => "ModularFormat",
                 CX_AttrKind_NSConsumesSelf => "NSConsumesSelf",
                 CX_AttrKind_NSErrorDomain => "NSErrorDomain",
                 CX_AttrKind_NSReturnsAutoreleased => "NSReturnsAutoreleased",
@@ -360,6 +372,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_OMPCaptureNoInit => "OMPCaptureNoInit",
                 CX_AttrKind_OMPDeclareTargetDecl => "OMPDeclareTargetDecl",
                 CX_AttrKind_OMPDeclareVariant => "OMPDeclareVariant",
+                CX_AttrKind_OMPGroupPrivateDecl => "OMPGroupPrivateDecl",
                 CX_AttrKind_OMPThreadPrivateDecl => "OMPThreadPrivateDecl",
                 CX_AttrKind_OSConsumesThis => "OSConsumesThis",
                 CX_AttrKind_OSReturnsNotRetained => "OSReturnsNotRetained",
@@ -408,7 +421,6 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_ReentrantCapability => "ReentrantCapability",
                 CX_AttrKind_Reinitializes => "Reinitializes",
                 CX_AttrKind_ReleaseCapability => "ReleaseCapability",
-                CX_AttrKind_Replaceable => "Replaceable",
                 CX_AttrKind_ReqdWorkGroupSize => "ReqdWorkGroupSize",
                 CX_AttrKind_RequiresCapability => "RequiresCapability",
                 CX_AttrKind_Restrict => "Restrict",
@@ -416,6 +428,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_ReturnTypestate => "ReturnTypestate",
                 CX_AttrKind_ReturnsNonNull => "ReturnsNonNull",
                 CX_AttrKind_ReturnsTwice => "ReturnsTwice",
+                CX_AttrKind_SYCLExternal => "SYCLExternal",
+                CX_AttrKind_SYCLKernel => "SYCLKernel",
                 CX_AttrKind_SYCLKernelEntryPoint => "SYCLKernelEntryPoint",
                 CX_AttrKind_SYCLSpecialClass => "SYCLSpecialClass",
                 CX_AttrKind_ScopedLockable => "ScopedLockable",
@@ -445,7 +459,6 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_TestTypestate => "TestTypestate",
                 CX_AttrKind_TransparentUnion => "TransparentUnion",
                 CX_AttrKind_TrivialABI => "TrivialABI",
-                CX_AttrKind_TriviallyRelocatable => "TriviallyRelocatable",
                 CX_AttrKind_TryAcquireCapability => "TryAcquireCapability",
                 CX_AttrKind_TypeTagForDatatype => "TypeTagForDatatype",
                 CX_AttrKind_TypeVisibility => "TypeVisibility",
@@ -1447,8 +1460,11 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             Debug.Assert(CX_StmtClass_FirstOpenACCConstructStmt == CX_StmtClass_OpenACCWaitConstruct);
             Debug.Assert(CX_StmtClass_LastOpenACCConstructStmt == CX_StmtClass_OpenACCAtomicConstruct);
 
-            Debug.Assert(CX_StmtClass_FirstOMPLoopTransformationDirective == CX_StmtClass_OMPUnrollDirective);
-            Debug.Assert(CX_StmtClass_LastOMPLoopTransformationDirective == CX_StmtClass_OMPInterchangeDirective);
+            Debug.Assert(CX_StmtClass_FirstOMPCanonicalLoopNestTransformationDirective == CX_StmtClass_OMPUnrollDirective);
+            Debug.Assert(CX_StmtClass_LastOMPCanonicalLoopNestTransformationDirective == CX_StmtClass_OMPInterchangeDirective);
+
+            Debug.Assert(CX_StmtClass_FirstOMPCanonicalLoopSequenceTransformationDirective == CX_StmtClass_OMPFuseDirective);
+            Debug.Assert(CX_StmtClass_LastOMPCanonicalLoopSequenceTransformationDirective == CX_StmtClass_OMPFuseDirective);
 
             Debug.Assert(CX_StmtClass_FirstOMPLoopDirective == CX_StmtClass_OMPTeamsGenericLoopDirective);
             Debug.Assert(CX_StmtClass_LastOMPLoopDirective == CX_StmtClass_OMPDistributeDirective);
