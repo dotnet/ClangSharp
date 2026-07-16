@@ -162,17 +162,72 @@ function Extract-Libclang([string] $runtime, [string] $source, [string] $destina
   Copy-Item -Path $lib.FullName -Destination (Join-Path -Path $destination -ChildPath $name)
 }
 
-function Build-Libclangsharp([string] $runtime, [string] $source, [string] $destination) {
-  $arch = switch ($runtime) {
-    "win-x64"   { "x64" }
-    "win-arm64" { "ARM64" }
-    default     { throw "'$runtime' cannot build libClangSharp on Windows; use build.sh on the matching runner" }
+function Get-VisualStudioInstallPath() {
+  $vswhere = Join-Path -Path ${env:ProgramFiles(x86)} -ChildPath "Microsoft Visual Studio\Installer\vswhere.exe"
+
+  if (-not (Test-Path -Path $vswhere)) {
+    throw "'vswhere.exe' was not found; a Visual Studio installation is required to build libClangSharp on Windows"
   }
 
+  $vsPath = & $vswhere -latest -prerelease -products * -property installationPath | Select-Object -First 1
+
+  if (-not $vsPath) {
+    throw "No Visual Studio installation was found via 'vswhere.exe'"
+  }
+
+  return $vsPath
+}
+
+function Import-VisualStudioEnvironment([string] $vsPath, [string] $arch) {
+  $vcvars = Join-Path -Path $vsPath -ChildPath "VC\Auxiliary\Build\vcvarsall.bat"
+
+  if (-not (Test-Path -Path $vcvars)) {
+    throw "'vcvarsall.bat' was not found under '$vsPath'"
+  }
+
+  # clang-cl relies on the MSVC toolchain, Windows SDK, and linker being on
+  # INCLUDE/LIB/PATH; import the developer environment into this process so the
+  # subsequent cmake invocation inherits it.
+  & cmd /c "call `"$vcvars`" $arch > nul && set" | ForEach-Object {
+    $pair = $_ -split "=", 2
+    if ($pair.Count -eq 2) {
+      [System.Environment]::SetEnvironmentVariable($pair[0], $pair[1])
+    }
+  }
+}
+
+function Build-Libclangsharp([string] $runtime, [string] $source, [string] $destination) {
   $nativeBuildDir = Join-Path -Path $ArtifactsDir -ChildPath "bin\native\$runtime"
   $pathToLlvm = (Resolve-Path -Path $source).Path
 
-  & cmake -B "$nativeBuildDir" -S "$RepoRoot" -A "$arch" "-Thost=$arch" "-DPATH_TO_LLVM=$pathToLlvm"
+  if ($runtime -eq "win-arm64") {
+    # The official LLVM release binaries are built with clang. On win-arm64,
+    # clang and MSVC disagree on the record layout of over-aligned non-POD base
+    # classes (e.g. clang::TemplateSpecializationType), so an MSVC-built shim
+    # reads members of clang-built types at the wrong offset and returns garbage.
+    # Build the shim with the release's own clang-cl so the layouts match.
+    # win-x64 layouts agree between the two, so it keeps using MSVC.
+    $vsPath = Get-VisualStudioInstallPath
+    $hostArch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) { "arm64" } else { "amd64_arm64" }
+    Import-VisualStudioEnvironment -vsPath $vsPath -arch $hostArch
+
+    $env:PATH = "$pathToLlvm\bin;$env:PATH"
+
+    $ninja = (Get-Command -Name "ninja" -ErrorAction SilentlyContinue).Source
+    if (-not $ninja) {
+      $ninja = Join-Path -Path $vsPath -ChildPath "Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe"
+    }
+
+    & cmake -G Ninja -B "$nativeBuildDir" -S "$RepoRoot" "-DCMAKE_MAKE_PROGRAM=$ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl "-DPATH_TO_LLVM=$pathToLlvm"
+  }
+  else {
+    $arch = switch ($runtime) {
+      "win-x64" { "x64" }
+      default   { throw "'$runtime' cannot build libClangSharp on Windows; use build.sh on the matching runner" }
+    }
+
+    & cmake -B "$nativeBuildDir" -S "$RepoRoot" -A "$arch" "-Thost=$arch" "-DPATH_TO_LLVM=$pathToLlvm"
+  }
 
   if ($LastExitCode -ne 0) {
     throw "'cmake' configure failed for '$runtime'"
