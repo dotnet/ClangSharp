@@ -123,7 +123,14 @@ public sealed partial class PInvokeGenerator
     {
         if (!_typeNames.TryGetValue((cursor, context, type), out var result))
         {
+            // clang 22 changed the type printer to spell an unnamed tag as `(unnamed at ...)`,
+            // dropping the tag keyword that older releases embedded (`(anonymous struct at ...)`
+            // and, at one point, `(unnamed struct at ...)`). The keyword is still present as the
+            // elaborated prefix, so key off it to restore the historical, version-stable spelling.
             result.typeName = type.AsString.NormalizePath()
+                                           .Replace("enum (unnamed at", "enum (anonymous enum at", StringComparison.Ordinal)
+                                           .Replace("struct (unnamed at", "struct (anonymous struct at", StringComparison.Ordinal)
+                                           .Replace("union (unnamed at", "union (anonymous union at", StringComparison.Ordinal)
                                            .Replace("unnamed enum at", "anonymous enum at", StringComparison.Ordinal)
                                            .Replace("unnamed struct at", "anonymous struct at", StringComparison.Ordinal)
                                            .Replace("unnamed union at", "anonymous union at", StringComparison.Ordinal);
