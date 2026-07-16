@@ -7289,16 +7289,28 @@ CX_ElaboratedTypeKeyword clangsharp_Type_getKeyword(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
 
-    if (const ElaboratedType* ET = dyn_cast<ElaboratedType>(TP)) {
-        return static_cast<CX_ElaboratedTypeKeyword>(static_cast<int>(ET->getKeyword()) + 1);
+    if (const TagType* TT = dyn_cast<TagType>(TP)) {
+        return static_cast<CX_ElaboratedTypeKeyword>(static_cast<int>(TT->getKeyword()) + 1);
+    }
+
+    if (const TypedefType* TDT = dyn_cast<TypedefType>(TP)) {
+        return static_cast<CX_ElaboratedTypeKeyword>(static_cast<int>(TDT->getKeyword()) + 1);
+    }
+
+    if (const UsingType* UT = dyn_cast<UsingType>(TP)) {
+        return static_cast<CX_ElaboratedTypeKeyword>(static_cast<int>(UT->getKeyword()) + 1);
+    }
+
+    if (const UnresolvedUsingType* UUT = dyn_cast<UnresolvedUsingType>(TP)) {
+        return static_cast<CX_ElaboratedTypeKeyword>(static_cast<int>(UUT->getKeyword()) + 1);
+    }
+
+    if (const TemplateSpecializationType* TST = dyn_cast<TemplateSpecializationType>(TP)) {
+        return static_cast<CX_ElaboratedTypeKeyword>(static_cast<int>(TST->getKeyword()) + 1);
     }
 
     if (const DependentNameType* DNT = dyn_cast<DependentNameType>(TP)) {
         return static_cast<CX_ElaboratedTypeKeyword>(static_cast<int>(DNT->getKeyword()) + 1);
-    }
-
-    if (const DependentTemplateSpecializationType* DTST = dyn_cast<DependentTemplateSpecializationType>(TP)) {
-        return static_cast<CX_ElaboratedTypeKeyword>(static_cast<int>(DTST->getKeyword()) + 1);
     }
 
     return CX_ETK_Invalid;
