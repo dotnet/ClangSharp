@@ -375,7 +375,7 @@ enum CX_UnaryExprOrTypeTrait {
  #define UNARY_EXPR_OR_TYPE_TRAIT(Spelling, Name, Key) CX_UETT_##Name,
  #define CXX11_UNARY_EXPR_OR_TYPE_TRAIT(Spelling, Name, Key) CX_UETT_##Name,
  #include "clang/Basic/TokenKinds.def"
-    CX_UETT_Last = -1 // CX_UETT_Last == last CX_UETT_XX in the enum.
+    CX_UETT_Last = 0 // CX_UETT_Last == last CX_UETT_XX in the enum.
  #define UNARY_EXPR_OR_TYPE_TRAIT(Spelling, Name, Key) +1
  #define CXX11_UNARY_EXPR_OR_TYPE_TRAIT(Spelling, Name, Key) +1
  #include "clang/Basic/TokenKinds.def"

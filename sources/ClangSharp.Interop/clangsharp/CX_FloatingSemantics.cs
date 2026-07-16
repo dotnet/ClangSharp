@@ -26,5 +26,5 @@ public enum CX_FloatingSemantics
     CX_FLK_Float6E2M3FN = 18,
     CX_FLK_Float4E2M1FN = 19,
     CX_FLK_x87DoubleExtended = 20,
-    CX_FLK_MaxSemantics = 20,
+    CX_FLK_MaxSemantics = CX_FLK_x87DoubleExtended,
 }

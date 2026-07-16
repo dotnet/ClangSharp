@@ -15,6 +15,7 @@ using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CX_StorageClass;
 using static ClangSharp.Interop.CX_StringKind;
 using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
+using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CXUnaryOperatorKind;
 using static ClangSharp.Interop.CXEvalResultKind;
 using static ClangSharp.Interop.CXTypeKind;
@@ -368,13 +369,23 @@ public partial class PInvokeGenerator
 
         _outputBuilder.BeginValue(in desc);
 
-        if ((enumConstantDecl.InitExpr != null) && !ShouldConstantFoldValue(enumConstantDecl))
+        if ((enumConstantDecl.InitExpr != null) && (!ShouldConstantFoldValue(enumConstantDecl) || IsEnumeratorAliasInitializer(enumConstantDecl)))
         {
             Visit(enumConstantDecl.InitExpr);
         }
         else if ((enumConstantDecl.InitExpr != null) || isAnonymousEnum)
         {
-            if (IsUnsigned(typeName))
+            var isUnsigned = IsUnsigned(typeName);
+
+            if (!isAnonymousEnum && TryGetFoldedEnumeratorAliasName(enumConstantDecl, parentName, isUnsigned, out var aliasName))
+            {
+                // The folded value equals a prior sibling enumerator (e.g. `_Last` range markers whose
+                // initializer is an opaque arithmetic count rather than a `DeclRefExpr`). Emit that
+                // sibling symbolically instead of the literal so the alias intent stays readable.
+                StartCSharpCode().Write(aliasName);
+                StopCSharpCode();
+            }
+            else if (isUnsigned)
             {
                 _outputBuilder.WriteConstantValue(enumConstantDecl.UnsignedInitVal);
             }
@@ -385,6 +396,73 @@ public partial class PInvokeGenerator
         }
 
         _outputBuilder.EndValue(in desc);
+    }
+
+    private static bool IsEnumeratorAliasInitializer(EnumConstantDecl enumConstantDecl)
+    {
+        // Even when folding is requested we preserve initializers that are simply an alias to (or
+        // an `|` combination of) sibling enumerators -- e.g. range markers like
+        // `CX_DeclKind_FirstObjCImpl = CX_DeclKind_ObjCImplementation`. Those references are
+        // themselves generated, so emitting them symbolically keeps the intent readable and still
+        // compiles, where-as folding would replace them with an opaque literal.
+        return (enumConstantDecl.DeclContext is EnumDecl enumDecl) && IsEnumeratorAliasExpr(enumConstantDecl.InitExpr, enumDecl);
+    }
+
+    private static bool IsEnumeratorAliasExpr(Expr? expr, EnumDecl enumDecl)
+    {
+        if (expr is null)
+        {
+            return false;
+        }
+
+        if (IsStmtAsWritten<DeclRefExpr>(expr, out var declRefExpr, removeParens: true))
+        {
+            return (declRefExpr.Decl is EnumConstantDecl enumConstantDecl)
+                && (enumConstantDecl.DeclContext is EnumDecl parentEnumDecl)
+                && (parentEnumDecl.Handle == enumDecl.Handle);
+        }
+
+        if (IsStmtAsWritten<BinaryOperator>(expr, out var binaryOperator, removeParens: true) && (binaryOperator.Opcode == CXBinaryOperator_Or))
+        {
+            return IsEnumeratorAliasExpr(binaryOperator.LHS, enumDecl) && IsEnumeratorAliasExpr(binaryOperator.RHS, enumDecl);
+        }
+
+        return false;
+    }
+
+    private bool TryGetFoldedEnumeratorAliasName(EnumConstantDecl enumConstantDecl, string enumTypeName, bool isUnsigned, out string aliasName)
+    {
+        aliasName = "";
+
+        if (enumConstantDecl.DeclContext is not EnumDecl enumDecl)
+        {
+            return false;
+        }
+
+        var targetSigned = enumConstantDecl.InitVal;
+        var targetUnsigned = enumConstantDecl.UnsignedInitVal;
+
+        foreach (var enumerator in enumDecl.Enumerators)
+        {
+            if (enumerator.Handle == enumConstantDecl.Handle)
+            {
+                // Only alias to a prior sibling -- a marker is defined after the members it aliases.
+                break;
+            }
+
+            var matches = isUnsigned
+                ? (enumerator.UnsignedInitVal == targetUnsigned)
+                : (enumerator.InitVal == targetSigned);
+
+            if (matches)
+            {
+                var siblingName = GetRemappedCursorName(enumerator);
+                aliasName = EscapeAndStripEnumMemberName(siblingName, enumTypeName, enumDecl);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void VisitEnumDecl(EnumDecl enumDecl)

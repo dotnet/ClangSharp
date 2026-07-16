@@ -65,7 +65,7 @@ public enum CX_TypeClass
     CX_TypeClass_Using,
     CX_TypeClass_Vector,
     CX_TypeClass_ExtVector,
-    CX_TypeClass_TypeLast = 59,
-    CX_TypeClass_TagFirst = 49,
-    CX_TypeClass_TagLast = 47,
+    CX_TypeClass_TypeLast = CX_TypeClass_ExtVector,
+    CX_TypeClass_TagFirst = CX_TypeClass_Record,
+    CX_TypeClass_TagLast = CX_TypeClass_Enum,
 }

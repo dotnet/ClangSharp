@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="@config" access="internal">
+      <field name="value" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name="@holder" access="public" unsafe="true">
+      <field name="cfg" access="public">
+        <type native="struct config *">@config*</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

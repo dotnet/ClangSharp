@@ -56,7 +56,7 @@ public partial class PInvokeGenerator
             var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
             var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
-            var isTopLevelStruct = _config.WithTypes.TryGetValue(name, out var withType) && withType.Equals("struct", StringComparison.Ordinal);
+            var isTopLevelStruct = _config.WithTypes.TryGetValue(StripNameEscape(name), out var withType) && withType.Equals("struct", StringComparison.Ordinal);
             var generateTestsClass = !recordDecl.IsAnonymousStructOrUnion && recordDecl.DeclContext is not RecordDecl;
             var testOutputStarted = false;
 

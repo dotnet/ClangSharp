@@ -1,6 +1,6 @@
 namespace ClangSharp.Test
 {
-    public enum access
+    public enum @access
     {
         READ,
         WRITE,

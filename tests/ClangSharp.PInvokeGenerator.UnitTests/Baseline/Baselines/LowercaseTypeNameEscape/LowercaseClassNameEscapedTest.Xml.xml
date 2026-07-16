@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="clang" access="public" static="true">
+      <constant name="MyValue" access="public">
+        <type primitive="True">int</type>
+        <value>
+          <code>1</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>

@@ -1,6 +1,6 @@
 namespace ClangSharp.Test
 {
-    public enum colors
+    public enum @colors
     {
         RED,
         GREEN,
