@@ -3,10 +3,10 @@
 
 namespace ClangSharp.Interop;
 
-public enum CX_DestructorType
+public enum CX_ExprValueKind
 {
-    Deleting = 0,
-    Complete = 1,
-    Base = 2,
-    Comdat = 3,
+    CX_VK_Invalid,
+    CX_VK_PRValue = 1,
+    CX_VK_LValue = 2,
+    CX_VK_XValue = 3,
 }

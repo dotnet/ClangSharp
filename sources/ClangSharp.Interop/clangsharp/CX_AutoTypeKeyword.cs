@@ -3,10 +3,10 @@
 
 namespace ClangSharp.Interop;
 
-public enum CX_DestructorType
+public enum CX_AutoTypeKeyword
 {
-    Deleting = 0,
-    Complete = 1,
-    Base = 2,
-    Comdat = 3,
+    CX_ATK_Invalid,
+    CX_ATK_Auto = 1,
+    CX_ATK_DecltypeAuto = 2,
+    CX_ATK_GNUAutoType = 3,
 }

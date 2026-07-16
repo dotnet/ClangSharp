@@ -3,10 +3,13 @@
 
 namespace ClangSharp.Interop;
 
-public enum CX_DestructorType
+public enum CX_ExprObjectKind
 {
-    Deleting = 0,
-    Complete = 1,
-    Base = 2,
-    Comdat = 3,
+    CX_OK_Invalid,
+    CX_OK_Ordinary = 1,
+    CX_OK_BitField = 2,
+    CX_OK_VectorComponent = 3,
+    CX_OK_ObjCProperty = 4,
+    CX_OK_ObjCSubscript = 5,
+    CX_OK_MatrixComponent = 6,
 }

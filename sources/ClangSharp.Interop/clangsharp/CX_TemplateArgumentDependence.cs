@@ -13,6 +13,6 @@ public enum CX_TemplateArgumentDependence
     CX_TAD_Instantiation = 2,
     CX_TAD_Dependent = 4,
     CX_TAD_Error = 8,
-    CX_TAD_DependentInstantiation = CX_TAD_Dependent | CX_TAD_Instantiation,
+    CX_TAD_DependentInstantiation = 6,
     CX_TAD_All = 15,
 }

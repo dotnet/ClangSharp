@@ -3,10 +3,10 @@
 
 namespace ClangSharp.Interop;
 
-public enum CX_DestructorType
+public enum CX_ObjCPropertyRefReceiverKind
 {
-    Deleting = 0,
-    Complete = 1,
-    Base = 2,
-    Comdat = 3,
+    CX_OPRK_Invalid,
+    CX_OPRK_Object,
+    CX_OPRK_Super,
+    CX_OPRK_Class,
 }

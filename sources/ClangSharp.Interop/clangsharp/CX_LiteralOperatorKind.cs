@@ -3,10 +3,13 @@
 
 namespace ClangSharp.Interop;
 
-public enum CX_DestructorType
+public enum CX_LiteralOperatorKind
 {
-    Deleting = 0,
-    Complete = 1,
-    Base = 2,
-    Comdat = 3,
+    CX_LOK_Invalid,
+    CX_LOK_Raw = 1,
+    CX_LOK_Template = 2,
+    CX_LOK_Integer = 3,
+    CX_LOK_Floating = 4,
+    CX_LOK_String = 5,
+    CX_LOK_Character = 6,
 }

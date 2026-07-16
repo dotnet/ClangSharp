@@ -3,10 +3,11 @@
 
 namespace ClangSharp.Interop;
 
-public enum CX_DestructorType
+public enum CX_ObjCMessageReceiverKind
 {
-    Deleting = 0,
-    Complete = 1,
-    Base = 2,
-    Comdat = 3,
+    CX_OMRK_Invalid,
+    CX_OMRK_Class = 1,
+    CX_OMRK_Instance = 2,
+    CX_OMRK_SuperClass = 3,
+    CX_OMRK_SuperInstance = 4,
 }

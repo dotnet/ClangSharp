@@ -6,7 +6,7 @@ namespace ClangSharp.Interop;
 public enum CX_CapturedRegionKind
 {
     CX_CR_Invalid,
-    CX_CR_Default,
-    CX_CR_ObjCAtFinally,
-    CX_CR_OpenMP,
+    CX_CR_Default = 1,
+    CX_CR_ObjCAtFinally = 2,
+    CX_CR_OpenMP = 3,
 }

@@ -3,10 +3,11 @@
 
 namespace ClangSharp.Interop;
 
-public enum CX_DestructorType
+public enum CX_InclusionDirectiveKind
 {
-    Deleting = 0,
-    Complete = 1,
-    Base = 2,
-    Comdat = 3,
+    CX_IDK_Invalid,
+    CX_IDK_Include = 1,
+    CX_IDK_Import = 2,
+    CX_IDK_IncludeNext = 3,
+    CX_IDK_IncludeMacros = 4,
 }

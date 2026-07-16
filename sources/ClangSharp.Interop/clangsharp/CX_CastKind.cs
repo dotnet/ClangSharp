@@ -72,6 +72,7 @@ public enum CX_CastKind
     CX_CK_AddressSpaceConversion,
     CX_CK_IntToOCLSampler,
     CX_CK_HLSLVectorTruncation,
+    CX_CK_HLSLMatrixTruncation,
     CX_CK_HLSLArrayRValue,
     CX_CK_HLSLElementwiseCast,
     CX_CK_HLSLAggregateSplatCast,

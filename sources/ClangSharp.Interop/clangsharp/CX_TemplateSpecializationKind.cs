@@ -6,9 +6,9 @@ namespace ClangSharp.Interop;
 public enum CX_TemplateSpecializationKind
 {
     CX_TSK_Invalid,
-    CX_TSK_Undeclared,
-    CX_TSK_ImplicitInstantiation,
-    CX_TSK_ExplicitSpecialization,
-    CX_TSK_ExplicitInstantiationDeclaration,
-    CX_TSK_ExplicitInstantiationDefinition,
+    CX_TSK_Undeclared = 1,
+    CX_TSK_ImplicitInstantiation = 2,
+    CX_TSK_ExplicitSpecialization = 3,
+    CX_TSK_ExplicitInstantiationDeclaration = 4,
+    CX_TSK_ExplicitInstantiationDefinition = 5,
 }

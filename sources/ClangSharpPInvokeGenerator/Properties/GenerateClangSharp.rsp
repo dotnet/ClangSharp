@@ -41,5 +41,10 @@ ClangSharp.Interop
 clangsharp_
 --remap
 MSGuidDeclParts=@Guid
+_CX_CK_Invalid=CX_CK_Invalid
 --test-output
 ./tests/ClangSharp.UnitTests/InteropTests
+--with-attribute
+CX_ExprDependence=Flags
+CX_TemplateArgumentDependence=Flags
+CX_TypeDependence=Flags

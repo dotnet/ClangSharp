@@ -3,10 +3,10 @@
 
 namespace ClangSharp.Interop;
 
-public enum CX_DestructorType
+public enum CX_LambdaCaptureDefault
 {
-    Deleting = 0,
-    Complete = 1,
-    Base = 2,
-    Comdat = 3,
+    CX_LCD_Invalid,
+    CX_LCD_None = 1,
+    CX_LCD_ByCopy = 2,
+    CX_LCD_ByRef = 3,
 }

@@ -3,10 +3,11 @@
 
 namespace ClangSharp.Interop;
 
-public enum CX_DestructorType
+public enum CX_InitializationStyle
 {
-    Deleting = 0,
-    Complete = 1,
-    Base = 2,
-    Comdat = 3,
+    CX_IS_Invalid,
+    CX_IS_CInit = 1,
+    CX_IS_CallInit = 2,
+    CX_IS_ListInit = 3,
+    CX_IS_ParenListInit = 4,
 }

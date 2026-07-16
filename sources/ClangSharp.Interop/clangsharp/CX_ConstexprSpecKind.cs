@@ -3,10 +3,11 @@
 
 namespace ClangSharp.Interop;
 
-public enum CX_DestructorType
+public enum CX_ConstexprSpecKind
 {
-    Deleting = 0,
-    Complete = 1,
-    Base = 2,
-    Comdat = 3,
+    CX_CSK_Invalid,
+    CX_CSK_Unspecified = 1,
+    CX_CSK_Constexpr = 2,
+    CX_CSK_Consteval = 3,
+    CX_CSK_Constinit = 4,
 }

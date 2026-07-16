@@ -15,10 +15,9 @@ public enum CX_ExprDependence
     CX_ED_Value = 8,
     CX_ED_Error = 16,
     CX_ED_All = 31,
-
-    CX_ED_TypeValue = CX_ED_Type | CX_ED_Value,
-    CX_ED_TypeInstantiation = CX_ED_Type | CX_ED_Instantiation,
-    CX_ED_ValueInstantiation = CX_ED_Value | CX_ED_Instantiation,
-    CX_ED_TypeValueInstantiation = CX_ED_Type | CX_ED_Value | CX_ED_Instantiation,
-    CX_ED_ErrorDependent = CX_ED_Error | CX_ED_ValueInstantiation,
+    CX_ED_TypeValue = 12,
+    CX_ED_TypeInstantiation = 6,
+    CX_ED_ValueInstantiation = 10,
+    CX_ED_TypeValueInstantiation = 14,
+    CX_ED_ErrorDependent = 26,
 }
