@@ -6,7 +6,7 @@ using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
-public sealed class TypedefType : Type
+public sealed class TypedefType : TypeWithKeyword
 {
     private ValueLazy<TypedefType, TypedefNameDecl> _decl;
 

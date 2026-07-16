@@ -6,7 +6,7 @@ using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
-public sealed class UnresolvedUsingType : Type
+public sealed class UnresolvedUsingType : TypeWithKeyword
 {
     private ValueLazy<UnresolvedUsingType, UnresolvedUsingTypenameDecl> _decl;
 

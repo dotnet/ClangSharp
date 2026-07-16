@@ -204,4 +204,68 @@ using ValT = int;
 
         Assert.That(typedefs["ValT"].UnderlyingType.AddressSpace, Is.EqualTo(0u));
     }
+
+    [Test]
+    public void ElaboratedKeywordTest()
+    {
+        // clang 22 removed ElaboratedType; the elaboration keyword now lives on each keyword-bearing
+        // type (TagType/TypedefType/UsingType/...) and is surfaced via TypeWithKeyword.Keyword.
+        var inputContents = """
+struct S {};
+enum E { AValue };
+
+struct S sVar;
+enum E eVar;
+S plainVar;
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var vars = translationUnit.TranslationUnitDecl.Decls.OfType<VarDecl>()
+                                   .ToDictionary((varDecl) => varDecl.Name, (varDecl) => (TypeWithKeyword)varDecl.Type, StringComparer.Ordinal);
+
+        Assert.That(vars["sVar"].Keyword, Is.EqualTo(CX_ElaboratedTypeKeyword.CX_ETK_Struct));
+        Assert.That(vars["eVar"].Keyword, Is.EqualTo(CX_ElaboratedTypeKeyword.CX_ETK_Enum));
+        Assert.That(vars["plainVar"].Keyword, Is.EqualTo(CX_ElaboratedTypeKeyword.CX_ETK_None));
+    }
+
+    [Test]
+    public void DependenceTest()
+    {
+        var inputContents = """
+template <typename T> T Identity(T value);
+int Plain;
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var functionTemplate = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionTemplateDecl>().Single();
+        var dependentType = functionTemplate.TemplatedDecl.ReturnType;
+
+        Assert.That(dependentType.IsDependentType, Is.True);
+        Assert.That(dependentType.IsInstantiationDependentType, Is.True);
+        Assert.That(dependentType.IsVariablyModifiedType, Is.False);
+        Assert.That(dependentType.ContainsUnexpandedParameterPack, Is.False);
+        Assert.That(dependentType.ContainsErrors, Is.False);
+
+        var plainType = translationUnit.TranslationUnitDecl.Decls.OfType<VarDecl>().Single((varDecl) => varDecl.Name.Equals("Plain", StringComparison.Ordinal)).Type;
+
+        Assert.That(plainType.Dependence, Is.EqualTo(CX_TypeDependence.CX_TD_None));
+        Assert.That(plainType.IsDependentType, Is.False);
+    }
+
+    [Test]
+    public void AutoTypeKeywordTest()
+    {
+        var inputContents = """
+template <typename T> auto Deduced(T value);
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var functionTemplate = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionTemplateDecl>().Single();
+        var autoType = (AutoType)functionTemplate.TemplatedDecl.ReturnType;
+
+        Assert.That(autoType.Keyword, Is.EqualTo(CX_AutoTypeKeyword.CX_ATK_Auto));
+    }
 }

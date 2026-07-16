@@ -18,6 +18,8 @@ public sealed class AutoType : DeducedType
 
     public IReadOnlyList<TemplateArgument> Args => _templateArgs;
 
+    public CX_AutoTypeKeyword Keyword => Handle.AutoTypeKeyword;
+
     private static unsafe TemplateArgument TemplateArgsFactory(object self, int i)
     {
         var @this = (AutoType)self;
