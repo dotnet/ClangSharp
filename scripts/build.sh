@@ -453,6 +453,33 @@ function VerifyPackages {
     esac
   done
 
+  # The native version string reported by clangsharp_getVersion must track the LLVM version exactly.
+  cppVersion="$(sed -n 's:.*clangsharp version \([0-9][0-9.]*\).*:\1:p' "$RepoRoot/sources/libClangSharp/ClangSharp.cpp" | head -n1)"
+
+  if [ -z "$cppVersion" ]; then
+    echo "sources/libClangSharp/ClangSharp.cpp: could not find the clangsharp_getVersion version string"
+    rc=1
+  elif [ "$cppVersion" != "$llvm" ]; then
+    echo "sources/libClangSharp/ClangSharp.cpp: clangsharp_getVersion string '$cppVersion' does not match LLVM version '$llvm'"
+    rc=1
+  fi
+
+  # The managed package pins consume the native packages. Native may be updated ahead of managed,
+  # but managed must never lead native (managed <= native).
+  nativeLibClangSharp="$(sed -n 's:.*<version>\([^<]*\)</version>.*:\1:p' "$RepoRoot/packages/libClangSharp/libClangSharp/libClangSharp.nuspec" | head -n1)"
+  managedLibClang="$(sed -n 's:.*Include="libClang"[[:space:]]\{1,\}Version="\([0-9.]*\)".*:\1:p' "$RepoRoot/Directory.Packages.props" | head -n1)"
+  managedLibClangSharp="$(sed -n 's:.*Include="libClangSharp"[[:space:]]\{1,\}Version="\([0-9.]*\)".*:\1:p' "$RepoRoot/Directory.Packages.props" | head -n1)"
+
+  if [ -n "$managedLibClang" ] && [ "$(printf '%s\n%s\n' "$managedLibClang" "$llvm" | sort -V | head -n1)" != "$managedLibClang" ]; then
+    echo "Directory.Packages.props: managed libClang pin '$managedLibClang' leads the native libclang version '$llvm' (managed must be <= native)"
+    rc=1
+  fi
+
+  if [ -n "$managedLibClangSharp" ] && [ -n "$nativeLibClangSharp" ] && [ "$(printf '%s\n%s\n' "$managedLibClangSharp" "$nativeLibClangSharp" | sort -V | head -n1)" != "$managedLibClangSharp" ]; then
+    echo "Directory.Packages.props: managed libClangSharp pin '$managedLibClangSharp' leads the native libClangSharp version '$nativeLibClangSharp' (managed must be <= native)"
+    rc=1
+  fi
+
   if [ "$rc" != 0 ]; then
     echo "Update the package versions to match the tracked LLVM version ($llvm) before regenerating."
     LASTEXITCODE=1
