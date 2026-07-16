@@ -190,6 +190,20 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
     public void WriteConstantValue(long value) => Write(value);
     public void WriteConstantValue(ulong value) => Write(value);
 
+    public void WriteConstantValue(double value, bool isSingle)
+    {
+        if (isSingle)
+        {
+            Write(((float)value).ToString("R", CultureInfo.InvariantCulture));
+            Write('f');
+        }
+        else
+        {
+            Write(value.ToString("R", CultureInfo.InvariantCulture));
+            Write('D');
+        }
+    }
+
     public void EndValue(in ValueDesc desc)
     {
         switch (desc.Kind)

@@ -368,11 +368,11 @@ public partial class PInvokeGenerator
 
         _outputBuilder.BeginValue(in desc);
 
-        if (enumConstantDecl.InitExpr != null)
+        if ((enumConstantDecl.InitExpr != null) && !ShouldConstantFoldValue(enumConstantDecl))
         {
             Visit(enumConstantDecl.InitExpr);
         }
-        else if (isAnonymousEnum)
+        else if ((enumConstantDecl.InitExpr != null) || isAnonymousEnum)
         {
             if (IsUnsigned(typeName))
             {

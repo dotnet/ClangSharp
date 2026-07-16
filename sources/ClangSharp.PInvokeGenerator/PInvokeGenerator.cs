@@ -2707,6 +2707,8 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool GetSetLastError(NamedDecl namedDecl) => HasRemapping(namedDecl, _config._withSetLastErrors, _config._withoutSetLastErrors, matchStar: true);
 
+    private bool ShouldConstantFoldValue(NamedDecl namedDecl) => HasRemapping(namedDecl, _config._withConstantFoldedValues, _config._withoutConstantFoldedValues, matchStar: true);
+
     private bool HasRemapping(NamedDecl namedDecl, HashSet<string> entries, HashSet<string>? optOuts = null, bool matchStar = false)
     {
         var entriesLookup = entries.GetAlternateLookup<ReadOnlySpan<char>>();

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <enumeration name="Target" access="public">
+      <type>int</type>
+      <enumerator name="Target_Fold" access="public">
+        <type primitive="False">int</type>
+        <value>2</value>
+      </enumerator>
+      <enumerator name="Target_Keep" access="public">
+        <type primitive="False">int</type>
+        <value>
+          <code>2 + 2</code>
+        </value>
+      </enumerator>
+    </enumeration>
+  </namespace>
+</bindings>
