@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-21.1.8/clang/tools/libclang
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-22.1.8/clang/tools/libclang
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 #include "ClangSharp.h"
@@ -401,6 +401,11 @@ namespace clang::cxcursor {
             K = CXCursor_ReturnStmt;
             break;
 
+        // Not exposed for now because '_Defer' is currently just a TS.
+        case Stmt::DeferStmtClass:
+            K = CXCursor_UnexposedStmt;
+            break;
+
         case Stmt::GCCAsmStmtClass:
             K = CXCursor_GCCAsmStmt;
             break;
@@ -600,6 +605,11 @@ namespace clang::cxcursor {
         case Stmt::MSPropertySubscriptExprClass:
         case Stmt::ArraySubscriptExprClass:
             K = CXCursor_ArraySubscriptExpr;
+            break;
+
+        case Stmt::MatrixSingleSubscriptExprClass:
+            // TODO: add support for MatrixSingleSubscriptExpr.
+            K = CXCursor_UnexposedExpr;
             break;
 
         case Stmt::MatrixSubscriptExprClass:
@@ -872,6 +882,9 @@ namespace clang::cxcursor {
             break;
         case Stmt::OMPInterchangeDirectiveClass:
             K = CXCursor_OMPInterchangeDirective;
+            break;
+        case Stmt::OMPFuseDirectiveClass:
+            K = CXCursor_OMPFuseDirective;
             break;
         case Stmt::OMPForDirectiveClass:
             K = CXCursor_OMPForDirective;
