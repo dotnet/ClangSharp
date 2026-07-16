@@ -112,7 +112,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
             Write(GetAccessSpecifierString(desc.AccessSpecifier, isNested: true));
             Write(" static ");
 
-            if (_generator.Config.GenerateUnmanagedConstants && desc.IsConstant)
+            if (_generator.Config.GenerateUnmanagedConstants && desc.IsConstant && !desc.IsCopy)
             {
                 if (desc.IsArray)
                 {
@@ -132,7 +132,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
             }
             else
             {
-                if (desc.IsConstant)
+                if (desc.IsConstant && !(_generator.Config.GenerateUnmanagedConstants && desc.IsCopy))
                 {
                     Write("readonly ");
                 }
