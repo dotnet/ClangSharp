@@ -44,6 +44,18 @@ public unsafe struct MarshaledString : IDisposable
         Value = pValue;
     }
 
+    public MarshaledString(ReadOnlySpan<byte> input)
+    {
+        var valueLength = input.Length;
+        var pValue = (sbyte*)NativeMemory.Alloc((uint)valueLength + 1);
+
+        input.CopyTo(new Span<byte>(pValue, valueLength));
+        pValue[valueLength] = 0;
+
+        Length = valueLength;
+        Value = pValue;
+    }
+
     public readonly ReadOnlySpan<byte> AsSpan() => new ReadOnlySpan<byte>(Value, Length);
 
     public int Length { get; private set; }
