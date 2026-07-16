@@ -55,6 +55,20 @@ internal partial class XmlOutputBuilder
     public void WriteConstantValue(long value) => _sb.Append(value);
     public void WriteConstantValue(ulong value) => _sb.Append(value);
 
+    public void WriteConstantValue(double value, bool isSingle)
+    {
+        if (isSingle)
+        {
+            _ = _sb.Append(((float)value).ToString("R", CultureInfo.InvariantCulture));
+            _ = _sb.Append('f');
+        }
+        else
+        {
+            _ = _sb.Append(value.ToString("R", CultureInfo.InvariantCulture));
+            _ = _sb.Append('D');
+        }
+    }
+
     public void EndValue(in ValueDesc desc)
     {
         if (desc.HasInitializer)

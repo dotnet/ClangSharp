@@ -19,6 +19,7 @@ internal partial interface IOutputBuilder
     void BeginValue(in ValueDesc desc);
     void WriteConstantValue(long value);
     void WriteConstantValue(ulong value);
+    void WriteConstantValue(double value, bool isSingle);
     void EndValue(in ValueDesc desc);
 
     void BeginEnum(in EnumDesc desc);

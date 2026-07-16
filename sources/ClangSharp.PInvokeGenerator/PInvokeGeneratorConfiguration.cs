@@ -36,6 +36,7 @@ public sealed class PInvokeGeneratorConfiguration
     private readonly HashSet<string> _nativeTypeNamesToStrip;
     internal readonly HashSet<string> _withManualImports;
     private readonly HashSet<string> _traversalNames;
+    internal readonly HashSet<string> _withConstantFoldedValues;
     internal readonly HashSet<string> _withEqualityMembers;
     internal readonly HashSet<string> _withReadonlys;
     internal readonly HashSet<string> _withSetLastErrors;
@@ -46,6 +47,7 @@ public sealed class PInvokeGeneratorConfiguration
     internal readonly HashSet<string> _withoutAccessSpecifiers;
     internal readonly HashSet<string> _withoutAttributes;
     internal readonly HashSet<string> _withoutCallConvs;
+    internal readonly HashSet<string> _withoutConstantFoldedValues;
     internal readonly HashSet<string> _withoutEnumMemberStrip;
     internal readonly HashSet<string> _withoutEqualityMembers;
     internal readonly HashSet<string> _withoutLibraryPaths;
@@ -111,6 +113,7 @@ public sealed class PInvokeGeneratorConfiguration
         _nativeTypeNamesToStrip = new HashSet<string>(StringComparer.Ordinal);
         _withManualImports = new HashSet<string>(StringComparer.Ordinal);
         _traversalNames = new HashSet<string>(StringComparer.Ordinal);
+        _withConstantFoldedValues = new HashSet<string>(QualifiedNameComparer.Default);
         _withEqualityMembers = new HashSet<string>(QualifiedNameComparer.Default);
         _withReadonlys = new HashSet<string>(QualifiedNameComparer.Default);
         _withSetLastErrors = new HashSet<string>(QualifiedNameComparer.Default);
@@ -119,6 +122,7 @@ public sealed class PInvokeGeneratorConfiguration
         _withoutAccessSpecifiers = new HashSet<string>(QualifiedNameComparer.Default);
         _withoutAttributes = new HashSet<string>(QualifiedNameComparer.Default);
         _withoutCallConvs = new HashSet<string>(QualifiedNameComparer.Default);
+        _withoutConstantFoldedValues = new HashSet<string>(QualifiedNameComparer.Default);
         _withoutEnumMemberStrip = new HashSet<string>(QualifiedNameComparer.Default);
         _withoutEqualityMembers = new HashSet<string>(QualifiedNameComparer.Default);
         _withoutLibraryPaths = new HashSet<string>(StringComparer.Ordinal);
@@ -718,6 +722,20 @@ public sealed class PInvokeGeneratorConfiguration
     }
 
     [AllowNull]
+    public IReadOnlyCollection<string> WithConstantFoldedValues
+    {
+        get
+        {
+            return _withConstantFoldedValues;
+        }
+
+        init
+        {
+            AddRange(_withConstantFoldedValues, value);
+        }
+    }
+
+    [AllowNull]
     public IReadOnlyCollection<string> WithEqualityMembers
     {
         get
@@ -868,6 +886,20 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             AddRange(_withoutCallConvs, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> WithoutConstantFoldedValues
+    {
+        get
+        {
+            return _withoutConstantFoldedValues;
+        }
+
+        init
+        {
+            AddRange(_withoutConstantFoldedValues, value);
         }
     }
 

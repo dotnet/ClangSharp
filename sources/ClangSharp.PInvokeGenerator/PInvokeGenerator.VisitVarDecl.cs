@@ -267,7 +267,10 @@ public partial class PInvokeGenerator
                     _outputBuilder.BeginDereference();
                 }
 
-                Visit(varDecl.Init);
+                if (!ShouldConstantFoldValue(varDecl) || !TryWriteConstantFoldedValue(varDecl.Init, typeName))
+                {
+                    Visit(varDecl.Init);
+                }
 
                 if (dereference)
                 {
@@ -341,5 +344,57 @@ public partial class PInvokeGenerator
 
             StopCSharpCode();
         }
+    }
+
+    private bool TryWriteConstantFoldedValue(Expr initExpr, string typeName)
+    {
+        Debug.Assert(_outputBuilder is not null);
+
+        // Pointer, reference, and string initializers aren't representable as a scalar literal, so they
+        // must fall back to translating the written expression rather than being folded.
+        if (IsTypePointerOrReference(initExpr) || IsStmtAsWritten<StringLiteral>(initExpr, out _, removeParens: true))
+        {
+            return false;
+        }
+
+        var evaluation = initExpr.Handle.Evaluate;
+
+        switch (evaluation.Kind)
+        {
+            case CXEval_Int:
+            {
+                if (IsUnsigned(typeName))
+                {
+                    _outputBuilder.WriteConstantValue(evaluation.AsUnsigned);
+                }
+                else
+                {
+                    _outputBuilder.WriteConstantValue(evaluation.AsLongLong);
+                }
+                return true;
+            }
+
+            case CXEval_Float:
+            {
+                var value = evaluation.AsDouble;
+
+                if (double.IsNaN(value) || double.IsInfinity(value))
+                {
+                    // Non-finite values have no C# literal form, so fall back rather than emit invalid code.
+                    break;
+                }
+
+                _outputBuilder.WriteConstantValue(value, isSingle: typeName.Equals("float", StringComparison.Ordinal));
+                return true;
+            }
+
+            default:
+            {
+                break;
+            }
+        }
+
+        AddDiagnostic(DiagnosticLevel.Info, "Declaration marked with --with-constant-folded-value could not be reduced to an integral or floating-point constant. Falling back to the written initializer.", initExpr);
+        return false;
     }
 }

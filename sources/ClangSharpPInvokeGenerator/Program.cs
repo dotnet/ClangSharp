@@ -170,6 +170,7 @@ internal static partial class Program
         var withAttributeNameValuePairs = s_withAttributeNameValuePairs.GetValues();
         var withCallConvNameValuePairs = s_withCallConvNameValuePairs.GetValues();
         var withClassNameValuePairs = s_withClassNameValuePairs.GetValues();
+        var withConstantFoldedValues = s_withConstantFoldedValues.GetValues();
         var withEnumMemberStripNameValuePairs = s_withEnumMemberStripNameValuePairs.GetValues();
         var withEqualityMembers = s_withEqualityMembers.GetValues();
         var withGuidNameValuePairs = s_withGuidNameValuePairs.GetValues();
@@ -187,6 +188,7 @@ internal static partial class Program
         var withoutAccessSpecifiers = s_withoutAccessSpecifiers.GetValues();
         var withoutAttributes = s_withoutAttributes.GetValues();
         var withoutCallConvs = s_withoutCallConvs.GetValues();
+        var withoutConstantFoldedValues = s_withoutConstantFoldedValues.GetValues();
         var withoutEnumMemberStrip = s_withoutEnumMemberStrip.GetValues();
         var withoutEqualityMembers = s_withoutEqualityMembers.GetValues();
         var withoutLibraryPaths = s_withoutLibraryPaths.GetValues();
@@ -396,6 +398,7 @@ internal static partial class Program
                 WithCallConvs = withCallConvs,
                 WithClasses = withClasses,
                 WithConditional = withConditional,
+                WithConstantFoldedValues = withConstantFoldedValues,
                 WithEnumMemberStrip = withEnumMemberStrip,
                 WithEqualityMembers = withEqualityMembers,
                 WithGuids = withGuids,
@@ -413,6 +416,7 @@ internal static partial class Program
                 WithoutAccessSpecifiers = withoutAccessSpecifiers,
                 WithoutAttributes = withoutAttributes,
                 WithoutCallConvs = withoutCallConvs,
+                WithoutConstantFoldedValues = withoutConstantFoldedValues,
                 WithoutEnumMemberStrip = withoutEnumMemberStrip,
                 WithoutEqualityMembers = withoutEqualityMembers,
                 WithoutLibraryPaths = withoutLibraryPaths,

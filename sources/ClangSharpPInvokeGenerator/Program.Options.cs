@@ -38,6 +38,7 @@ internal static partial class Program
     private static readonly string[] s_withCallConvOptionAliases = ["--with-callconv", "-wcc"];
     private static readonly string[] s_withClassOptionAliases = ["--with-class", "-wc"];
     private static readonly string[] s_withConditionalOptionAliases = ["--with-conditional", "-wcond"];
+    private static readonly string[] s_withConstantFoldedValueOptionAliases = ["--with-constant-folded-value", "-wcfv"];
     private static readonly string[] s_withEnumMemberStripOptionAliases = ["--with-enum-member-strip", "-wems"];
     private static readonly string[] s_withEqualityMembersOptionAliases = ["--with-equality-members", "-wem"];
     private static readonly string[] s_withGuidOptionAliases = ["--with-guid", "-wg"];
@@ -55,6 +56,7 @@ internal static partial class Program
     private static readonly string[] s_withoutAccessSpecifierOptionAliases = ["--without-access-specifier"];
     private static readonly string[] s_withoutAttributeOptionAliases = ["--without-attribute"];
     private static readonly string[] s_withoutCallConvOptionAliases = ["--without-callconv"];
+    private static readonly string[] s_withoutConstantFoldedValueOptionAliases = ["--without-constant-folded-value"];
     private static readonly string[] s_withoutEnumMemberStripOptionAliases = ["--without-enum-member-strip"];
     private static readonly string[] s_withoutEqualityMembersOptionAliases = ["--without-equality-members"];
     private static readonly string[] s_withoutLibraryPathOptionAliases = ["--without-library-path"];
@@ -99,6 +101,7 @@ internal static partial class Program
     private static readonly CommandLineOption s_withCallConvNameValuePairs = Multi(s_withCallConvOptionAliases, "A calling convention to be used for the given declaration during binding generation. Supports `*` (any run) and `?` (single character) wildcards; exact matches take precedence.");
     private static readonly CommandLineOption s_withClassNameValuePairs = Multi(s_withClassOptionAliases, "A class to be used for the given remapped constant or function declaration name during binding generation. Supports a trailing `*` wildcard for prefix matching; an exact match takes precedence.");
     private static readonly CommandLineOption s_withConditional = Single(s_withConditionalOptionAliases, "A preprocessor symbol used to wrap single-file C# output in a leading '#if <symbol>' and trailing '#endif'. Useful when files can't be conditionally excluded at the project level (e.g. Unity).", valueName: "symbol");
+    private static readonly CommandLineOption s_withConstantFoldedValues = Multi(s_withConstantFoldedValueOptionAliases, "Emit the clang-evaluated constant value for the given declaration instead of translating the written initializer expression. Useful when an initializer references companion declarations that aren't themselves generated. Applies to enum members (matched by the qualified `Enum.Member`, so `Enum.*` folds every member) and to macro or const value declarations. Supports `*` (any run) and `?` (single character) wildcards; exact matches take precedence.");
     private static readonly CommandLineOption s_withEnumMemberStripNameValuePairs = Multi(s_withEnumMemberStripOptionAliases, "How to strip a prefix or suffix from the members of the given remapped enum name during binding generation. Mode is one of `none`, `common-prefix`, `common-suffix`, `type-name`, `prefix:<str>`, or `suffix:<str>`. Supports `*` (any run) and `?` (single character) wildcards; exact matches take precedence.");
     private static readonly CommandLineOption s_withEqualityMembers = Multi(s_withEqualityMembersOptionAliases, "Generate IEquatable<T> with field-wise Equals, GetHashCode, and the == and != operators for the given struct. Opt-in and not valid for every native type; a named struct also opts in the nested and base structs it compares. Supports `*` (any run) and `?` (single character) wildcards; exact matches take precedence.");
     private static readonly CommandLineOption s_withGuidNameValuePairs = Multi(s_withGuidOptionAliases, "A GUID to be used for the given declaration during binding generation. Supports `*` (any run) and `?` (single character) wildcards; exact matches take precedence.");
@@ -116,6 +119,7 @@ internal static partial class Program
     private static readonly CommandLineOption s_withoutAccessSpecifiers = Multi(s_withoutAccessSpecifierOptionAliases, "A declaration name to opt back out of a '--with-access-specifier *' catch-all.");
     private static readonly CommandLineOption s_withoutAttributes = Multi(s_withoutAttributeOptionAliases, "A declaration name to opt back out of a '--with-attribute *' catch-all.");
     private static readonly CommandLineOption s_withoutCallConvs = Multi(s_withoutCallConvOptionAliases, "A declaration name to opt back out of a '--with-callconv *' catch-all.");
+    private static readonly CommandLineOption s_withoutConstantFoldedValues = Multi(s_withoutConstantFoldedValueOptionAliases, "A declaration name to opt back out of a '--with-constant-folded-value *' catch-all.");
     private static readonly CommandLineOption s_withoutEnumMemberStrip = Multi(s_withoutEnumMemberStripOptionAliases, "An enum name to opt back out of a '--with-enum-member-strip *' catch-all.");
     private static readonly CommandLineOption s_withoutEqualityMembers = Multi(s_withoutEqualityMembersOptionAliases, "A struct name to opt back out of a '--with-equality-members *' catch-all.");
     private static readonly CommandLineOption s_withoutLibraryPaths = Multi(s_withoutLibraryPathOptionAliases, "A declaration name to opt back out of a '--with-library-path *' catch-all.");
@@ -162,6 +166,7 @@ internal static partial class Program
         s_withCallConvNameValuePairs,
         s_withClassNameValuePairs,
         s_withConditional,
+        s_withConstantFoldedValues,
         s_withEnumMemberStripNameValuePairs,
         s_withEqualityMembers,
         s_withGuidNameValuePairs,
@@ -179,6 +184,7 @@ internal static partial class Program
         s_withoutAccessSpecifiers,
         s_withoutAttributes,
         s_withoutCallConvs,
+        s_withoutConstantFoldedValues,
         s_withoutEnumMemberStrip,
         s_withoutEqualityMembers,
         s_withoutLibraryPaths,
