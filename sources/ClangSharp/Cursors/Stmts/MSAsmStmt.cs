@@ -11,4 +11,8 @@ public sealed class MSAsmStmt : AsmStmt
     internal MSAsmStmt(CXCursor handle) : base(handle, CXCursor_MSAsmStmt, CX_StmtClass_MSAsmStmt)
     {
     }
+
+    public string AsmString => Handle.AsmString.CString;
+
+    public bool HasBraces => Handle.HasBraces;
 }

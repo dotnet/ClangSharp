@@ -23,6 +23,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor AsFunction => clangsharp.Cursor_getAsFunction(this);
 
+    public readonly CXString AsmString => clangsharp.Cursor_getAsmString(this);
+
+    public readonly CXCursor AsmStringExpr => clangsharp.Cursor_getAsmStringExpr(this);
+
     public readonly CX_AtomicOperatorKind AtomicOperatorKind => clangsharp.Cursor_getAtomicOpcode(this);
 
     public readonly CX_AttrKind AttrKind => clangsharp.Cursor_getAttrKind(this);
@@ -995,6 +999,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool HasAttrs => clang.Cursor_hasAttrs(this) != 0;
 
+    public readonly bool HasBraces => clangsharp.Cursor_getHasBraces(this) != 0;
+
     public readonly bool HasBody => clangsharp.Cursor_getHasBody(this) != 0;
 
     public readonly bool HasDefaultArg => clangsharp.Cursor_getHasDefaultArg(this) != 0;
@@ -1106,6 +1112,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly bool IsArrayFormAsWritten => clangsharp.Cursor_getIsArrayFormAsWritten(this) != 0;
 
     public readonly bool IsArrow => clangsharp.Cursor_getIsArrow(this) != 0;
+
+    public readonly bool IsAsmGoto => clangsharp.Cursor_getIsAsmGoto(this) != 0;
 
     public readonly bool IsAttribute => clang.isAttribute(Kind) != 0;
 
@@ -1241,6 +1249,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsSigned => clangsharp.Cursor_getIsSigned(this) != 0;
 
+    public readonly bool IsSimple => clangsharp.Cursor_getIsSimple(this) != 0;
+
     public readonly bool IsStatement => clang.isStatement(Kind) != 0;
 
     public readonly bool IsStatic => clangsharp.Cursor_getIsStatic(this) != 0;
@@ -1284,6 +1294,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly bool IsVariadic => clangsharp.Cursor_getIsVariadic(this) != 0;
 
     public readonly bool IsVirtualBase => clang.isVirtualBase(this) != 0;
+
+    public readonly bool IsVolatile => clangsharp.Cursor_getIsVolatile(this) != 0;
 
     public readonly CXCursorKind Kind => clang.getCursorKind(this);
 
@@ -1345,6 +1357,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly int NumChildren => clangsharp.Cursor_getNumChildren(this);
 
+    public readonly uint NumClobbers => clangsharp.Cursor_getNumClobbers(this);
+
     public readonly int NumCtors => clangsharp.Cursor_getNumCtors(this);
 
     public readonly int NumDecls => clangsharp.Cursor_getNumDecls(this);
@@ -1361,7 +1375,13 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly int NumFriends => clangsharp.Cursor_getNumFriends(this);
 
+    public readonly uint NumInputs => clangsharp.Cursor_getNumInputs(this);
+
+    public readonly uint NumLabels => clangsharp.Cursor_getNumLabels(this);
+
     public readonly int NumMethods => clangsharp.Cursor_getNumMethods(this);
+
+    public readonly uint NumOutputs => clangsharp.Cursor_getNumOutputs(this);
 
     public readonly uint NumOverloadedDecls => clang.getNumOverloadedDecls(this);
 
@@ -1951,6 +1971,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor GetChild(uint index) => clangsharp.Cursor_getChild(this, index);
 
+    public readonly CXString GetClobber(uint index) => clangsharp.Cursor_getClobber(this, index);
+
     public readonly CXCursor GetDecl(uint index) => clangsharp.Cursor_getDecl(this, index);
 
     public readonly void GetDefinitionSpellingAndExtent(out string spelling, out uint startLine, out uint startColumn, out uint endLine, out uint endColumn)
@@ -1977,6 +1999,14 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor GetFriend(uint index) => clangsharp.Cursor_getFriend(this, index);
 
+    public readonly CXString GetInputConstraint(uint index) => clangsharp.Cursor_getInputConstraint(this, index);
+
+    public readonly CXCursor GetInputExpr(uint index) => clangsharp.Cursor_getInputExpr(this, index);
+
+    public readonly CXCursor GetLabelExpr(uint index) => clangsharp.Cursor_getLabelExpr(this, index);
+
+    public readonly CXString GetLabelName(uint index) => clangsharp.Cursor_getLabelName(this, index);
+
     public override readonly int GetHashCode() => (int)Hash;
 
     public readonly bool GetIsExternalSymbol(out CXString language, out CXString definedIn, out bool isGenerated)
@@ -2000,6 +2030,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly ObjCPropertyAttributeKind GetPropertyAttributes() => (ObjCPropertyAttributeKind)clangsharp.Cursor_getPropertyAttributes(this);
 
     public readonly CXCursor GetOverloadedDecl(uint index) => clang.getOverloadedDecl(this, index);
+
+    public readonly CXString GetOutputConstraint(uint index) => clangsharp.Cursor_getOutputConstraint(this, index);
+
+    public readonly CXCursor GetOutputExpr(uint index) => clangsharp.Cursor_getOutputExpr(this, index);
 
     public readonly int GetPlatformAvailability(out bool alwaysDeprecated, out CXString deprecatedMessage, out bool alwaysUnavailable, out CXString unavailableMessage, Span<CXPlatformAvailability> availability)
     {
