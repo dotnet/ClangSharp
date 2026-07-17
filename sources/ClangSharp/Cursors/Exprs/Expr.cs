@@ -5,6 +5,7 @@ using System.Diagnostics;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CX_CastKind;
 using static ClangSharp.Interop.CX_ExprDependence;
+using static ClangSharp.Interop.CX_ExprValueKind;
 using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CXUnaryOperatorKind;
 
@@ -122,6 +123,8 @@ public class Expr : ValueStmt
 
     public Expr IgnoreParenLValueCasts => IgnoreExprNodes(this, s_ignoreParensSingleStep, s_ignoreLValueCastsSingleStep);
 
+    public bool IsGLValue => ValueKind is CX_VK_LValue or CX_VK_XValue;
+
     public bool IsImplicitCXXThis
     {
         get
@@ -169,11 +172,21 @@ public class Expr : ValueStmt
 
     public bool IsInstantiationDependent => (Dependence & CX_ED_Instantiation) != 0;
 
+    public bool IsLValue => ValueKind == CX_VK_LValue;
+
+    public bool IsPRValue => ValueKind == CX_VK_PRValue;
+
     public bool IsTypeDependent => (Dependence & CX_ED_Type) != 0;
 
     public bool IsValueDependent => (Dependence & CX_ED_Value) != 0;
 
+    public bool IsXValue => ValueKind == CX_VK_XValue;
+
+    public CX_ExprObjectKind ObjectKind => Handle.ObjectKind;
+
     public Type Type => _type.GetValue(this);
+
+    public CX_ExprValueKind ValueKind => Handle.ValueKind;
 
     private static Expr IgnoreExprNodes(Expr e, Func<Expr, Expr> fn)
     {
