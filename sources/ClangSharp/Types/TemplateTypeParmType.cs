@@ -21,5 +21,7 @@ public sealed class TemplateTypeParmType : Type
 
     public uint Index => unchecked((uint)Handle.Index);
 
+    public bool IsParameterPack => Handle.IsParameterPack;
+
     private static unsafe TemplateTypeParmDecl DeclFactory(TemplateTypeParmType self) => self.TranslationUnit.GetOrCreate<TemplateTypeParmDecl>(self.Handle.Declaration);
 }

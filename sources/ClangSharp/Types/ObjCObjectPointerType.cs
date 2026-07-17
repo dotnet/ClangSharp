@@ -22,6 +22,12 @@ public sealed class ObjCObjectPointerType : Type
 
     public ObjCInterfaceType InterfaceType => _interfaceType.GetValue(this);
 
+    public bool IsKindOfType => Handle.IsObjCKindOfType;
+
+    public bool IsSpecialized => Handle.IsObjCObjectSpecialized;
+
+    public bool IsSpecializedAsWritten => Handle.IsObjCObjectSpecializedAsWritten;
+
     public ObjCObjectType ObjectType => PointeeType.CastAs<ObjCObjectType>();
 
     public IReadOnlyList<ObjCProtocolDecl> Protocols => ObjectType.Protocols;
