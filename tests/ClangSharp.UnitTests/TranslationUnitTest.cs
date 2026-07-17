@@ -25,7 +25,7 @@ public abstract class TranslationUnitTest
         "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
     ];
 
-    protected static TranslationUnit CreateTranslationUnit(string inputContents, string language = "c++" /* input files are C++ by default */, string[]? commandLineArgs = null)
+    protected static TranslationUnit CreateTranslationUnit(string inputContents, string language = "c++" /* input files are C++ by default */, string[]? commandLineArgs = null, CXTranslationUnit_Flags translationUnitFlags = DefaultTranslationUnitFlags)
     {
         Assert.That(DefaultInputFileName, Does.Exist);
 
@@ -38,7 +38,7 @@ public abstract class TranslationUnitTest
             "-x",
             language,
         };
-        var errorCode = CXTranslationUnit.TryParse(index, DefaultInputFileName, arguments.ToArray(), unsavedFiles, DefaultTranslationUnitFlags, out var translationUnit);
+        var errorCode = CXTranslationUnit.TryParse(index, DefaultInputFileName, arguments.ToArray(), unsavedFiles, translationUnitFlags, out var translationUnit);
         Assert.That(errorCode, Is.EqualTo(CXErrorCode.CXError_Success), $"Failed to create {nameof(CXTranslationUnit)} (error code: {errorCode})");
 
         if (translationUnit.NumDiagnostics != 0)

@@ -10,4 +10,8 @@ public sealed class InclusionDirective : PreprocessingDirective
     internal InclusionDirective(CXCursor handle) : base(handle, CXCursor_InclusionDirective)
     {
     }
+
+    public CX_InclusionDirectiveKind Kind => Handle.InclusionDirectiveKind;
+
+    public bool WasInQuotes => Handle.InclusionDirectiveWasInQuotes;
 }
