@@ -34,6 +34,8 @@ public sealed class IfStmt : Stmt
 
     public bool IsObjcAvailabilityCheck => Cond is ObjCAvailabilityCheckExpr;
 
+    public CX_IfStatementKind StatementKind => Handle.IfStatementKind;
+
     public Stmt Then => Children[ThenOffset];
 
     private int CondOffset => VarOffset + (HasVarStorage ? 1 : 0);

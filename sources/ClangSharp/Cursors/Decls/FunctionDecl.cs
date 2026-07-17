@@ -48,6 +48,8 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
 
     public new FunctionDecl CanonicalDecl => (FunctionDecl)base.CanonicalDecl;
 
+    public CX_ConstexprSpecKind ConstexprKind => Handle.ConstexprKind;
+
     public Type DeclaredReturnType => _declaredReturnType.GetValue(this);
 
     public FunctionDecl Definition => _definition.GetValue(this);
@@ -61,6 +63,10 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
     public bool HasImplicitReturnZero => Handle.HasImplicitReturnZero;
 
     public FunctionDecl InstantiatedFromMemberFunction => _instantiatedFromMemberFunction.GetValue(this);
+
+    public bool IsConsteval => ConstexprKind == CX_ConstexprSpecKind.CX_CSK_Consteval;
+
+    public bool IsConstexpr => ConstexprKind is CX_ConstexprSpecKind.CX_CSK_Constexpr or CX_ConstexprSpecKind.CX_CSK_Consteval;
 
     public bool IsDefaulted => Handle.CXXMethod_IsDefaulted;
 
