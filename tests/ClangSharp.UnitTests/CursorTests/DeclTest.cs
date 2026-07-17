@@ -99,6 +99,42 @@ tuple<int, long> SomeFunction();
     }
 
     [Test]
+    public void EnumFieldMethodPredicatesTest()
+    {
+        var inputContents = """
+enum class Scoped : int { A };
+enum Plain { B };
+struct MyStruct
+{
+    int : 0;
+    int named : 3;
+    void lref() &;
+    void rref() &&;
+    void plain();
+};
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var scoped = translationUnit.TranslationUnitDecl.Decls.OfType<EnumDecl>().Single((enumDecl) => enumDecl.Name.Equals("Scoped", StringComparison.Ordinal));
+        Assert.That(scoped.IsFixed, Is.True);
+
+        var plain = translationUnit.TranslationUnitDecl.Decls.OfType<EnumDecl>().Single((enumDecl) => enumDecl.Name.Equals("Plain", StringComparison.Ordinal));
+        Assert.That(plain.IsFixed, Is.False);
+
+        var myStruct = translationUnit.TranslationUnitDecl.Decls.OfType<RecordDecl>().Single((recordDecl) => recordDecl.Name.Equals("MyStruct", StringComparison.Ordinal));
+
+        var fields = myStruct.Decls.OfType<FieldDecl>().ToArray();
+        Assert.That(fields[0].IsZeroLengthBitField, Is.True);
+        Assert.That(fields[1].IsZeroLengthBitField, Is.False);
+
+        var methods = myStruct.Decls.OfType<CXXMethodDecl>().ToArray();
+        Assert.That(methods.Single((method) => method.Name.Equals("lref", StringComparison.Ordinal)).RefQualifier, Is.EqualTo(CXRefQualifierKind.CXRefQualifier_LValue));
+        Assert.That(methods.Single((method) => method.Name.Equals("rref", StringComparison.Ordinal)).RefQualifier, Is.EqualTo(CXRefQualifierKind.CXRefQualifier_RValue));
+        Assert.That(methods.Single((method) => method.Name.Equals("plain", StringComparison.Ordinal)).RefQualifier, Is.EqualTo(CXRefQualifierKind.CXRefQualifier_None));
+    }
+
+    [Test]
     public void FunctionTemplateSpecializationArgsTest()
     {
         SkipUntilNativeRebuild();

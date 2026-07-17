@@ -48,6 +48,8 @@ public class CXXMethodDecl : FunctionDecl
 
     public new CXXRecordDecl? Parent => (CXXRecordDecl?)(base.Parent ?? ThisObjectType.AsCXXRecordDecl);
 
+    public CXRefQualifierKind RefQualifier => Handle.RefQualifier;
+
     public uint SizeOverriddenMethods => unchecked((uint)Handle.NumMethods);
 
     public Type ThisType => _thisType.GetValue(this);

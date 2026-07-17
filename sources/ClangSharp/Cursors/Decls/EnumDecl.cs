@@ -36,6 +36,8 @@ public sealed class EnumDecl : TagDecl
 
     public bool IsComplete => IsCompleteDefinition || (IntegerType is not null);
 
+    public bool IsFixed => Handle.IsFixed;
+
     public bool IsScoped => Handle.EnumDecl_IsScoped;
 
     public new EnumDecl MostRecentDecl => (EnumDecl)base.MostRecentDecl;

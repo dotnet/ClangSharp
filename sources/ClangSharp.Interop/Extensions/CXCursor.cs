@@ -1191,6 +1191,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsFileScope => clangsharp.Cursor_getIsFileScope(this) != 0;
 
+    public readonly bool IsFixed => clangsharp.Cursor_getIsFixed(this) != 0;
+
     public readonly bool IsFunctionInlined => clang.Cursor_isFunctionInlined(this) != 0;
 
     public readonly bool IsGenericLambda => clangsharp.Cursor_getIsGenericLambda(this) != 0;
@@ -1320,6 +1322,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly bool IsVirtualBase => clang.isVirtualBase(this) != 0;
 
     public readonly bool IsVolatile => clangsharp.Cursor_getIsVolatile(this) != 0;
+
+    public readonly bool IsZeroLengthBitField => clangsharp.Cursor_getIsZeroLengthBitField(this) != 0;
 
     public readonly CXCursorKind Kind => clang.getCursorKind(this);
 
@@ -1486,6 +1490,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly CXCursor RedeclContext => clangsharp.Cursor_getRedeclContext(this);
 
     public readonly CXCursor Referenced => clangsharp.Cursor_getReferenced(this);
+
+    public readonly CXRefQualifierKind RefQualifier => clangsharp.Cursor_getRefQualifier(this);
 
     public readonly bool RequiresZeroInitialization => clangsharp.Cursor_getRequiresZeroInitialization(this) != 0;
 
