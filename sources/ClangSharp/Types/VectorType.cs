@@ -23,5 +23,7 @@ public class VectorType : Type
 
     public long NumElements => Handle.NumElements;
 
+    public CX_VectorKind VectorKind => Handle.VectorKind;
+
     private static unsafe Type ElementTypeFactory(VectorType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ElementType);
 }

@@ -18,6 +18,12 @@ public sealed class AutoType : DeducedType
 
     public IReadOnlyList<TemplateArgument> Args => _templateArgs;
 
+    public bool IsConstrained => Handle.IsConstrained;
+
+    public bool IsDecltypeAuto => Handle.IsDecltypeAuto;
+
+    public bool IsGNUAutoType => Handle.IsGNUAutoType;
+
     public CX_AutoTypeKeyword Keyword => Handle.AutoTypeKeyword;
 
     private static unsafe TemplateArgument TemplateArgsFactory(object self, int i)

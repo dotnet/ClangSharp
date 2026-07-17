@@ -57,6 +57,14 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public readonly CXCallingConv FunctionTypeCallingConv => clang.getFunctionTypeCallingConv(this);
 
+    public readonly bool HasFloatingRepresentation => clangsharp.Type_getHasFloatingRepresentation(this) != 0;
+
+    public readonly bool HasIntegerRepresentation => clangsharp.Type_getHasIntegerRepresentation(this) != 0;
+
+    public readonly bool HasPointerRepresentation => clangsharp.Type_getHasPointerRepresentation(this) != 0;
+
+    public readonly bool HasTrailingReturn => clangsharp.Type_getHasTrailingReturn(this) != 0;
+
     public readonly int Index => clangsharp.Type_getIndex(this);
 
     public readonly CXType InjectedSpecializationType => (kind != CXType_Invalid) ? clangsharp.Type_getInjectedSpecializationType(this) : default;
@@ -65,15 +73,33 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public readonly bool IsCanonical => Equals(CanonicalType);
 
+    public readonly bool IsAggregateType => clangsharp.Type_getIsAggregateType(this) != 0;
+
+    public readonly bool IsArithmeticType => clangsharp.Type_getIsArithmeticType(this) != 0;
+
     public readonly bool IsConstQualified => clang.isConstQualifiedType(this) != 0;
+
+    public readonly bool IsConstrained => clangsharp.Type_getIsConstrained(this) != 0;
+
+    public readonly bool IsDecltypeAuto => clangsharp.Type_getIsDecltypeAuto(this) != 0;
+
+    public readonly bool IsFloatingType => clangsharp.Type_getIsFloatingType(this) != 0;
 
     public readonly bool IsFunctionTypeVariadic => clang.isFunctionTypeVariadic(this) != 0;
 
+    public readonly bool IsGNUAutoType => clangsharp.Type_getIsGNUAutoType(this) != 0;
+
     public readonly bool IsObjCInstanceType => (kind != CXType_Invalid) && clangsharp.Type_getIsObjCInstanceType(this) != 0;
+
+    public readonly bool IsObjectType => clangsharp.Type_getIsObjectType(this) != 0;
 
     public readonly bool IsPODType => clang.isPODType(this) != 0;
 
+    public readonly bool IsRealFloatingType => clangsharp.Type_getIsRealFloatingType(this) != 0;
+
     public readonly bool IsRestrictQualified => clang.isRestrictQualifiedType(this) != 0;
+
+    public readonly bool IsScalarType => clangsharp.Type_getIsScalarType(this) != 0;
 
     public readonly bool IsSigned => clangsharp.Type_getIsSigned(this) != 0;
 
@@ -94,6 +120,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
     public readonly CXType ModifiedType => clangsharp.Type_getModifiedType(this);
 
     public readonly CXType NamedType => clang.Type_getNamedType(this);
+
+    public readonly CXCursor NoexceptExpr => clangsharp.Type_getNoexceptExpr(this);
 
     public readonly CXType NonReferenceType => (kind != CXType_Invalid) ? clang.getNonReferenceType(this) : default;
 
@@ -231,6 +259,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public readonly CXType ValueType => clang.Type_getValueType(this);
 
+    public readonly CX_VectorKind VectorKind => clangsharp.Type_getVectorKind(this);
+
     internal readonly string DebuggerDisplayString => $"{TypeClassSpelling}: {this}";
 
     public static bool operator ==(CXType left, CXType right) => clang.equalTypes(left, right) != 0;
@@ -242,6 +272,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
     public readonly bool Equals(CXType other) => this == other;
 
     public readonly CXType GetArgType(uint i) => clang.getArgType(this, i);
+
+    public readonly CXType GetExceptionType(uint i) => clangsharp.Type_getExceptionType(this, i);
 
     public override int GetHashCode() => HashCode.Combine(kind, (IntPtr)data[0], (IntPtr)data[1]);
 

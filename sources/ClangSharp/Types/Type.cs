@@ -102,7 +102,17 @@ public unsafe class Type : IEquatable<Type>
 
     public CXType Handle { get; }
 
+    public bool HasFloatingRepresentation => Handle.HasFloatingRepresentation;
+
+    public bool HasIntegerRepresentation => Handle.HasIntegerRepresentation;
+
+    public bool HasPointerRepresentation => Handle.HasPointerRepresentation;
+
+    public bool IsAggregateType => Handle.IsAggregateType;
+
     public bool IsAnyPointerType => IsPointerType || IsObjCObjectPointerType;
+
+    public bool IsArithmeticType => Handle.IsArithmeticType;
 
     public bool IsArrayType => CanonicalType is ArrayType;
 
@@ -119,6 +129,8 @@ public unsafe class Type : IEquatable<Type>
     public bool IsDependentType => (Dependence & CX_TD_Dependent) != 0;
 
     public bool IsEnumeralType => CanonicalType is EnumType;
+
+    public bool IsFloatingType => Handle.IsFloatingType;
 
     public bool IsFunctionType => CanonicalType is FunctionType;
 
@@ -154,15 +166,21 @@ public unsafe class Type : IEquatable<Type>
 
     public bool IsObjCObjectPointerType => CanonicalType is ObjCObjectPointerType;
 
+    public bool IsObjectType => Handle.IsObjectType;
+
     public bool IsPODType => Handle.IsPODType;
 
     public bool IsPointerType => CanonicalType is PointerType;
 
     public bool IsRValueReferenceType => CanonicalType is RValueReferenceType;
 
+    public bool IsRealFloatingType => Handle.IsRealFloatingType;
+
     public bool IsRecordType => CanonicalType is RecordType;
 
     public bool IsReferenceType => CanonicalType is ReferenceType;
+
+    public bool IsScalarType => Handle.IsScalarType;
 
     public bool IsSugared => Handle.IsSugared;
 

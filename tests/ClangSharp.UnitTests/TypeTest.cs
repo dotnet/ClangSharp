@@ -272,4 +272,125 @@ template <typename T> auto Deduced(T value);
 
         Assert.That(autoType.Keyword, Is.EqualTo(CX_AutoTypeKeyword.CX_ATK_Auto));
     }
+
+    [Test]
+    public void ClassificationPredicatesTest()
+    {
+        var inputContents = """
+struct S { int field; };
+
+using IntT = int;
+using FloatT = float;
+using PtrT = int*;
+using StructT = S;
+using VoidT = void;
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var typedefs = translationUnit.TranslationUnitDecl.Decls.OfType<TypedefNameDecl>()
+                                      .ToDictionary((typedef) => typedef.Name, (typedef) => typedef.UnderlyingType, StringComparer.Ordinal);
+
+        var intT = typedefs["IntT"];
+        Assert.That(intT.IsScalarType, Is.True);
+        Assert.That(intT.IsArithmeticType, Is.True);
+        Assert.That(intT.IsObjectType, Is.True);
+        Assert.That(intT.IsAggregateType, Is.False);
+        Assert.That(intT.IsFloatingType, Is.False);
+        Assert.That(intT.HasIntegerRepresentation, Is.True);
+        Assert.That(intT.HasPointerRepresentation, Is.False);
+
+        var floatT = typedefs["FloatT"];
+        Assert.That(floatT.IsFloatingType, Is.True);
+        Assert.That(floatT.IsRealFloatingType, Is.True);
+        Assert.That(floatT.IsArithmeticType, Is.True);
+        Assert.That(floatT.HasFloatingRepresentation, Is.True);
+        Assert.That(floatT.HasIntegerRepresentation, Is.False);
+
+        var ptrT = typedefs["PtrT"];
+        Assert.That(ptrT.IsScalarType, Is.True);
+        Assert.That(ptrT.IsArithmeticType, Is.False);
+        Assert.That(ptrT.IsObjectType, Is.True);
+        Assert.That(ptrT.HasPointerRepresentation, Is.True);
+
+        var structT = typedefs["StructT"];
+        Assert.That(structT.IsAggregateType, Is.True);
+        Assert.That(structT.IsScalarType, Is.False);
+        Assert.That(structT.IsObjectType, Is.True);
+
+        var voidT = typedefs["VoidT"];
+        Assert.That(voidT.IsObjectType, Is.False);
+        Assert.That(voidT.IsScalarType, Is.False);
+    }
+
+    [Test]
+    public void VectorKindTest()
+    {
+        var inputContents = """
+using VecT = int __attribute__((vector_size(16)));
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var vecT = translationUnit.TranslationUnitDecl.Decls.OfType<TypedefNameDecl>().Single((typedef) => typedef.Name.Equals("VecT", StringComparison.Ordinal)).UnderlyingType;
+        var vectorType = (VectorType)vecT.CanonicalType;
+
+        Assert.That(vectorType.VectorKind, Is.EqualTo(CX_VectorKind.CX_VECK_Generic));
+    }
+
+    [Test]
+    public void FunctionProtoTypeTest()
+    {
+        var inputContents = """
+int simple();
+auto trailing() -> int;
+void noThrow() noexcept;
+template <typename T> void mayThrow() noexcept(sizeof(T) > 1);
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var functions = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionDecl>()
+                                       .ToDictionary((functionDecl) => functionDecl.Name, (functionDecl) => (FunctionProtoType)functionDecl.Type, StringComparer.Ordinal);
+
+        var simple = functions["simple"];
+        Assert.That(simple.HasTrailingReturn, Is.False);
+        Assert.That(simple.ExceptionSpecType, Is.EqualTo(CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_None));
+        Assert.That(simple.NoexceptExpr, Is.Null);
+
+        Assert.That(functions["trailing"].HasTrailingReturn, Is.True);
+
+        var noThrow = functions["noThrow"];
+        Assert.That(noThrow.ExceptionSpecType, Is.EqualTo(CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_BasicNoexcept));
+        Assert.That(noThrow.NoexceptExpr, Is.Null);
+
+        var mayThrow = (FunctionProtoType)translationUnit.TranslationUnitDecl.Decls.OfType<FunctionTemplateDecl>().Single().TemplatedDecl.Type;
+        Assert.That(mayThrow.NoexceptExpr, Is.Not.Null);
+    }
+
+    [Test]
+    public void AutoTypePredicatesTest()
+    {
+        var inputContents = """
+template <typename T> auto Plain(T value);
+template <typename T> decltype(auto) Decltype(T value);
+template <typename T> concept Small = sizeof(T) > 0;
+template <typename T> Small auto Constrained(T value);
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents, commandLineArgs: Cpp20CommandLineArgs);
+
+        var autoTypes = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionTemplateDecl>()
+                                       .ToDictionary((template) => template.Name, (template) => (AutoType)template.TemplatedDecl.ReturnType, StringComparer.Ordinal);
+
+        var plain = autoTypes["Plain"];
+        Assert.That(plain.IsConstrained, Is.False);
+        Assert.That(plain.IsDecltypeAuto, Is.False);
+        Assert.That(plain.IsGNUAutoType, Is.False);
+
+        Assert.That(autoTypes["Decltype"].IsDecltypeAuto, Is.True);
+        Assert.That(autoTypes["Constrained"].IsConstrained, Is.True);
+    }
+
+    private static readonly string[] Cpp20CommandLineArgs = ["-std=c++20", "-Wno-pragma-once-outside-header"];
 }
