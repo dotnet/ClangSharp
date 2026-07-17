@@ -1031,6 +1031,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool HasNonTrivialDestructor => clangsharp.Cursor_getHasNonTrivialDestructor(this) != 0;
 
+    public readonly bool HasObjCAvailabilityVersion => clangsharp.Cursor_getHasObjCAvailabilityVersion(this) != 0;
+
     public readonly bool HasPlaceholderTypeConstraint => clangsharp.Cursor_getHasPlaceholderTypeConstraint(this) != 0;
 
     public readonly bool HasPrivateFields => clangsharp.Cursor_getHasPrivateFields(this) != 0;
@@ -1147,6 +1149,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsDefinition => clang.isCursorDefinition(this) != 0;
 
+    public readonly bool IsDelegateInitCall => clangsharp.Cursor_getIsDelegateInitCall(this) != 0;
+
     public readonly bool IsDelegatingConstructor => clangsharp.Cursor_getIsDelegatingConstructor(this) != 0;
 
     public readonly bool IsDeleted => clangsharp.Cursor_getIsDeleted(this) != 0;
@@ -1208,6 +1212,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly bool IsMacroFunctionLike => clang.Cursor_isMacroFunctionLike(this) != 0;
 
     public readonly bool IsMemberSpecialization => clangsharp.Cursor_getIsMemberSpecialization(this) != 0;
+
+    public readonly bool IsMessagingGetter => clangsharp.Cursor_getIsMessagingGetter(this) != 0;
+
+    public readonly bool IsMessagingSetter => clangsharp.Cursor_getIsMessagingSetter(this) != 0;
 
     public readonly bool IsNegative => clangsharp.Cursor_getIsNegative(this) != 0;
 
@@ -1397,11 +1405,28 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly int NumVBases => clangsharp.Cursor_getNumVBases(this);
 
+    public readonly VersionTuple? ObjCAvailabilityVersion
+    {
+        get
+        {
+            VersionTuple rv = default;
+            if (clangsharp.Cursor_getObjCAvailabilityVersion(this, &rv) == 1)
+            {
+                return rv;
+            }
+            return null;
+        }
+    }
+
     public readonly CXObjCDeclQualifierKind ObjCDeclQualifiers => (CXObjCDeclQualifierKind)clang.Cursor_getObjCDeclQualifiers(this);
 
     public readonly CXStringSet* ObjCManglings => clang.Cursor_getObjCManglings(this);
 
+    public readonly CX_ObjCMessageReceiverKind ObjCMessageReceiverKind => clangsharp.Cursor_getObjCMessageReceiverKind(this);
+
     public readonly CXString ObjCPropertyGetterName => clang.Cursor_getObjCPropertyGetterName(this);
+
+    public readonly CX_ObjCPropertyRefReceiverKind ObjCPropertyRefReceiverKind => clangsharp.Cursor_getObjCPropertyRefReceiverKind(this);
 
     public readonly CXString ObjCPropertySetterName => clang.Cursor_getObjCPropertySetterName(this);
 
@@ -1468,6 +1493,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly CXString PrettyPrintAttribute() => clangsharp.Cursor_prettyPrintAttribute(this);
 
     public readonly CXCursor SemanticParent => clang.getCursorSemanticParent(this);
+
+    public readonly CXCursor SetAtIndexMethodDecl => clangsharp.Cursor_getSetAtIndexMethodDecl(this);
 
     public readonly bool ShouldCopy => clangsharp.Cursor_getShouldCopy(this) != 0;
 

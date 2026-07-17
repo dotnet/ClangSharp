@@ -32,7 +32,11 @@ public sealed class ObjCMessageExpr : Expr
 
     public bool IsImplicit => Handle.IsImplicit;
 
+    public bool IsDelegateInitCall => Handle.IsDelegateInitCall;
+
     public Expr InstanceReceiver => _instanceReceiver.GetValue(this);
+
+    public CX_ObjCMessageReceiverKind ReceiverKind => Handle.ObjCMessageReceiverKind;
 
     public Type ReceiverType => _receiverType.GetValue(this);
 
