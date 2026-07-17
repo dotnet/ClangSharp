@@ -89,11 +89,29 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public readonly bool IsGNUAutoType => clangsharp.Type_getIsGNUAutoType(this) != 0;
 
+    public readonly bool IsObjCClassType => clangsharp.Type_getIsObjCClassType(this) != 0;
+
+    public readonly bool IsObjCIdType => clangsharp.Type_getIsObjCIdType(this) != 0;
+
     public readonly bool IsObjCInstanceType => (kind != CXType_Invalid) && clangsharp.Type_getIsObjCInstanceType(this) != 0;
+
+    public readonly bool IsObjCKindOfType => clangsharp.Type_getIsObjCKindOfType(this) != 0;
+
+    public readonly bool IsObjCKindOfTypeAsWritten => clangsharp.Type_getIsObjCKindOfTypeAsWritten(this) != 0;
+
+    public readonly bool IsObjCObjectSpecialized => clangsharp.Type_getIsObjCObjectSpecialized(this) != 0;
+
+    public readonly bool IsObjCObjectSpecializedAsWritten => clangsharp.Type_getIsObjCObjectSpecializedAsWritten(this) != 0;
+
+    public readonly bool IsObjCQualifiedClassType => clangsharp.Type_getIsObjCQualifiedClassType(this) != 0;
+
+    public readonly bool IsObjCQualifiedIdType => clangsharp.Type_getIsObjCQualifiedIdType(this) != 0;
 
     public readonly bool IsObjectType => clangsharp.Type_getIsObjectType(this) != 0;
 
     public readonly bool IsPODType => clang.isPODType(this) != 0;
+
+    public readonly bool IsParameterPack => clangsharp.Type_getIsParameterPack(this) != 0;
 
     public readonly bool IsRealFloatingType => clangsharp.Type_getIsRealFloatingType(this) != 0;
 
@@ -144,6 +162,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
     public readonly uint NumObjCProtocolRefs => clang.Type_getNumObjCProtocolRefs(this);
 
     public readonly uint NumObjCTypeArgs => clang.Type_getNumObjCTypeArgs(this);
+
+    public readonly int NumObjCTypeParamProtocols => clangsharp.Type_getNumObjCTypeParamProtocols(this);
 
     public readonly int NumTemplateArguments => clang.Type_getNumTemplateArguments(this);
 
@@ -282,6 +302,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
     public readonly CXCursor GetObjCProtocolDecl(uint i) => clang.Type_getObjCProtocolDecl(this, i);
 
     public readonly CXType GetObjCTypeArg(uint i) => clang.Type_getObjCTypeArg(this, i);
+
+    public readonly CXCursor GetObjCTypeParamProtocol(uint i) => clangsharp.Type_getObjCTypeParamProtocol(this, i);
 
     public readonly long GetOffsetOf(string s)
     {
