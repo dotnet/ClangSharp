@@ -17,6 +17,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 {
     public static CXCursor Null => clang.getNullCursor();
 
+    public readonly CXCursor Allocate => clangsharp.Cursor_getAllocate(this);
+
     public readonly CXType ArgumentType => clangsharp.Cursor_getArgumentType(this);
 
     public readonly long ArraySize => clangsharp.Cursor_getArraySize(this);
@@ -943,6 +945,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXType DefaultArgType => clangsharp.Cursor_getDefaultArgType(this);
 
+    public readonly CXCursor Deallocate => clangsharp.Cursor_getDeallocate(this);
+
     public readonly CXCursor Definition => clangsharp.Cursor_getDefinition(this);
 
     public readonly CXCursor DependentLambdaCallOperator => clangsharp.Cursor_getDependentLambdaCallOperator(this);
@@ -971,11 +975,17 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXEvalResult Evaluate => (CXEvalResult)clang.Cursor_Evaluate(this);
 
+    public readonly CXCursor ExceptionHandler => clangsharp.Cursor_getExceptionHandler(this);
+
     public readonly int ExceptionSpecificationType => clang.getCursorExceptionSpecificationType(this);
 
     public readonly CX_ExprDependence ExprDependence => clangsharp.Cursor_getExprDependence(this);
 
     public readonly CXSourceRange Extent => clang.getCursorExtent(this);
+
+    public readonly CXCursor FallthroughHandler => clangsharp.Cursor_getFallthroughHandler(this);
+
+    public readonly CXCursor FinalSuspendStmt => clangsharp.Cursor_getFinalSuspendStmt(this);
 
     public readonly CX_FloatingSemantics FloatingLiteralSemantics => clangsharp.Cursor_getFloatingLiteralSemantics(this);
 
@@ -1006,6 +1016,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly bool HasDefaultArg => clangsharp.Cursor_getHasDefaultArg(this) != 0;
 
     public readonly bool HasDeletedDestructor => clangsharp.Cursor_getHasDeletedDestructor(this) != 0;
+
+    public readonly bool HasDependentPromiseType => clangsharp.Cursor_getHasDependentPromiseType(this) != 0;
 
     public readonly bool HasElseStorage => clangsharp.Cursor_getHasElseStorage(this) != 0;
 
@@ -1082,6 +1094,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly bool InheritedFromVBase => clangsharp.Cursor_getInheritedFromVBase(this) != 0;
 
     public readonly CXCursor InitExpr => clangsharp.Cursor_getInitExpr(this);
+
+    public readonly CXCursor InitSuspendStmt => clangsharp.Cursor_getInitSuspendStmt(this);
 
     public readonly CX_InitializationStyle InitStyle => clangsharp.Cursor_getInitStyle(this);
 
@@ -1413,6 +1427,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor OpaqueValue => clangsharp.Cursor_getOpaqueValue(this);
 
+    public readonly CXCursor Operand => clangsharp.Cursor_getOperand(this);
+
     public readonly CXType OriginalType => clangsharp.Cursor_getOriginalType(this);
 
     public readonly CX_OverloadedOperatorKind OverloadedOperatorKind => clangsharp.Cursor_getOverloadedOperatorKind(this);
@@ -1443,6 +1459,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXPrintingPolicy PrintingPolicy => (kind != default) ? (CXPrintingPolicy)clang.getCursorPrintingPolicy(this) : default;
 
+    public readonly CXCursor PromiseCall => clangsharp.Cursor_getPromiseCall(this);
+
+    public readonly CXCursor PromiseDecl => clangsharp.Cursor_getPromiseDecl(this);
+
     public readonly CXString QualifiedName => clangsharp.Cursor_getQualifiedName(this);
 
     public readonly CXString RawCommentText => clang.Cursor_getRawCommentText(this);
@@ -1455,11 +1475,21 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool RequiresZeroInitialization => clangsharp.Cursor_getRequiresZeroInitialization(this) != 0;
 
+    public readonly CXCursor ResultDecl => clangsharp.Cursor_getResultDecl(this);
+
     public readonly int ResultIndex => clangsharp.Cursor_getResultIndex(this);
 
     public readonly CXType ResultType => clang.getCursorResultType(this);
 
+    public readonly CXCursor ReturnStmt => clangsharp.Cursor_getReturnStmt(this);
+
+    public readonly CXCursor ReturnStmtOnAllocFailure => clangsharp.Cursor_getReturnStmtOnAllocFailure(this);
+
     public readonly CXType ReturnType => clangsharp.Cursor_getReturnType(this);
+
+    public readonly CXCursor ReturnValue => clangsharp.Cursor_getReturnValue(this);
+
+    public readonly CXCursor ReturnValueInit => clangsharp.Cursor_getReturnValueInit(this);
 
     public readonly CXCursor RhsExpr => clangsharp.Cursor_getRhsExpr(this);
 
