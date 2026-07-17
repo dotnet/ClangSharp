@@ -533,7 +533,15 @@ public partial class PInvokeGenerator
             {
                 if (fieldDecl.IsBitField)
                 {
-                    VisitBitfieldDecl(fieldDecl, bitfieldDescs, recordDecl, contextName: "", ref bitfieldIndex, ref bitfieldPreviousSize, ref bitfieldRemainingBits);
+                    if (fieldDecl.IsZeroLengthBitField)
+                    {
+                        bitfieldPreviousSize = 0;
+                        bitfieldRemainingBits = 0;
+                    }
+                    else
+                    {
+                        VisitBitfieldDecl(fieldDecl, bitfieldDescs, recordDecl, contextName: "", ref bitfieldIndex, ref bitfieldPreviousSize, ref bitfieldRemainingBits);
+                    }
                 }
                 else
                 {

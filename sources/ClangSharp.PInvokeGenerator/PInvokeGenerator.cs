@@ -1408,6 +1408,15 @@ public sealed partial class PInvokeGenerator : IDisposable
                 continue;
             }
 
+            if (fieldDecl.IsZeroLengthBitField)
+            {
+                // A zero-length bitfield (`int : 0;`) names no storage and only forces the next
+                // bitfield into a fresh storage unit, so it emits no region and resets the run.
+                previousSize = 0;
+                remainingBits = 0;
+                continue;
+            }
+
             var type = fieldDecl.Type;
             var currentSize = type.Handle.SizeOf;
 
