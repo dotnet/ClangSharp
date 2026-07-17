@@ -8,7 +8,22 @@ namespace ClangSharp;
 
 public sealed class CoreturnStmt : Stmt
 {
-    internal CoreturnStmt(CXCursor handle) : base(handle, CXCursor_UnexposedStmt, CX_StmtClass_CoreturnStmt)
+    private ValueLazy<CoreturnStmt, Expr> _operand;
+    private ValueLazy<CoreturnStmt, Expr> _promiseCall;
+
+    internal unsafe CoreturnStmt(CXCursor handle) : base(handle, CXCursor_UnexposedStmt, CX_StmtClass_CoreturnStmt)
     {
+        _operand = new ValueLazy<CoreturnStmt, Expr>(&OperandFactory);
+        _promiseCall = new ValueLazy<CoreturnStmt, Expr>(&PromiseCallFactory);
     }
+
+    public bool IsImplicit => Handle.IsImplicit;
+
+    public Expr Operand => _operand.GetValue(this);
+
+    public Expr PromiseCall => _promiseCall.GetValue(this);
+
+    private static Expr OperandFactory(CoreturnStmt self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.Operand);
+
+    private static Expr PromiseCallFactory(CoreturnStmt self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.PromiseCall);
 }

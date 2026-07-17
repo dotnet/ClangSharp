@@ -103,4 +103,73 @@ lbl:
         Assert.That(asmStmt.LabelNames[0], Is.EqualTo("lbl"));
         Assert.That(asmStmt.LabelExprs, Has.Count.EqualTo(1));
     }
+
+    [Test]
+    public void CoroutineBodyStmtTest()
+    {
+        var inputContents = """
+namespace std
+{
+    template <typename R, typename...> struct coroutine_traits { using promise_type = typename R::promise_type; };
+
+    template <typename Promise = void> struct coroutine_handle;
+
+    template <> struct coroutine_handle<void>
+    {
+        static coroutine_handle from_address(void*) noexcept { return {}; }
+        void* address() const noexcept { return nullptr; }
+    };
+
+    template <typename Promise> struct coroutine_handle
+    {
+        operator coroutine_handle<>() const noexcept { return {}; }
+        static coroutine_handle from_address(void*) noexcept { return {}; }
+        static coroutine_handle from_promise(Promise&) noexcept { return {}; }
+        void* address() const noexcept { return nullptr; }
+    };
+}
+
+struct suspend_always
+{
+    bool await_ready() const noexcept { return false; }
+    void await_suspend(std::coroutine_handle<>) const noexcept { }
+    void await_resume() const noexcept { }
+};
+
+struct task
+{
+    struct promise_type
+    {
+        task get_return_object() { return {}; }
+        suspend_always initial_suspend() { return {}; }
+        suspend_always final_suspend() noexcept { return {}; }
+        void return_void() { }
+        void unhandled_exception() { }
+    };
+};
+
+task f()
+{
+    co_return;
+}
+""";
+
+        string[] commandLineArgs = ["-std=c++20", "-Wno-pragma-once-outside-header"];
+        using var translationUnit = CreateTranslationUnit(inputContents, commandLineArgs: commandLineArgs);
+
+        var func = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionDecl>()
+                                  .Single((functionDecl) => functionDecl.Name.Equals("f", StringComparison.Ordinal));
+
+        var coroutineBody = (CoroutineBodyStmt)func.Body!;
+
+        Assert.That(coroutineBody.Body, Is.Not.Null);
+        Assert.That(coroutineBody.PromiseDecl, Is.Not.Null);
+        Assert.That(coroutineBody.InitSuspendStmt, Is.Not.Null);
+        Assert.That(coroutineBody.FinalSuspendStmt, Is.Not.Null);
+        Assert.That(coroutineBody.HasDependentPromiseType, Is.False);
+
+        var coreturn = coroutineBody.Body.Children.OfType<CoreturnStmt>().Single();
+
+        Assert.That(coreturn.PromiseCall, Is.Not.Null);
+    }
 }
