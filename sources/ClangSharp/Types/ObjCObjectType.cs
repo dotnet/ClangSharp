@@ -32,6 +32,14 @@ public class ObjCObjectType : Type
 
     public ObjCInterfaceDecl Interface => _interface.GetValue(this);
 
+    public bool IsKindOfType => Handle.IsObjCKindOfType;
+
+    public bool IsKindOfTypeAsWritten => Handle.IsObjCKindOfTypeAsWritten;
+
+    public bool IsSpecialized => Handle.IsObjCObjectSpecialized;
+
+    public bool IsSpecializedAsWritten => Handle.IsObjCObjectSpecializedAsWritten;
+
     public IReadOnlyList<ObjCProtocolDecl> Protocols => _protocols;
 
     public Type SuperClassType => _superClassType.GetValue(this);

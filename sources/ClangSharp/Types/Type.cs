@@ -162,9 +162,17 @@ public unsafe class Type : IEquatable<Type>
 
     public bool IsNullPtrType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind == CXType_NullPtr;
 
+    public bool IsObjCClassType => Handle.IsObjCClassType;
+
+    public bool IsObjCIdType => Handle.IsObjCIdType;
+
     public bool IsObjCInstanceType => Handle.IsObjCInstanceType;
 
     public bool IsObjCObjectPointerType => CanonicalType is ObjCObjectPointerType;
+
+    public bool IsObjCQualifiedClassType => Handle.IsObjCQualifiedClassType;
+
+    public bool IsObjCQualifiedIdType => Handle.IsObjCQualifiedIdType;
 
     public bool IsObjectType => Handle.IsObjectType;
 
