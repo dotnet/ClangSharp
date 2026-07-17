@@ -1077,6 +1077,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor InClassInitializer => clangsharp.Cursor_getInClassInitializer(this);
 
+    public readonly CX_InclusionDirectiveKind InclusionDirectiveKind => clangsharp.Cursor_getInclusionDirectiveKind(this);
+
+    public readonly bool InclusionDirectiveWasInQuotes => clangsharp.Cursor_getInclusionDirectiveWasInQuotes(this) != 0;
+
     public readonly CXCursor InheritedConstructor => clangsharp.Cursor_getInheritedConstructor(this);
 
     public readonly bool InheritedFromVBase => clangsharp.Cursor_getInheritedFromVBase(this) != 0;
@@ -1205,7 +1209,13 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsMacroBuiltIn => clang.Cursor_isMacroBuiltin(this) != 0;
 
+    public readonly bool IsMacroC99Varargs => clangsharp.Cursor_getIsMacroC99Varargs(this) != 0;
+
     public readonly bool IsMacroFunctionLike => clang.Cursor_isMacroFunctionLike(this) != 0;
+
+    public readonly bool IsMacroGNUVarargs => clangsharp.Cursor_getIsMacroGNUVarargs(this) != 0;
+
+    public readonly bool IsMacroVariadic => clangsharp.Cursor_getIsMacroVariadic(this) != 0;
 
     public readonly bool IsMemberSpecialization => clangsharp.Cursor_getIsMemberSpecialization(this) != 0;
 
@@ -1378,6 +1388,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly uint NumInputs => clangsharp.Cursor_getNumInputs(this);
 
     public readonly uint NumLabels => clangsharp.Cursor_getNumLabels(this);
+
+    public readonly int NumMacroParams => clangsharp.Cursor_getNumMacroParams(this);
+
+    public readonly int NumMacroTokens => clangsharp.Cursor_getNumMacroTokens(this);
 
     public readonly int NumMethods => clangsharp.Cursor_getNumMethods(this);
 
@@ -2020,6 +2034,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             return result != 0;
         }
     }
+
+    public readonly CXString GetMacroParamName(uint index) => clangsharp.Cursor_getMacroParamName(this, index);
+
+    public readonly CXString GetMacroTokenSpelling(uint index) => clangsharp.Cursor_getMacroTokenSpelling(this, index);
 
     public readonly CXCursor GetMethod(uint index) => clangsharp.Cursor_getMethod(this, index);
 
