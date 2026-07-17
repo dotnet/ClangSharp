@@ -11,4 +11,8 @@ public sealed class ObjCAvailabilityCheckExpr : Expr
     internal ObjCAvailabilityCheckExpr(CXCursor handle) : base(handle, CXCursor_ObjCAvailabilityCheckExpr, CX_StmtClass_ObjCAvailabilityCheckExpr)
     {
     }
+
+    public bool HasVersion => Handle.HasObjCAvailabilityVersion;
+
+    public VersionTuple? Version => Handle.ObjCAvailabilityVersion;
 }

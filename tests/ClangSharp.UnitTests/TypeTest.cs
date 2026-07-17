@@ -187,6 +187,13 @@ using SpecT = Tmpl<int>;
 
         Assert.That(templateName.IsNull, Is.False);
         Assert.That(templateName.Kind, Is.EqualTo(CX_TemplateNameKind.CX_TNK_QualifiedTemplate));
+        Assert.That(templateName.IsDependent, Is.False);
+        Assert.That(templateName.IsInstantiationDependent, Is.False);
+        Assert.That(templateName.ContainsUnexpandedParameterPack, Is.False);
+
+        var underlying = templateName.Underlying;
+        Assert.That(underlying.IsNull, Is.False);
+        Assert.That(underlying.AsTemplateDecl.Name, Is.EqualTo("Tmpl"));
     }
 
     [Test]
