@@ -17,6 +17,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 {
     public static CXCursor Null => clang.getNullCursor();
 
+    public readonly CXCursor Allocate => clangsharp.Cursor_getAllocate(this);
+
     public readonly CXType ArgumentType => clangsharp.Cursor_getArgumentType(this);
 
     public readonly long ArraySize => clangsharp.Cursor_getArraySize(this);
@@ -943,6 +945,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXType DefaultArgType => clangsharp.Cursor_getDefaultArgType(this);
 
+    public readonly CXCursor Deallocate => clangsharp.Cursor_getDeallocate(this);
+
     public readonly CXCursor Definition => clangsharp.Cursor_getDefinition(this);
 
     public readonly CXCursor DependentLambdaCallOperator => clangsharp.Cursor_getDependentLambdaCallOperator(this);
@@ -971,11 +975,17 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXEvalResult Evaluate => (CXEvalResult)clang.Cursor_Evaluate(this);
 
+    public readonly CXCursor ExceptionHandler => clangsharp.Cursor_getExceptionHandler(this);
+
     public readonly int ExceptionSpecificationType => clang.getCursorExceptionSpecificationType(this);
 
     public readonly CX_ExprDependence ExprDependence => clangsharp.Cursor_getExprDependence(this);
 
     public readonly CXSourceRange Extent => clang.getCursorExtent(this);
+
+    public readonly CXCursor FallthroughHandler => clangsharp.Cursor_getFallthroughHandler(this);
+
+    public readonly CXCursor FinalSuspendStmt => clangsharp.Cursor_getFinalSuspendStmt(this);
 
     public readonly CX_FloatingSemantics FloatingLiteralSemantics => clangsharp.Cursor_getFloatingLiteralSemantics(this);
 
@@ -1006,6 +1016,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly bool HasDefaultArg => clangsharp.Cursor_getHasDefaultArg(this) != 0;
 
     public readonly bool HasDeletedDestructor => clangsharp.Cursor_getHasDeletedDestructor(this) != 0;
+
+    public readonly bool HasDependentPromiseType => clangsharp.Cursor_getHasDependentPromiseType(this) != 0;
 
     public readonly bool HasElseStorage => clangsharp.Cursor_getHasElseStorage(this) != 0;
 
@@ -1079,11 +1091,17 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor InClassInitializer => clangsharp.Cursor_getInClassInitializer(this);
 
+    public readonly CX_InclusionDirectiveKind InclusionDirectiveKind => clangsharp.Cursor_getInclusionDirectiveKind(this);
+
+    public readonly bool InclusionDirectiveWasInQuotes => clangsharp.Cursor_getInclusionDirectiveWasInQuotes(this) != 0;
+
     public readonly CXCursor InheritedConstructor => clangsharp.Cursor_getInheritedConstructor(this);
 
     public readonly bool InheritedFromVBase => clangsharp.Cursor_getInheritedFromVBase(this) != 0;
 
     public readonly CXCursor InitExpr => clangsharp.Cursor_getInitExpr(this);
+
+    public readonly CXCursor InitSuspendStmt => clangsharp.Cursor_getInitSuspendStmt(this);
 
     public readonly CX_InitializationStyle InitStyle => clangsharp.Cursor_getInitStyle(this);
 
@@ -1209,7 +1227,13 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsMacroBuiltIn => clang.Cursor_isMacroBuiltin(this) != 0;
 
+    public readonly bool IsMacroC99Varargs => clangsharp.Cursor_getIsMacroC99Varargs(this) != 0;
+
     public readonly bool IsMacroFunctionLike => clang.Cursor_isMacroFunctionLike(this) != 0;
+
+    public readonly bool IsMacroGNUVarargs => clangsharp.Cursor_getIsMacroGNUVarargs(this) != 0;
+
+    public readonly bool IsMacroVariadic => clangsharp.Cursor_getIsMacroVariadic(this) != 0;
 
     public readonly bool IsMemberSpecialization => clangsharp.Cursor_getIsMemberSpecialization(this) != 0;
 
@@ -1387,6 +1411,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly uint NumLabels => clangsharp.Cursor_getNumLabels(this);
 
+    public readonly int NumMacroParams => clangsharp.Cursor_getNumMacroParams(this);
+
+    public readonly int NumMacroTokens => clangsharp.Cursor_getNumMacroTokens(this);
+
     public readonly int NumMethods => clangsharp.Cursor_getNumMethods(this);
 
     public readonly uint NumOutputs => clangsharp.Cursor_getNumOutputs(this);
@@ -1438,6 +1466,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor OpaqueValue => clangsharp.Cursor_getOpaqueValue(this);
 
+    public readonly CXCursor Operand => clangsharp.Cursor_getOperand(this);
+
     public readonly CXType OriginalType => clangsharp.Cursor_getOriginalType(this);
 
     public readonly CX_OverloadedOperatorKind OverloadedOperatorKind => clangsharp.Cursor_getOverloadedOperatorKind(this);
@@ -1468,6 +1498,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXPrintingPolicy PrintingPolicy => (kind != default) ? (CXPrintingPolicy)clang.getCursorPrintingPolicy(this) : default;
 
+    public readonly CXCursor PromiseCall => clangsharp.Cursor_getPromiseCall(this);
+
+    public readonly CXCursor PromiseDecl => clangsharp.Cursor_getPromiseDecl(this);
+
     public readonly CXString QualifiedName => clangsharp.Cursor_getQualifiedName(this);
 
     public readonly CXString RawCommentText => clang.Cursor_getRawCommentText(this);
@@ -1480,11 +1514,21 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool RequiresZeroInitialization => clangsharp.Cursor_getRequiresZeroInitialization(this) != 0;
 
+    public readonly CXCursor ResultDecl => clangsharp.Cursor_getResultDecl(this);
+
     public readonly int ResultIndex => clangsharp.Cursor_getResultIndex(this);
 
     public readonly CXType ResultType => clang.getCursorResultType(this);
 
+    public readonly CXCursor ReturnStmt => clangsharp.Cursor_getReturnStmt(this);
+
+    public readonly CXCursor ReturnStmtOnAllocFailure => clangsharp.Cursor_getReturnStmtOnAllocFailure(this);
+
     public readonly CXType ReturnType => clangsharp.Cursor_getReturnType(this);
+
+    public readonly CXCursor ReturnValue => clangsharp.Cursor_getReturnValue(this);
+
+    public readonly CXCursor ReturnValueInit => clangsharp.Cursor_getReturnValueInit(this);
 
     public readonly CXCursor RhsExpr => clangsharp.Cursor_getRhsExpr(this);
 
@@ -2047,6 +2091,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             return result != 0;
         }
     }
+
+    public readonly CXString GetMacroParamName(uint index) => clangsharp.Cursor_getMacroParamName(this, index);
+
+    public readonly CXString GetMacroTokenSpelling(uint index) => clangsharp.Cursor_getMacroTokenSpelling(this, index);
 
     public readonly CXCursor GetMethod(uint index) => clangsharp.Cursor_getMethod(this, index);
 
