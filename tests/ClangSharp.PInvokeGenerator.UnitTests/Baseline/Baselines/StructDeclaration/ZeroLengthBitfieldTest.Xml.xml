@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="_bitfield1" access="public">
+        <attribute>NativeBitfield("o0_b0_1", offset: 0, length: 1)</attribute>
+        <type>uint</type>
+      </field>
+      <field name="o0_b0_1" access="public">
+        <type native="unsigned int : 1">uint</type>
+        <get>
+          <code>return <bitfieldName>_bitfield1</bitfieldName> &amp; 0x<bitwidthHexStringBacking>1u</bitwidthHexStringBacking>;</code>
+        </get>
+        <set>
+          <code>
+            <bitfieldName>_bitfield1</bitfieldName> = (_bitfield1 &amp; ~0x<bitwidthHexStringBacking>1u</bitwidthHexStringBacking>) | (value &amp; 0x<bitwidthHexString>1u</bitwidthHexString>);</code>
+        </set>
+      </field>
+      <field name="_bitfield2" access="public">
+        <attribute>NativeBitfield("o4_b0_1", offset: 0, length: 1)</attribute>
+        <type>uint</type>
+      </field>
+      <field name="o4_b0_1" access="public">
+        <type native="unsigned int : 1">uint</type>
+        <get>
+          <code>return <bitfieldName>_bitfield2</bitfieldName> &amp; 0x<bitwidthHexStringBacking>1u</bitwidthHexStringBacking>;</code>
+        </get>
+        <set>
+          <code>
+            <bitfieldName>_bitfield2</bitfieldName> = (_bitfield2 &amp; ~0x<bitwidthHexStringBacking>1u</bitwidthHexStringBacking>) | (value &amp; 0x<bitwidthHexString>1u</bitwidthHexString>);</code>
+        </set>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

@@ -153,6 +153,20 @@ struct MyStruct3
     }
 
     [Test]
+    public Task ZeroLengthBitfieldTest()
+    {
+        var inputContents = @"struct MyStruct
+{
+    unsigned int o0_b0_1 : 1;
+    unsigned int : 0;
+    unsigned int o4_b0_1 : 1;
+};
+";
+
+        return ValidateAsync(nameof(ZeroLengthBitfieldTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute);
+    }
+
+    [Test]
     public Task DeclTypeTest()
     {
         var inputContents = @"extern ""C"" void MyFunction();
