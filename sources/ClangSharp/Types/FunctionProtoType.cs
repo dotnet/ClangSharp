@@ -10,21 +10,29 @@ namespace ClangSharp;
 public sealed class FunctionProtoType : FunctionType
 {
     private readonly LazyList<Type> _paramTypes;
+    private ValueLazy<FunctionProtoType, Expr> _noexceptExpr;
 
     internal unsafe FunctionProtoType(CXType handle) : base(handle, CXType_FunctionProto, CX_TypeClass_FunctionProto)
     {
         _paramTypes = LazyList.Create<Type>(this, Handle.NumArgTypes, &ParamTypesFactory);
+        _noexceptExpr = new ValueLazy<FunctionProtoType, Expr>(&NoexceptExprFactory);
     }
 
     public CXCursor_ExceptionSpecificationKind ExceptionSpecType => Handle.ExceptionSpecificationType;
 
+    public bool HasTrailingReturn => Handle.HasTrailingReturn;
+
     public bool IsVariadic => Handle.IsFunctionTypeVariadic;
+
+    public Expr? NoexceptExpr => _noexceptExpr.GetValue(this);
 
     public uint NumParams => (uint)Handle.NumArgTypes;
 
     public IReadOnlyList<Type> ParamTypes => _paramTypes;
 
     public CXRefQualifierKind RefQualifier => Handle.CXXRefQualifier;
+
+    private static unsafe Expr NoexceptExprFactory(FunctionProtoType self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.NoexceptExpr);
 
     private static unsafe Type ParamTypesFactory(object self, int i)
     {
