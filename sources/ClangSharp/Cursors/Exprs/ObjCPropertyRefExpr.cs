@@ -36,9 +36,15 @@ public sealed class ObjCPropertyRefExpr : Expr
 
     public bool IsImplicitProperty => Handle.IsImplicit;
 
+    public bool IsMessagingGetter => Handle.IsMessagingGetter;
+
+    public bool IsMessagingSetter => Handle.IsMessagingSetter;
+
     public ObjCMethodDecl ImplicitPropertyGetter => _implicitPropertyGetter.GetValue(this);
 
     public ObjCMethodDecl ImplicitPropertySetter => _implicitPropertySetter.GetValue(this);
+
+    public CX_ObjCPropertyRefReceiverKind ReceiverKind => Handle.ObjCPropertyRefReceiverKind;
 
     public Type SuperReceiverType => _superReceiverType.GetValue(this);
 

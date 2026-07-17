@@ -10,11 +10,13 @@ namespace ClangSharp;
 public sealed class ObjCSubscriptRefExpr : Expr
 {
     private ValueLazy<ObjCSubscriptRefExpr, ObjCMethodDecl> _atIndexMethodDecl;
+    private ValueLazy<ObjCSubscriptRefExpr, ObjCMethodDecl> _setAtIndexMethodDecl;
 
     internal unsafe ObjCSubscriptRefExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCSubscriptRefExpr)
     {
         Debug.Assert(NumChildren is 2);
         _atIndexMethodDecl = new ValueLazy<ObjCSubscriptRefExpr, ObjCMethodDecl>(&AtIndexMethodDeclFactory);
+        _setAtIndexMethodDecl = new ValueLazy<ObjCSubscriptRefExpr, ObjCMethodDecl>(&SetAtIndexMethodDeclFactory);
     }
 
     public ObjCMethodDecl AtIndexMethodDecl => _atIndexMethodDecl.GetValue(this);
@@ -25,5 +27,9 @@ public sealed class ObjCSubscriptRefExpr : Expr
 
     public bool IsArraySubscriptRefExpr => KeyExpr.Type.IsIntegralOrEnumerationType;
 
+    public ObjCMethodDecl SetAtIndexMethodDecl => _setAtIndexMethodDecl.GetValue(this);
+
     private static unsafe ObjCMethodDecl AtIndexMethodDeclFactory(ObjCSubscriptRefExpr self) => self.TranslationUnit.GetOrCreate<ObjCMethodDecl>(self.Handle.Referenced);
+
+    private static unsafe ObjCMethodDecl SetAtIndexMethodDeclFactory(ObjCSubscriptRefExpr self) => self.TranslationUnit.GetOrCreate<ObjCMethodDecl>(self.Handle.SetAtIndexMethodDecl);
 }
