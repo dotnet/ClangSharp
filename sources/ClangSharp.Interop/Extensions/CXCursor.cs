@@ -1466,6 +1466,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly int ObjCSelectorIndex => clang.Cursor_getObjCSelectorIndex(this);
 
+    public readonly CX_ExprObjectKind ObjectKind => clangsharp.Cursor_getObjectKind(this);
+
     public readonly long OffsetOfField => clang.Cursor_getOffsetOfField(this);
 
     public readonly CXCursor OpaqueValue => clangsharp.Cursor_getOpaqueValue(this);
@@ -1953,6 +1955,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly CXCursor UsingEnumDeclEnumDecl => clangsharp.Cursor_getUsingEnumDeclEnumDecl(this);
 
     public readonly CXString Usr => clang.getCursorUSR(this);
+
+    public readonly CX_ExprValueKind ValueKind => clangsharp.Cursor_getValueKind(this);
 
     public readonly CXVisibilityKind Visibility => clang.getCursorVisibility(this);
 
