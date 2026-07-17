@@ -6,4 +6,12 @@ namespace ClangSharp.Interop;
 public unsafe partial struct CX_TemplateName
 {
     public readonly CXCursor AsTemplateDecl => clangsharp.TemplateName_getAsTemplateDecl(this);
+
+    public readonly bool ContainsUnexpandedParameterPack => clangsharp.TemplateName_getContainsUnexpandedParameterPack(this) != 0;
+
+    public readonly bool IsDependent => clangsharp.TemplateName_getIsDependent(this) != 0;
+
+    public readonly bool IsInstantiationDependent => clangsharp.TemplateName_getIsInstantiationDependent(this) != 0;
+
+    public readonly CX_TemplateName Underlying => clangsharp.TemplateName_getUnderlying(this);
 }
