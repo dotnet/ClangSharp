@@ -50,6 +50,8 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
 
     public bool IsUnnamedBitfield => Handle.IsUnnamedBitfield;
 
+    public bool IsZeroLengthBitField => Handle.IsZeroLengthBitField;
+
     public long OffsetOfField => Handle.OffsetOfField;
 
     public new RecordDecl? Parent => (DeclContext as RecordDecl) ?? ((SemanticParentCursor is ClassTemplateDecl classTemplateDecl) ? (RecordDecl)classTemplateDecl.TemplatedDecl : null);
