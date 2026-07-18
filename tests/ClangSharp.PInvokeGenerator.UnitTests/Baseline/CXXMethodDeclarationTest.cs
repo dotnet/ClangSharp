@@ -314,6 +314,12 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
         value *= scale;
         return *this;
     }
+
+    MyStruct& operator/=(MyStruct& other)
+    {
+        value /= other.value;
+        return other;
+    }
 };
 ");
 

@@ -666,6 +666,16 @@ public partial class PInvokeGenerator
         var returnType = functionDecl.ReturnType;
         var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName);
 
+        var isCompoundAssignmentOperator = IsLatestCompoundAssignmentOperator(functionDecl, out var compoundAssignmentOperatorToken);
+
+        if (isCompoundAssignmentOperator)
+        {
+            // Project onto a C# 14 user-defined compound-assignment operator; the trailing
+            // `return this`/`*this` is dropped when the body is emitted below.
+            escapedName = $"operator {compoundAssignmentOperatorToken}";
+            returnTypeName = "void";
+        }
+
         if (isManualImport && !_config.WithClasses.ContainsKey(name))
         {
             var parameters = functionDecl.Parameters;
@@ -690,11 +700,11 @@ public partial class PInvokeGenerator
             entryPoint = functionDecl.IsExternC ? GetCursorName(functionDecl) : functionDecl.Handle.Mangling.CString;
         }
 
-        var needsReturnFixup = (cxxMethodDecl is not null) && NeedsReturnFixup(cxxMethodDecl);
+        var needsReturnFixup = !isCompoundAssignmentOperator && (cxxMethodDecl is not null) && NeedsReturnFixup(cxxMethodDecl);
 
         var desc = new FunctionOrDelegateDesc {
             AccessSpecifier = accessSpecifier,
-            NativeTypeName = nativeTypeName,
+            NativeTypeName = isCompoundAssignmentOperator ? null! : nativeTypeName,
             EscapedName = escapedName,
             ParentName = parentName,
             EntryPoint = entryPoint,
@@ -880,7 +890,17 @@ public partial class PInvokeGenerator
                     var currentContext = _context.AddLast((compoundStmt, null));
 
                     _outputBuilder.BeginConstructorInitializers();
-                    VisitStmts(compoundStmt.Body);
+
+                    if (isCompoundAssignmentOperator)
+                    {
+                        // Drop the trailing `return this`/`*this`; the C# operator returns void.
+                        VisitStmts([.. compoundStmt.Body.SkipLast(1)]);
+                    }
+                    else
+                    {
+                        VisitStmts(compoundStmt.Body);
+                    }
+
                     _outputBuilder.EndConstructorInitializers();
 
                     Debug.Assert(_context.Last == currentContext);

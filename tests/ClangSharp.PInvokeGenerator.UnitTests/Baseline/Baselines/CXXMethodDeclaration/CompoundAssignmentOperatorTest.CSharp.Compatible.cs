@@ -19,5 +19,12 @@ namespace ClangSharp.Test
             value *= scale;
             return (MyStruct*)Unsafe.AsPointer(ref this);
         }
+
+        [return: NativeTypeName("MyStruct &")]
+        public MyStruct* op_DivisionAssignment([NativeTypeName("MyStruct &")] MyStruct* other)
+        {
+            value /= other->value;
+            return other;
+        }
     }
 }

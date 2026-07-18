@@ -21,6 +21,14 @@
         <code>value *= scale;
     return (MyStruct*)Unsafe.AsPointer(ref this);</code>
       </function>
+      <function name="op_DivisionAssignment" access="public" unsafe="true">
+        <type native="MyStruct &amp;">MyStruct*</type>
+        <param name="other">
+          <type>MyStruct*</type>
+        </param>
+        <code>value /= other-&gt;value;
+    return other;</code>
+      </function>
     </struct>
   </namespace>
 </bindings>

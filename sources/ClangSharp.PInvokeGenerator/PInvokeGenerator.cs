@@ -2381,6 +2381,76 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
+    private bool IsLatestCompoundAssignmentOperator(FunctionDecl functionDecl, [NotNullWhen(true)] out string? operatorToken)
+    {
+        operatorToken = null;
+
+        // C# 14 lets a compound-assignment operator be user-defined as an instance member with a
+        // void return that mutates in place. The C++ operator can project onto it only when it
+        // returns a pointer/reference to the declaring type and its body just returns `this`/`*this`,
+        // which is then dropped (see https://github.com/dotnet/ClangSharp/issues/821).
+        if (!_config.GenerateLatestCode || functionDecl is not CXXMethodDecl cxxMethodDecl || !cxxMethodDecl.IsInstance)
+        {
+            return false;
+        }
+
+        var parent = cxxMethodDecl.Parent;
+
+        if (parent is null)
+        {
+            return false;
+        }
+
+        var name = GetCursorName(functionDecl);
+
+        operatorToken = name switch {
+            "operator+=" or "operator-=" or "operator*=" or "operator/=" or "operator%=" or
+            "operator&=" or "operator|=" or "operator^=" or "operator<<=" or "operator>>=" => name["operator".Length..],
+            _ => null,
+        };
+
+        if (operatorToken is null)
+        {
+            return false;
+        }
+
+        var returnType = functionDecl.ReturnType.CanonicalType;
+
+        if (returnType is not (PointerType or ReferenceType) || (returnType.PointeeType.CanonicalType.AsCXXRecordDecl != parent))
+        {
+            operatorToken = null;
+            return false;
+        }
+
+        if (functionDecl.Body is not CompoundStmt compoundStmt || compoundStmt.BodyBack is not ReturnStmt returnStmt)
+        {
+            operatorToken = null;
+            return false;
+        }
+
+        var retValue = returnStmt.RetValue;
+
+        if (retValue is null || !ReturnsThis(retValue))
+        {
+            operatorToken = null;
+            return false;
+        }
+
+        return true;
+
+        static bool ReturnsThis(Expr retValue)
+        {
+            var expr = retValue.IgnoreParenCasts;
+
+            if (expr is UnaryOperator unaryOperator && (unaryOperator.Opcode == CXUnaryOperator_Deref))
+            {
+                expr = unaryOperator.SubExpr.IgnoreParenCasts;
+            }
+
+            return expr is CXXThisExpr;
+        }
+    }
+
     private void UncheckStmt(string targetTypeName, Stmt stmt)
     {
         Debug.Assert(_outputBuilder is not null);
