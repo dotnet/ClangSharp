@@ -30,6 +30,36 @@ typedef struct MyStruct {
     }
 
     [Test]
+    public Task BooleanLogicalOperandsTest()
+    {
+        // In C, `&&`/`||` yield `int` and promote a `_Bool` operand to `int`; the equivalent C#
+        // operators take `bool` operands directly, so the operands must be emitted as `bool` rather
+        // than coerced with `? 1 : 0` (see https://github.com/dotnet/ClangSharp/issues/820).
+        var inputContents = @"int LogicalAnd(_Bool a, _Bool b)
+{
+    return a && b;
+}
+
+int LogicalOr(_Bool a, _Bool b)
+{
+    return a || b;
+}
+
+int MixedOperands(_Bool a, int b)
+{
+    return a && (b < 3);
+}
+
+void LogicalLocal(_Bool a, _Bool b)
+{
+    int x = a || b;
+}
+";
+
+        return ValidateGeneratedCSharpLatestHostBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
     public Task BooleanCoercionToIntegerTest()
     {
         // The inverse of #820: in C, relational and logical operators yield `int`, so their result

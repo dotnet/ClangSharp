@@ -44,7 +44,12 @@ public partial class PInvokeGenerator
         // the surrounding context requires it.
         var isAdditive = binaryOperator.Opcode is CXBinaryOperator_Add or CXBinaryOperator_Sub;
 
-        VisitBinaryOperatorOperand(binaryOperator.LHS, isAdditive);
+        // C's `&&`/`||` yield `int` and promote a `_Bool` operand to `int`, which would otherwise
+        // render as a redundant `? 1 : 0` coercion. C#'s logical operators take `bool` operands
+        // directly, so emit the underlying boolean instead.
+        var isLogical = binaryOperator.IsLogicalOp;
+
+        VisitBinaryOperatorOperand(binaryOperator.LHS, isAdditive, isLogical);
         outputBuilder.Write(' ');
         outputBuilder.Write(binaryOperator.OpcodeStr);
         outputBuilder.Write(' ');
@@ -99,18 +104,24 @@ public partial class PInvokeGenerator
         }
         else
         {
-            VisitBinaryOperatorOperand(binaryOperator.RHS, isAdditive);
+            VisitBinaryOperatorOperand(binaryOperator.RHS, isAdditive, isLogical);
         }
 
         StopCSharpCode();
     }
 
-    private void VisitBinaryOperatorOperand(Expr operand, bool isAdditive)
+    private void VisitBinaryOperatorOperand(Expr operand, bool isAdditive, bool isLogical)
     {
         if (isAdditive && IsTypeVoidPointer(operand, operand.Type))
         {
             StartCSharpCode().Write("(byte*)");
             StopCSharpCode();
+        }
+
+        if (isLogical && (operand is ImplicitCastExpr cast) && (cast.CastKind is CX_CK_IntegralCast or CX_CK_BooleanToSignedIntegral) && (cast.SubExprAsWritten.Type.CanonicalType.Kind == CXType_Bool))
+        {
+            Visit(cast.SubExprAsWritten);
+            return;
         }
 
         Visit(operand);
