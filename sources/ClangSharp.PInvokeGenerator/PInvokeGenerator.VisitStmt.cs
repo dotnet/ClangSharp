@@ -44,7 +44,12 @@ public partial class PInvokeGenerator
         // the surrounding context requires it.
         var isAdditive = binaryOperator.Opcode is CXBinaryOperator_Add or CXBinaryOperator_Sub;
 
-        VisitBinaryOperatorOperand(binaryOperator.LHS, isAdditive);
+        // C's `&&`/`||` yield `int` and promote a `_Bool` operand to `int`, which would otherwise
+        // render as a redundant `? 1 : 0` coercion. C#'s logical operators take `bool` operands
+        // directly, so emit the underlying boolean instead.
+        var isLogical = binaryOperator.IsLogicalOp;
+
+        VisitBinaryOperatorOperand(binaryOperator.LHS, isAdditive, isLogical);
         outputBuilder.Write(' ');
         outputBuilder.Write(binaryOperator.OpcodeStr);
         outputBuilder.Write(' ');
@@ -99,18 +104,24 @@ public partial class PInvokeGenerator
         }
         else
         {
-            VisitBinaryOperatorOperand(binaryOperator.RHS, isAdditive);
+            VisitBinaryOperatorOperand(binaryOperator.RHS, isAdditive, isLogical);
         }
 
         StopCSharpCode();
     }
 
-    private void VisitBinaryOperatorOperand(Expr operand, bool isAdditive)
+    private void VisitBinaryOperatorOperand(Expr operand, bool isAdditive, bool isLogical)
     {
         if (isAdditive && IsTypeVoidPointer(operand, operand.Type))
         {
             StartCSharpCode().Write("(byte*)");
             StopCSharpCode();
+        }
+
+        if (isLogical && (operand is ImplicitCastExpr cast) && (cast.CastKind is CX_CK_IntegralCast or CX_CK_BooleanToSignedIntegral) && (cast.SubExprAsWritten.Type.CanonicalType.Kind == CXType_Bool))
+        {
+            Visit(cast.SubExprAsWritten);
+            return;
         }
 
         Visit(operand);
@@ -1403,6 +1414,28 @@ public partial class PInvokeGenerator
         StopCSharpCode();
     }
 
+    // C# has no implicit conversion from `bool` to an integer, so a C#-bool-valued expression
+    // consumed where an integer is required must be coerced with a conditional. This mirrors the
+    // frontend's `BooleanToSignedIntegral` cast for the contexts where C leaves the conversion
+    // implicit (e.g. a relational or logical result stored in or returned as an integer).
+    private void WriteBooleanAsInteger(CSharpOutputBuilder outputBuilder, Expr expr, long targetSizeOf)
+    {
+        var needsCast = targetSizeOf < 4;
+
+        if (needsCast)
+        {
+            outputBuilder.Write("(byte)(");
+        }
+
+        ParenthesizeStmt(expr);
+        outputBuilder.Write(" ? 1 : 0");
+
+        if (needsCast)
+        {
+            outputBuilder.Write(')');
+        }
+    }
+
     private void VisitImplicitCastExpr(ImplicitCastExpr implicitCastExpr)
     {
         var outputBuilder = StartCSharpCode();
@@ -1444,7 +1477,7 @@ public partial class PInvokeGenerator
 
             case CX_CK_IntegralToBoolean:
             {
-                if ((subExpr is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CXUnaryOperator_LNot))
+                if (IsCSharpBooleanValuedExpr(subExpr))
                 {
                     Visit(subExpr);
                 }
@@ -1458,21 +1491,7 @@ public partial class PInvokeGenerator
 
             case CX_CK_BooleanToSignedIntegral:
             {
-                var needsCast = implicitCastExpr.Type.Handle.SizeOf < 4;
-
-                if (needsCast)
-                {
-                    outputBuilder.Write("(byte)(");
-                }
-
-                ParenthesizeStmt(subExpr);
-                outputBuilder.Write(" ? 1 : 0");
-
-                if (needsCast)
-                {
-                    outputBuilder.Write(')');
-                }
-
+                WriteBooleanAsInteger(outputBuilder, subExpr, implicitCastExpr.Type.Handle.SizeOf);
                 break;
             }
 
@@ -2370,7 +2389,16 @@ public partial class PInvokeGenerator
                     }
                 }
 
-                Visit(retValue);
+                if (IsBareCSharpBooleanValuedExpr(retValue)
+                    && IsType<BuiltinType>(returnStmt, functionDecl.ReturnType, out var returnBuiltinType)
+                    && returnBuiltinType.IsIntegerType && (returnBuiltinType.Kind != CXType_Bool))
+                {
+                    WriteBooleanAsInteger(outputBuilder, retValue, functionDecl.ReturnType.Handle.SizeOf);
+                }
+                else
+                {
+                    Visit(retValue);
+                }
             }
         }
         else if (returnStmt.RetValue != null)

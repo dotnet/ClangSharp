@@ -345,7 +345,19 @@ public partial class PInvokeGenerator
             if (varDecl.HasInit)
             {
                 outputBuilder.Write(" = ");
-                Visit(varDecl.Init);
+
+                var init = varDecl.Init;
+
+                if (IsBareCSharpBooleanValuedExpr(init)
+                    && IsType<BuiltinType>(varDecl, varDecl.Type, out var builtinType)
+                    && builtinType.IsIntegerType && (builtinType.Kind != CXType_Bool))
+                {
+                    WriteBooleanAsInteger(outputBuilder, init, varDecl.Type.Handle.SizeOf);
+                }
+                else
+                {
+                    Visit(init);
+                }
             }
 
             StopCSharpCode();

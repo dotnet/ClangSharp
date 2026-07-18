@@ -30,6 +30,97 @@ typedef struct MyStruct {
     }
 
     [Test]
+    public Task BooleanLogicalOperandsTest()
+    {
+        // In C, `&&`/`||` yield `int` and promote a `_Bool` operand to `int`; the equivalent C#
+        // operators take `bool` operands directly, so the operands must be emitted as `bool` rather
+        // than coerced with `? 1 : 0` (see https://github.com/dotnet/ClangSharp/issues/820).
+        var inputContents = @"int LogicalAnd(_Bool a, _Bool b)
+{
+    return a && b;
+}
+
+int LogicalOr(_Bool a, _Bool b)
+{
+    return a || b;
+}
+
+int MixedOperands(_Bool a, int b)
+{
+    return a && (b < 3);
+}
+
+void LogicalLocal(_Bool a, _Bool b)
+{
+    int x = a || b;
+}
+";
+
+        return ValidateGeneratedCSharpLatestHostBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    public Task BooleanCoercionToIntegerTest()
+    {
+        // The inverse of #820: in C, relational and logical operators yield `int`, so their result
+        // can be stored in or returned as an integer without a cast. The equivalent C# operators
+        // yield `bool`, which has no implicit conversion to an integer, so a `? 1 : 0` coercion must
+        // be inserted (see https://github.com/dotnet/ClangSharp/issues/820).
+        var inputContents = @"
+int ReturnFromComparison(int a, int b)
+{
+    return a < b;
+}
+
+int ReturnFromLogical(int a, int b)
+{
+    return a < b || a > b;
+}
+
+int ReturnFromNegation(int a)
+{
+    return !a;
+}
+
+void Locals(int a, int b)
+{
+    int x = a < b;
+    int y = !a;
+}
+";
+
+        return ValidateGeneratedCSharpLatestHostBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    public Task BooleanReturnFromComparisonTest()
+    {
+        // In C, relational and logical operators yield `int`, so returning one as `_Bool`
+        // inserts an `IntegralToBoolean` cast. The equivalent C# operators already yield `bool`,
+        // so the `!= 0` coercion must be omitted (see https://github.com/dotnet/ClangSharp/issues/820).
+        var inputContents = @"
+#define bool _Bool
+
+bool FromComparison(int a, int b)
+{
+    return a < b;
+}
+
+bool FromLogical(int a, int b)
+{
+    return a < b || a > b;
+}
+
+bool FromInteger(int a)
+{
+    return a;
+}
+";
+
+        return ValidateGeneratedCSharpLatestHostBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
     public Task EnumTest()
     {
         var inputContents = @"enum {
