@@ -30,6 +30,39 @@ typedef struct MyStruct {
     }
 
     [Test]
+    public Task BooleanCoercionToIntegerTest()
+    {
+        // The inverse of #820: in C, relational and logical operators yield `int`, so their result
+        // can be stored in or returned as an integer without a cast. The equivalent C# operators
+        // yield `bool`, which has no implicit conversion to an integer, so a `? 1 : 0` coercion must
+        // be inserted (see https://github.com/dotnet/ClangSharp/issues/820).
+        var inputContents = @"
+int ReturnFromComparison(int a, int b)
+{
+    return a < b;
+}
+
+int ReturnFromLogical(int a, int b)
+{
+    return a < b || a > b;
+}
+
+int ReturnFromNegation(int a)
+{
+    return !a;
+}
+
+void Locals(int a, int b)
+{
+    int x = a < b;
+    int y = !a;
+}
+";
+
+        return ValidateGeneratedCSharpLatestHostBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
     public Task BooleanReturnFromComparisonTest()
     {
         // In C, relational and logical operators yield `int`, so returning one as `_Bool`

@@ -770,6 +770,16 @@ public sealed partial class PInvokeGenerator
         return (asWritten is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CXUnaryOperator_LNot);
     }
 
+    // The inverse of the `IntegralToBoolean` case: a C relational or logical operator (C# `bool`)
+    // stored in or returned as an integer needs a `? 1 : 0` coercion. This only applies when the
+    // expression is emitted as a bare `bool`; a wrapping implicit cast (e.g. `BooleanToSignedIntegral`)
+    // already performs the conversion, so peel parens but stop at casts to avoid coercing twice.
+    private static bool IsBareCSharpBooleanValuedExpr(Expr expr)
+    {
+        expr = expr.IgnoreParens;
+        return (expr is not ImplicitCastExpr) && IsCSharpBooleanValuedExpr(expr);
+    }
+
     private static bool IsStmtAsWritten<T>(Cursor cursor, [MaybeNullWhen(false)] out T value, bool removeParens = false)
         where T : Stmt
     {
