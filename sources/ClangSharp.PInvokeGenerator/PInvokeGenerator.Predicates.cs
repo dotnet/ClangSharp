@@ -907,6 +907,12 @@ public sealed partial class PInvokeGenerator
                 return IsType(cursor, usingType.Desugar, out value);
             }
         }
+        else if (type.IsSugared && (type.Desugar != type))
+        {
+            // A sugar type class we don't specifically handle (e.g. clang 22's
+            // PredefinedSugarType for `size_t`) still desugars to its underlying type.
+            return IsType(cursor, type.Desugar, out value);
+        }
 
         value = default;
         return false;

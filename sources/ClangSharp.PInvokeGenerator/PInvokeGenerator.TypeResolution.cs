@@ -550,6 +550,12 @@ public sealed partial class PInvokeGenerator
             {
                 result.typeName = EscapeName(GetRemappedCursorName(objCInterfaceType.Decl));
             }
+            else if (type.IsSugared && (type.Desugar != type))
+            {
+                // A sugar type class we don't specifically handle (e.g. clang 22's
+                // PredefinedSugarType for `size_t`) still desugars to its underlying type.
+                result.typeName = GetTypeName(cursor, context, rootType, type.Desugar, ignoreTransparentStructsWhereRequired, isTemplate, out _);
+            }
             else
             {
                 AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.TypeClass}'. Falling back '{result.typeName}'.", cursor);
