@@ -563,40 +563,6 @@ public sealed partial class PInvokeGenerator
         return remappedName;
     }
 
-    private string ApplyTagTypeNameOverrides(TagType tagType, string leafName)
-    {
-        // Keep a `--remap-type` override or a de-clashed nested record name (see
-        // GetRemappedCursorName) consistent between the type declaration and any reference to it,
-        // so both resolve to the same C# type.
-
-        if (_config._remappedTypeNames.Count != 0)
-        {
-            var remappedTypeNamesLookup = _config._remappedTypeNames.GetAlternateLookup<ReadOnlySpan<char>>();
-
-            if (remappedTypeNamesLookup.TryGetValue(leafName, out var remappedTypeName))
-            {
-                return remappedTypeName;
-            }
-        }
-
-        // A `--remap-type` takes precedence over prefix stripping, matching the declaration side.
-        leafName = StripTypePrefix(leafName);
-
-        if ((tagType.Decl is RecordDecl recordDecl) && TryDeclashRecordName(recordDecl, leafName, out var declashedName))
-        {
-            leafName = declashedName;
-        }
-
-        // Mirror the declaration side (see GetRemappedCursorName): a lowercase-only type name is
-        // `@`-escaped so the reference resolves to the same escaped C# type and compiles without CS8981.
-        if (IsLowercaseAsciiOnly(leafName))
-        {
-            leafName = $"@{leafName}";
-        }
-
-        return leafName;
-    }
-
     private bool TryDeclashRecordName(RecordDecl recordDecl, string name, out string declashedName)
     {
         declashedName = name;

@@ -367,33 +367,22 @@ public sealed partial class PInvokeGenerator
                     result.typeName = GetAnonymousName(tagType.Decl, tagType.KindSpelling);
                     result.nativeTypeName = result.typeName;
                 }
-                else if (tagType.Handle.IsConstQualified)
+                else if (tagType.UnqualifiedType != tagType)
                 {
+                    // The type carries a local qualifier (const, volatile, or an MS extension
+                    // such as `__unaligned`) that clang folds into the spelling. Resolve the
+                    // decl's own type so the qualifier keyword doesn't leak into the name.
                     result.typeName = GetTypeName(cursor, context, rootType, tagType.Decl.TypeForDecl, ignoreTransparentStructsWhereRequired, isTemplate, out _);
                 }
                 else
                 {
-                    // The default name should be correct for C++, but C may have a prefix we need to strip
+                    // Resolve the name through the decl so a reference matches its declaration exactly,
+                    // including a `--remap` keyed by the fully qualified name (e.g. `Gdiplus.PointF`).
+                    // clang's type printer may or may not spell the enclosing namespace depending on a
+                    // `using namespace`, so keying off the decl's qualified name rather than the printed
+                    // spelling keeps declarations and references in agreement.
 
-                    if (result.typeName.StartsWith("enum ", StringComparison.Ordinal))
-                    {
-                        result.typeName = result.typeName[5..];
-                    }
-                    else if (result.typeName.StartsWith("struct ", StringComparison.Ordinal))
-                    {
-                        result.typeName = result.typeName[7..];
-                    }
-                    else if (result.typeName.StartsWith("union ", StringComparison.Ordinal))
-                    {
-                        result.typeName = result.typeName[6..];
-                    }
-                }
-
-                if (result.typeName.Contains("::", StringComparison.Ordinal))
-                {
-                    result.typeName = result.typeName.Split(s_doubleColonSeparator, StringSplitOptions.RemoveEmptyEntries).Last();
-                    result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _, skipUsing: true);
-                    result.typeName = ApplyTagTypeNameOverrides(tagType, result.typeName);
+                    result.typeName = GetRemappedCursorName(tagType.Decl, out _, skipUsing: true);
 
                     // A nested type needs to be qualified by its containing type(s) so it resolves
                     // when referenced from another scope (e.g. `A::Inner` -> `A.Inner`). Namespaces
@@ -408,10 +397,6 @@ public sealed partial class PInvokeGenerator
                     }
 
                     result.typeName = qualificationBuilder.Append(result.typeName).ToString();
-                }
-                else
-                {
-                    result.typeName = ApplyTagTypeNameOverrides(tagType, result.typeName);
                 }
             }
             else if (type is TemplateSpecializationType templateSpecializationType)

@@ -51,7 +51,6 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
     private static readonly SearchValues<char> s_lowercaseAsciiLetters = SearchValues.Create("abcdefghijklmnopqrstuvwxyz");
-    private static readonly string[] s_doubleColonSeparator = ["::"];
     private static readonly char[] s_doubleQuoteSeparator = ['"'];
     private static readonly SearchValues<char> s_qualifiedNameSeparatorChars = SearchValues.Create(".:");
 
