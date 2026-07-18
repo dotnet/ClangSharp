@@ -298,6 +298,26 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 ");
 
     [Test]
+    public Task CompoundAssignmentOperatorTest()
+        => ValidateAsync(nameof(CompoundAssignmentOperatorTest), @"struct MyStruct
+{
+    int value;
+
+    MyStruct& operator+=(MyStruct rhs)
+    {
+        value += rhs.value;
+        return *this;
+    }
+
+    MyStruct& operator*=(int scale)
+    {
+        value *= scale;
+        return *this;
+    }
+};
+");
+
+    [Test]
     public Task StaticTest()
         => ValidateAsync(nameof(StaticTest), @"struct MyStruct
 {

@@ -2311,6 +2311,69 @@ public sealed partial class PInvokeGenerator : IDisposable
                 return true;
             }
 
+            // C++ compound-assignment operators have no friendly C# projection, so they are
+            // emitted under their .NET metadata names, consistent with `operator=` above.
+
+            case "operator+=":
+            {
+                name = "op_AdditionAssignment";
+                return true;
+            }
+
+            case "operator-=":
+            {
+                name = "op_SubtractionAssignment";
+                return true;
+            }
+
+            case "operator*=":
+            {
+                name = "op_MultiplicationAssignment";
+                return true;
+            }
+
+            case "operator/=":
+            {
+                name = "op_DivisionAssignment";
+                return true;
+            }
+
+            case "operator%=":
+            {
+                name = "op_ModulusAssignment";
+                return true;
+            }
+
+            case "operator&=":
+            {
+                name = "op_BitwiseAndAssignment";
+                return true;
+            }
+
+            case "operator|=":
+            {
+                name = "op_BitwiseOrAssignment";
+                return true;
+            }
+
+            case "operator^=":
+            {
+                name = "op_ExclusiveOrAssignment";
+                return true;
+            }
+
+            case "operator<<=":
+            {
+                name = "op_LeftShiftAssignment";
+                return true;
+            }
+
+            case "operator>>=":
+            {
+                name = "op_RightShiftAssignment";
+                return true;
+            }
+
             default:
             {
                 return false;
