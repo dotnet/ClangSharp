@@ -1570,6 +1570,13 @@ public partial class PInvokeGenerator
         StopCSharpCode();
     }
 
+    private void VisitCompoundLiteralExpr(CompoundLiteralExpr compoundLiteralExpr)
+    {
+        // A C compound literal `(T){ ... }` has no distinct C# spelling; it projects as the
+        // object/collection initializer emitted by its inner initializer list.
+        Visit(compoundLiteralExpr.Initializer);
+    }
+
     private void VisitInitListExpr(InitListExpr initListExpr)
     {
         var outputBuilder = StartCSharpCode();
@@ -2736,7 +2743,13 @@ public partial class PInvokeGenerator
             }
 
             // case CX_StmtClass_ChooseExpr:
-            // case CX_StmtClass_CompoundLiteralExpr:
+
+            case CX_StmtClass_CompoundLiteralExpr:
+            {
+                VisitCompoundLiteralExpr((CompoundLiteralExpr)stmt);
+                break;
+            }
+
             // case CX_StmtClass_ConvertVectorExpr:
             // case CX_StmtClass_CoawaitExpr:
             // case CX_StmtClass_CoyieldExpr:

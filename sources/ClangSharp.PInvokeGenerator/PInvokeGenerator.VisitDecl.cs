@@ -1841,7 +1841,13 @@ public partial class PInvokeGenerator
             }
 
             // case CX_StmtClass_ChooseExpr:
-            // case CX_StmtClass_CompoundLiteralExpr:
+
+            case CX_StmtClass_CompoundLiteralExpr:
+            {
+                var compoundLiteralExpr = (CompoundLiteralExpr)initExpr;
+                return IsConstant(targetTypeName, compoundLiteralExpr.Initializer);
+            }
+
             // case CX_StmtClass_ConceptSpecializationExpr:
             // case CX_StmtClass_ConvertVectorExpr:
             // case CX_StmtClass_CoawaitExpr:
