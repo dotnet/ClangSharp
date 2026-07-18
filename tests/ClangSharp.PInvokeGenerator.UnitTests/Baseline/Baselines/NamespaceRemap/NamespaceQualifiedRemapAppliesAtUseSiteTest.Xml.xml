@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="NsPoint" access="public">
+      <field name="X" access="public">
+        <type>int</type>
+      </field>
+      <field name="Y" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <enumeration name="NsStatus" access="public">
+      <type>int</type>
+      <enumerator name="Err" access="public">
+        <type primitive="False">int</type>
+        <value>
+          <code>-1</code>
+        </value>
+      </enumerator>
+      <enumerator name="Ok" access="public">
+        <type primitive="False">int</type>
+        <value>
+          <code>0</code>
+        </value>
+      </enumerator>
+    </enumeration>
+    <struct name="Holder" access="public" unsafe="true">
+      <field name="point" access="public">
+        <type native="Ns::Point">NsPoint</type>
+      </field>
+      <field name="pointPtr" access="public">
+        <type native="Ns::Point *">NsPoint*</type>
+      </field>
+      <field name="status" access="public">
+        <type native="Ns::Status">NsStatus</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

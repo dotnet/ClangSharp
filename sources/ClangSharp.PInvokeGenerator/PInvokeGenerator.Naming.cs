@@ -144,6 +144,78 @@ public sealed partial class PInvokeGenerator
         }
     }
 
+    private static string GetNamespaceQualifiedNativeTypeName(Type type, string nativeTypeName)
+    {
+        // Peel pointer/reference/array layers so a stripped namespace is restored even for
+        // `Ns::Point *` and similar, where clang only ever drops the leading `Namespace::`.
+
+        var namedType = type;
+
+        while (true)
+        {
+            if (namedType is PointerType pointerType)
+            {
+                namedType = pointerType.PointeeType;
+            }
+            else if (namedType is ReferenceType referenceType)
+            {
+                namedType = referenceType.PointeeType;
+            }
+            else if (namedType is ArrayType arrayType)
+            {
+                namedType = arrayType.ElementType;
+            }
+            else if (namedType is AttributedType attributedType)
+            {
+                namedType = attributedType.ModifiedType;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        Decl? decl = namedType switch {
+            TagType tagType => tagType.Decl,
+            TypedefType typedefType => typedefType.Decl,
+            _ => null,
+        };
+
+        // A synthesized name for an anonymous decl carries no source namespace to restore.
+        if (decl is null || decl.Handle.IsAnonymous)
+        {
+            return nativeTypeName;
+        }
+
+        return GetNamespaceQualifiedNativeTypeName(decl, nativeTypeName);
+    }
+
+    private static string GetNamespaceQualifiedNativeTypeName(Decl decl, string nativeTypeName)
+    {
+        // clang 22's type printer omits the enclosing C++ namespace from a reference when a
+        // matching `using namespace` is in scope, where-as older releases always spelled it.
+        // Rebuild the dropped `Namespace::` prefix from the decl so the NativeTypeName keeps the
+        // fully qualified source spelling (e.g. `Gdiplus::Status`) and stays stable across versions.
+
+        var qualifierBuilder = new StringBuilder();
+
+        for (var declContext = decl.DeclContext; declContext is Decl parentDecl; declContext = parentDecl.DeclContext)
+        {
+            if (parentDecl is NamespaceDecl namespaceDecl && !string.IsNullOrEmpty(namespaceDecl.Name))
+            {
+                _ = qualifierBuilder.Insert(0, "::").Insert(0, namespaceDecl.Name);
+            }
+        }
+
+        if (qualifierBuilder.Length == 0)
+        {
+            return nativeTypeName;
+        }
+
+        var qualifier = qualifierBuilder.ToString();
+        return nativeTypeName.StartsWith(qualifier, StringComparison.Ordinal) ? nativeTypeName : qualifier + nativeTypeName;
+    }
+
     private string GetCursorQualifiedName(NamedDecl namedDecl, bool truncateParameters = false)
     {
         if (!_cursorQualifiedNames.TryGetValue((namedDecl, truncateParameters), out var qualifiedName))
@@ -561,40 +633,6 @@ public sealed partial class PInvokeGenerator
         }
 
         return remappedName;
-    }
-
-    private string ApplyTagTypeNameOverrides(TagType tagType, string leafName)
-    {
-        // Keep a `--remap-type` override or a de-clashed nested record name (see
-        // GetRemappedCursorName) consistent between the type declaration and any reference to it,
-        // so both resolve to the same C# type.
-
-        if (_config._remappedTypeNames.Count != 0)
-        {
-            var remappedTypeNamesLookup = _config._remappedTypeNames.GetAlternateLookup<ReadOnlySpan<char>>();
-
-            if (remappedTypeNamesLookup.TryGetValue(leafName, out var remappedTypeName))
-            {
-                return remappedTypeName;
-            }
-        }
-
-        // A `--remap-type` takes precedence over prefix stripping, matching the declaration side.
-        leafName = StripTypePrefix(leafName);
-
-        if ((tagType.Decl is RecordDecl recordDecl) && TryDeclashRecordName(recordDecl, leafName, out var declashedName))
-        {
-            leafName = declashedName;
-        }
-
-        // Mirror the declaration side (see GetRemappedCursorName): a lowercase-only type name is
-        // `@`-escaped so the reference resolves to the same escaped C# type and compiles without CS8981.
-        if (IsLowercaseAsciiOnly(leafName))
-        {
-            leafName = $"@{leafName}";
-        }
-
-        return leafName;
     }
 
     private bool TryDeclashRecordName(RecordDecl recordDecl, string name, out string declashedName)
