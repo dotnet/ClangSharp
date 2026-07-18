@@ -549,6 +549,12 @@ public sealed partial class PInvokeGenerator
             Debug.Assert(!string.IsNullOrWhiteSpace(result.typeName));
             Debug.Assert(!string.IsNullOrWhiteSpace(result.nativeTypeName));
 
+            // clang 22's type printer omits the enclosing C++ namespace from a reference when the
+            // namespace is in scope (a `using namespace` or a reference from within the namespace),
+            // where-as older releases always spelled it. Restore the dropped `Namespace::` prefix from
+            // the referenced decl so the NativeTypeName keeps the fully qualified, version-stable spelling.
+            result.nativeTypeName = GetNamespaceQualifiedNativeTypeName(type, result.nativeTypeName);
+
             if (IsNativeTypeNameEquivalent(result.nativeTypeName, result.typeName))
             {
                 result.nativeTypeName = string.Empty;

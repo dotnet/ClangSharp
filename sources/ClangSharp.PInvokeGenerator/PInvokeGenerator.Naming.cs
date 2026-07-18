@@ -144,6 +144,78 @@ public sealed partial class PInvokeGenerator
         }
     }
 
+    private static string GetNamespaceQualifiedNativeTypeName(Type type, string nativeTypeName)
+    {
+        // Peel pointer/reference/array layers so a stripped namespace is restored even for
+        // `Ns::Point *` and similar, where clang only ever drops the leading `Namespace::`.
+
+        var namedType = type;
+
+        while (true)
+        {
+            if (namedType is PointerType pointerType)
+            {
+                namedType = pointerType.PointeeType;
+            }
+            else if (namedType is ReferenceType referenceType)
+            {
+                namedType = referenceType.PointeeType;
+            }
+            else if (namedType is ArrayType arrayType)
+            {
+                namedType = arrayType.ElementType;
+            }
+            else if (namedType is AttributedType attributedType)
+            {
+                namedType = attributedType.ModifiedType;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        Decl? decl = namedType switch {
+            TagType tagType => tagType.Decl,
+            TypedefType typedefType => typedefType.Decl,
+            _ => null,
+        };
+
+        // A synthesized name for an anonymous decl carries no source namespace to restore.
+        if (decl is null || decl.Handle.IsAnonymous)
+        {
+            return nativeTypeName;
+        }
+
+        return GetNamespaceQualifiedNativeTypeName(decl, nativeTypeName);
+    }
+
+    private static string GetNamespaceQualifiedNativeTypeName(Decl decl, string nativeTypeName)
+    {
+        // clang 22's type printer omits the enclosing C++ namespace from a reference when a
+        // matching `using namespace` is in scope, where-as older releases always spelled it.
+        // Rebuild the dropped `Namespace::` prefix from the decl so the NativeTypeName keeps the
+        // fully qualified source spelling (e.g. `Gdiplus::Status`) and stays stable across versions.
+
+        var qualifierBuilder = new StringBuilder();
+
+        for (var declContext = decl.DeclContext; declContext is Decl parentDecl; declContext = parentDecl.DeclContext)
+        {
+            if (parentDecl is NamespaceDecl namespaceDecl && !string.IsNullOrEmpty(namespaceDecl.Name))
+            {
+                _ = qualifierBuilder.Insert(0, "::").Insert(0, namespaceDecl.Name);
+            }
+        }
+
+        if (qualifierBuilder.Length == 0)
+        {
+            return nativeTypeName;
+        }
+
+        var qualifier = qualifierBuilder.ToString();
+        return nativeTypeName.StartsWith(qualifier, StringComparison.Ordinal) ? nativeTypeName : qualifier + nativeTypeName;
+    }
+
     private string GetCursorQualifiedName(NamedDecl namedDecl, bool truncateParameters = false)
     {
         if (!_cursorQualifiedNames.TryGetValue((namedDecl, truncateParameters), out var qualifiedName))
