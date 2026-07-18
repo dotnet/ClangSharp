@@ -121,6 +121,27 @@ bool FromInteger(int a)
     }
 
     [Test]
+    public Task CompoundLiteralExprTest()
+    {
+        // C compound literals `(T){ ... }` project as the equivalent C# object initializer
+        // (see https://github.com/dotnet/ClangSharp/issues/819).
+        var inputContents = @"struct b3Vec3
+{
+    float x;
+    float y;
+    float z;
+};
+
+struct b3Vec3 b3Negate(struct b3Vec3 a)
+{
+    return (struct b3Vec3){ -a.x, -a.y, -a.z };
+}
+";
+
+        return ValidateGeneratedCSharpLatestHostBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
     public Task EnumTest()
     {
         var inputContents = @"enum {

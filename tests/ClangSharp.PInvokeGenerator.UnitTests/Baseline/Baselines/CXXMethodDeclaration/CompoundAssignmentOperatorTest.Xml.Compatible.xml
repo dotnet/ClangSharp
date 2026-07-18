@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public" unsafe="true">
+      <field name="value" access="public">
+        <type>int</type>
+      </field>
+      <function name="op_AdditionAssignment" access="public" unsafe="true">
+        <type native="MyStruct &amp;">MyStruct*</type>
+        <param name="rhs">
+          <type>MyStruct</type>
+        </param>
+        <code>value += rhs.value;
+    return (MyStruct*)Unsafe.AsPointer(ref this);</code>
+      </function>
+      <function name="op_MultiplicationAssignment" access="public" unsafe="true">
+        <type native="MyStruct &amp;">MyStruct*</type>
+        <param name="scale">
+          <type>int</type>
+        </param>
+        <code>value *= scale;
+    return (MyStruct*)Unsafe.AsPointer(ref this);</code>
+      </function>
+      <function name="op_DivisionAssignment" access="public" unsafe="true">
+        <type native="MyStruct &amp;">MyStruct*</type>
+        <param name="other">
+          <type>MyStruct*</type>
+        </param>
+        <code>value /= other-&gt;value;
+    return other;</code>
+      </function>
+    </struct>
+  </namespace>
+</bindings>
