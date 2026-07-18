@@ -237,6 +237,7 @@ internal static partial class Program
         new HelpRow("default-remappings", "Default remappings for well known types should be added. This currently includes intptr_t, ptrdiff_t, size_t, ssize_t, uintptr_t, and the exact-width stdint types (int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, and uint64_t). When targeting Windows, the pointer-width Windows types (INT_PTR, LONG_PTR, SSIZE_T, DWORD_PTR, SIZE_T, UINT_PTR, and ULONG_PTR) and _GUID are also included. On by default; use =false to opt out."),
         new HelpRow("disable-runtime-marshalling", "[assembly: DisableRuntimeMarshalling] should be generated."),
         new HelpRow("doc-includes", "<include> xml documentation tags should be generated for declarations."),
+        new HelpRow("doc-comments", "Xml doc comments should be generated from encountered doxygen comments."),
         new HelpRow("empty-records", "Bindings for records that contain no members should be generated. These are commonly encountered for opaque handle like types such as HWND. On by default; use =false to opt out."),
         new HelpRow("enum-member-type-name", "The enum type name should be kept at the beginning of its member names. On by default; use =false to strip it."),
         new HelpRow("enum-operators", "Bindings for operators over enum types should be generated. These are largely unnecessary in C# as the operators are available by default. On by default; use =false to opt out."),

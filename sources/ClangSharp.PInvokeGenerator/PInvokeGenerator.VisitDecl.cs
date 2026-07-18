@@ -367,6 +367,7 @@ public partial class PInvokeGenerator
             CustomAttrGeneratorData = (enumConstantDecl, this),
         };
 
+        WriteDocCommentXml(enumConstantDecl.Handle.ParsedComment);
         _outputBuilder.BeginValue(in desc);
 
         if ((enumConstantDecl.InitExpr != null) && (!ShouldConstantFoldValue(enumConstantDecl) || IsEnumeratorAliasInitializer(enumConstantDecl)))
@@ -512,6 +513,7 @@ public partial class PInvokeGenerator
                     CustomAttrGeneratorData = (enumDecl, this),
                 };
 
+                WriteDocCommentXml(enumDecl.Handle.ParsedComment);
                 _outputBuilder.BeginEnum(in desc);
             }
 
@@ -573,6 +575,7 @@ public partial class PInvokeGenerator
             CustomAttrGeneratorData = (fieldDecl, this),
         };
 
+        WriteDocCommentXml(fieldDecl.Handle.ParsedComment);
         _outputBuilder.BeginField(in desc);
 
         if (IsTypeConstantOrIncompleteArray(fieldDecl, type, out var arrayType))
@@ -678,6 +681,8 @@ public partial class PInvokeGenerator
         {
             TransformBoolType(ref returnTypeName, ref nativeTypeName);
         }
+
+        WriteDocCommentXml(functionDecl.Handle.ParsedComment);
 
         var type = functionDecl.Type;
         var callingConventionName = GetCallingConvention(functionDecl, cxxRecordDecl, type);
@@ -1576,6 +1581,7 @@ public partial class PInvokeGenerator
                 };
 
                 var isUnsafe = desc.IsUnsafe;
+                WriteDocCommentXml(typedefDecl.Handle.ParsedComment);
                 _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
 
                 _outputBuilder.BeginFunctionInnerPrototype(in desc);
