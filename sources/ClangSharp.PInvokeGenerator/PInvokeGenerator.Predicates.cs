@@ -754,6 +754,22 @@ public sealed partial class PInvokeGenerator
         return false;
     }
 
+    // In C, relational and logical operators yield `int`, so the frontend inserts an
+    // `IntegralToBoolean` cast when such an expression is consumed as a `_Bool`. The equivalent
+    // C# operators already yield `bool`, so the surrounding `!= 0` coercion would be both
+    // redundant and non-compiling and must be omitted.
+    private static bool IsCSharpBooleanValuedExpr(Expr expr)
+    {
+        var asWritten = GetExprAsWritten(expr, removeParens: true);
+
+        if (asWritten is BinaryOperator binaryOperator)
+        {
+            return binaryOperator.IsRelationalOp || binaryOperator.IsEqualityOp || binaryOperator.IsLogicalOp;
+        }
+
+        return (asWritten is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CXUnaryOperator_LNot);
+    }
+
     private static bool IsStmtAsWritten<T>(Cursor cursor, [MaybeNullWhen(false)] out T value, bool removeParens = false)
         where T : Stmt
     {

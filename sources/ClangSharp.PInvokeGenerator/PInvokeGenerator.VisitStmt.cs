@@ -1444,7 +1444,7 @@ public partial class PInvokeGenerator
 
             case CX_CK_IntegralToBoolean:
             {
-                if ((subExpr is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CXUnaryOperator_LNot))
+                if (IsCSharpBooleanValuedExpr(subExpr))
                 {
                     Visit(subExpr);
                 }

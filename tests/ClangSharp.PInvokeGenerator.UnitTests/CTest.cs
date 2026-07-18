@@ -30,6 +30,34 @@ typedef struct MyStruct {
     }
 
     [Test]
+    public Task BooleanReturnFromComparisonTest()
+    {
+        // In C, relational and logical operators yield `int`, so returning one as `_Bool`
+        // inserts an `IntegralToBoolean` cast. The equivalent C# operators already yield `bool`,
+        // so the `!= 0` coercion must be omitted (see https://github.com/dotnet/ClangSharp/issues/820).
+        var inputContents = @"
+#define bool _Bool
+
+bool FromComparison(int a, int b)
+{
+    return a < b;
+}
+
+bool FromLogical(int a, int b)
+{
+    return a < b || a > b;
+}
+
+bool FromInteger(int a)
+{
+    return a;
+}
+";
+
+        return ValidateGeneratedCSharpLatestHostBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
     public Task EnumTest()
     {
         var inputContents = @"enum {
