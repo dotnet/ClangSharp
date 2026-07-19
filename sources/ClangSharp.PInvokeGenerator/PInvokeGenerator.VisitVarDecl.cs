@@ -282,6 +282,7 @@ public partial class PInvokeGenerator
 
             Debug.Assert(_outputBuilder is not null);
 
+            WriteDocCommentXml(varDecl.Handle.ParsedComment);
             _outputBuilder.BeginValue(in desc);
 
             var currentContext = _context.Last;
