@@ -850,6 +850,18 @@ public partial class PInvokeGenerator
         }
     }
 
+    private void VisitCXXDeleteExpr(CXXDeleteExpr cxxDeleteExpr)
+    {
+        // Mirrors the `cxx_new<T>(...)` placeholder emitted for `new`: `delete`/`delete[]` has no
+        // direct C# equivalent (the allocator is unknown), so emit a visible `cxx_delete(...)` call
+        // rather than nothing, which would leave a silently empty statement such as `if (p) { ; }`.
+        var outputBuilder = StartCSharpCode();
+        outputBuilder.Write("cxx_delete(");
+        Visit(cxxDeleteExpr.Argument);
+        outputBuilder.Write(')');
+        StopCSharpCode();
+    }
+
     private void VisitCXXNewExpr(CXXNewExpr cxxNewExpr)
     {
         var outputBuilder = StartCSharpCode();
@@ -2645,7 +2657,12 @@ public partial class PInvokeGenerator
             }
 
             // case CX_StmtClass_CXXDefaultInitExpr:
-            // case CX_StmtClass_CXXDeleteExpr:
+
+            case CX_StmtClass_CXXDeleteExpr:
+            {
+                VisitCXXDeleteExpr((CXXDeleteExpr)stmt);
+                break;
+            }
 
             case CX_StmtClass_CXXDependentScopeMemberExpr:
             {

@@ -1220,4 +1220,27 @@ struct MyStruct
 
         return ValidateAsync(nameof(DeeplyNestedAnonStructs), inputContents);
     }
+
+    // A user-declared destructor lowers to `Dispose`. `delete`/`delete[]` has no direct C# form, so it
+    // emits the `cxx_delete(...)` placeholder (mirroring `cxx_new`) instead of nothing, which would
+    // leave a silently empty `if (data != null) { }` body that leaks.
+    [Test]
+    public Task UserDeclaredDestructorTest()
+    {
+        var inputContents = @"struct WithDestructor
+{
+    int* data;
+
+    ~WithDestructor()
+    {
+        if (data != 0)
+        {
+            delete[] data;
+        }
+    }
+};
+";
+
+        return ValidateAsync(nameof(UserDeclaredDestructorTest), inputContents);
+    }
 }
