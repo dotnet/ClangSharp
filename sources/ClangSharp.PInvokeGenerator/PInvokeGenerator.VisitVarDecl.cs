@@ -204,10 +204,12 @@ public partial class PInvokeGenerator
                             return;
                         }
 
-                        // clang wraps an alias to another constant (e.g. `#define IID_X IID_Y`) in a
-                        // copy-constructor. The referenced constant has backing storage, so keep the
-                        // `ref readonly` alias rather than emitting a by-value copy.
-                        if (IsStmtAsWritten<DeclRefExpr>(cxxConstructExpr.Args[0], out _, removeParens: true))
+                        // clang wraps an alias to another constant (e.g. `#define IID_X IID_Y`) or a
+                        // pointer dereference (e.g. `#define X MAKEDIPROP(n)` -> `*(const GUID*)(n)`) in a
+                        // copy-constructor. Both reference backing storage, so keep the `ref readonly` alias
+                        // rather than emitting a by-value copy.
+                        if (IsStmtAsWritten<DeclRefExpr>(cxxConstructExpr.Args[0], out _, removeParens: true)
+                         || (IsStmtAsWritten<UnaryOperator>(cxxConstructExpr.Args[0], out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CXUnaryOperator_Deref)))
                         {
                             flags |= ValueFlags.Reference;
                         }

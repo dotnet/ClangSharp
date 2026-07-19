@@ -33,6 +33,13 @@
           <code>ref IID_IInternet</code>
         </value>
       </constant>
+      <constant name="DIPROP_BUFFERSIZE" access="public">
+        <type primitive="False">Guid</type>
+        <value>
+          <code>
+            <unchecked></unchecked>ref (*(Guid*)(1))</code>
+        </value>
+      </constant>
       <iid name="IID_IInternet" value="0x79EAC9E0, 0xBAF9, 0x11CE, 0x8C, 0x82, 0x00, 0xAA, 0x00, 0x4B, 0xA9, 0x0B" />
     </class>
   </namespace>
