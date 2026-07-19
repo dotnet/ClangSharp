@@ -203,6 +203,15 @@ public partial class PInvokeGenerator
                             // It's easiest just to let _uuidsToGenerate handle it
                             return;
                         }
+
+                        // clang wraps an alias to another constant (e.g. `#define IID_X IID_Y`) in a
+                        // copy-constructor. The referenced constant has backing storage, so keep the
+                        // `ref readonly` alias rather than emitting a by-value copy.
+                        if (IsStmtAsWritten<DeclRefExpr>(cxxConstructExpr.Args[0], out _, removeParens: true))
+                        {
+                            flags |= ValueFlags.Reference;
+                        }
+
                         flags |= ValueFlags.Copy;
                     }
                     else if (IsStmtAsWritten<CXXNullPtrLiteralExpr>(varDecl.Init, out _, removeParens: true))

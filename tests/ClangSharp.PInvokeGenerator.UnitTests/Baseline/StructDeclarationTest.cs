@@ -14,6 +14,7 @@ public sealed class StructDeclarationTest : BaselineTest
     private static readonly string[] ExcludeWildcardTestExcludedNames = ["Foo*", "*Legacy", "B?r"];
     private static readonly string[] GuidTestExcludedNames = ["DECLSPEC_UUID"];
     private static readonly string[] GuidConstTestExcludedNames = ["DECLSPEC_UUID", "GUID"];
+    private static readonly string[] GuidDefineAliasTestExcludedNames = ["DECLSPEC_UUID", "EXTERN_C"];
 
     public StructDeclarationTest(BaselineVariant variant) : base(variant)
     {
@@ -592,6 +593,48 @@ static const IID& IID_ITransferTarget = __uuidof(ITransferTarget);
 
         var remappedNames = new Dictionary<string, string> { ["_GUID"] = "Guid", ["GUID"] = "Guid" };
         return ValidateAsync(nameof(GuidInterfaceDuplicateIidTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateUnmanagedConstants, excludedNames: GuidTestExcludedNames, remappedNames: remappedNames);
+    }
+
+    [Test]
+    public Task GuidDefineAliasRefReadonlyTest()
+    {
+        if (Variant.Os != BaselineOs.Windows)
+        {
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
+
+        // A `#define IID_X IID_Y` alias over a `ref readonly Guid` IID must keep the `ref readonly` return so it
+        // stays a zero-copy alias; dropping it leaves a by-value `Guid` return paired with a `=> ref` body.
+        var inputContents = @"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+#define EXTERN_C extern ""C""
+
+struct _GUID
+{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+};
+
+typedef struct _GUID GUID;
+typedef GUID IID;
+
+struct DECLSPEC_UUID(""79eac9e0-baf9-11ce-8c82-00aa004ba90b"") IInternet
+{
+    int x;
+};
+
+EXTERN_C const IID IID_IInternet;
+
+#define IID_IOInet IID_IInternet
+";
+
+        var remappedNames = new Dictionary<string, string> { ["_GUID"] = "Guid", ["GUID"] = "Guid" };
+        return ValidateAsync(nameof(GuidDefineAliasRefReadonlyTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateUnmanagedConstants | PInvokeGeneratorConfigurationOptions.GenerateMacroBindings, excludedNames: GuidDefineAliasTestExcludedNames, remappedNames: remappedNames);
+    }
+
+    [Test]
     public Task InheritanceTest()
     {
         var inputContents = @"struct MyStruct1A

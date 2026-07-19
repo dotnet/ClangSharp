@@ -12,4 +12,5 @@ internal enum ValueFlags
     Constant = 1 << 1,
     Copy = 1 << 2,
     Array = 1 << 3,
+    Reference = 1 << 4,
 }

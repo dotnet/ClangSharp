@@ -21,6 +21,7 @@ internal struct ValueDesc
     public readonly bool IsArray => (Flags & ValueFlags.Array) != 0;
     public readonly bool IsConstant => (Flags & ValueFlags.Constant) != 0;
     public readonly bool IsCopy => (Flags & ValueFlags.Copy) != 0;
+    public readonly bool IsReference => (Flags & ValueFlags.Reference) != 0;
     public Action<object> WriteCustomAttrs { get; set; }
     public object CustomAttrGeneratorData { get; set; }
 }
