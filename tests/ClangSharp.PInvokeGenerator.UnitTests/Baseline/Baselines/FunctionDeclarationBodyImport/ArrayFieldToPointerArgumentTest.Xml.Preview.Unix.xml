@@ -24,7 +24,8 @@
         <param name="pStruct">
           <type>MyStruct*</type>
         </param>
-        <code>MyOtherFunction(&amp;pStruct-&gt;Data);</code>
+        <code>MyOtherFunction(&amp;pStruct-&gt;Data);
+      pStruct-&gt;Data[15] = 1;</code>
       </function>
     </class>
   </namespace>
