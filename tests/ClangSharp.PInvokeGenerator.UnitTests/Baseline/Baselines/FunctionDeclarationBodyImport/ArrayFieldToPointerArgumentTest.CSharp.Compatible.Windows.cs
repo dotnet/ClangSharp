@@ -16,6 +16,7 @@ namespace ClangSharp.Test
         public static void MyFunction([NativeTypeName("struct MyStruct *")] MyStruct* pStruct)
         {
             MyOtherFunction(pStruct->Data);
+            pStruct->Data[15] = 1;
         }
     }
 }

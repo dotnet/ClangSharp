@@ -60,6 +60,7 @@ struct MyStruct
 void MyFunction(struct MyStruct* pStruct)
 {
     MyOtherFunction(pStruct->Data);
+    pStruct->Data[15] = 1;
 }
 ";
 

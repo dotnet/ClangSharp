@@ -1530,7 +1530,9 @@ public partial class PInvokeGenerator
                     // value type, which has no implicit pointer conversion, so take its address to
                     // bind it to a pointer. A compatible-mode fixed buffer decays on its own, and
                     // array locals (managed arrays) or string literals must not be addressed here.
-                    if (!Config.GenerateCompatibleCode && (subExpr is MemberExpr) && (subExpr.Type.CanonicalType is ConstantArrayType) && (implicitCastExpr.Type.CanonicalType is PointerType))
+                    // A subscripted field (`arr[i]`) indexes the inline array in place, so the decay
+                    // there is an lvalue that must not be addressed.
+                    if (!Config.GenerateCompatibleCode && (subExpr is MemberExpr) && (subExpr.Type.CanonicalType is ConstantArrayType) && (implicitCastExpr.Type.CanonicalType is PointerType) && !IsPrevContextStmt<ArraySubscriptExpr>(out _, out _))
                     {
                         outputBuilder.Write('&');
                     }
