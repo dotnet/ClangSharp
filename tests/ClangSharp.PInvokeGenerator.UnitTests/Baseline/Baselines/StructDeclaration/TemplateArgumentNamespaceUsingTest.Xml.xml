@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="System.Numerics">
+    <struct name="Matrix4x4" access="public">
+      <field name="m" access="public">
+        <type native="float[16]" count="16" fixed="_m_e__FixedBuffer">float</type>
+      </field>
+      <struct name="_m_e__FixedBuffer" access="public">
+        <attribute>InlineArray(16)</attribute>
+        <field name="e0" access="public">
+          <type>float</type>
+        </field>
+      </struct>
+    </struct>
+    <struct name="ISpatial" access="public" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <function name="GetTransform" access="public" unsafe="true">
+        <type native="ABI::Windows::Foundation::IReference&lt;ABI::Windows::Foundation::Numerics::Matrix4x4&gt; *">IReference&lt;Matrix4x4&gt;*</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;ISpatial*, IReference&lt;Matrix4x4&gt;*&gt;)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">(ISpatial*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <interface>
+        <function name="GetTransform" access="public" unsafe="true">
+          <type native="ABI::Windows::Foundation::IReference&lt;ABI::Windows::Foundation::Numerics::Matrix4x4&gt; *">IReference&lt;Matrix4x4&gt;*</type>
+        </function>
+      </interface>
+    </struct>
+  </namespace>
+</bindings>

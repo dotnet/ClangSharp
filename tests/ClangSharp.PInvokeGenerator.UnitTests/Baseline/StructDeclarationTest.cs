@@ -14,6 +14,7 @@ public sealed class StructDeclarationTest : BaselineTest
     private static readonly string[] ExcludeWildcardTestExcludedNames = ["Foo*", "*Legacy", "B?r"];
     private static readonly string[] GuidTestExcludedNames = ["DECLSPEC_UUID"];
     private static readonly string[] GuidConstTestExcludedNames = ["DECLSPEC_UUID", "GUID"];
+    private static readonly string[] GuidDefineAliasTestExcludedNames = ["DECLSPEC_UUID", "EXTERN_C"];
 
     public StructDeclarationTest(BaselineVariant variant) : base(variant)
     {
@@ -559,6 +560,81 @@ EXTERN_C const IID IID_ITextHost;
     }
 
     [Test]
+    public Task GuidInterfaceDuplicateIidTest()
+    {
+        if (Variant.Os != BaselineOs.Windows)
+        {
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
+
+        // A `static const IID&` alias initialized from `__uuidof` names the same `IID_` symbol the interface's uuid
+        // already emits. Only one definition may be generated; the alias var must not add a second (CS0102).
+        var inputContents = @"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+
+struct _GUID
+{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+};
+
+typedef struct _GUID GUID;
+typedef GUID IID;
+
+struct DECLSPEC_UUID(""e504a81c-6b01-4a88-8e1e-000000000000"") ITransferTarget
+{
+    int x;
+};
+
+static const IID& IID_ITransferTarget = __uuidof(ITransferTarget);
+";
+
+        var remappedNames = new Dictionary<string, string> { ["_GUID"] = "Guid", ["GUID"] = "Guid" };
+        return ValidateAsync(nameof(GuidInterfaceDuplicateIidTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateUnmanagedConstants, excludedNames: GuidTestExcludedNames, remappedNames: remappedNames);
+    }
+
+    [Test]
+    public Task GuidDefineAliasRefReadonlyTest()
+    {
+        if (Variant.Os != BaselineOs.Windows)
+        {
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
+
+        // A `#define IID_X IID_Y` alias over a `ref readonly Guid` IID must keep the `ref readonly` return so it
+        // stays a zero-copy alias; dropping it leaves a by-value `Guid` return paired with a `=> ref` body.
+        var inputContents = @"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+#define EXTERN_C extern ""C""
+
+struct _GUID
+{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+};
+
+typedef struct _GUID GUID;
+typedef GUID IID;
+
+struct DECLSPEC_UUID(""79eac9e0-baf9-11ce-8c82-00aa004ba90b"") IInternet
+{
+    int x;
+};
+
+EXTERN_C const IID IID_IInternet;
+
+#define IID_IOInet IID_IInternet
+";
+
+        var remappedNames = new Dictionary<string, string> { ["_GUID"] = "Guid", ["GUID"] = "Guid" };
+        return ValidateAsync(nameof(GuidDefineAliasRefReadonlyTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateUnmanagedConstants | PInvokeGeneratorConfigurationOptions.GenerateMacroBindings, excludedNames: GuidDefineAliasTestExcludedNames, remappedNames: remappedNames);
+    }
+
+    [Test]
     public Task InheritanceTest()
     {
         var inputContents = @"struct MyStruct1A
@@ -606,6 +682,65 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 ";
 
         return ValidateAsync(nameof(InheritanceWithNativeInheritanceAttributeTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
+    }
+
+    [Test]
+    public Task MultiLevelComInheritanceTest()
+    {
+        // When an intermediate base is reached through a forward `typedef struct X X;` (as MIDL interfaces are
+        // declared), clang binds the base to a non-definition redeclaration whose own members would otherwise be
+        // dropped. All inherited vtbl slots must still flatten in order (CS0535 when they don't).
+        var inputContents = @"struct IUnknown
+{
+    virtual int QueryInterface() = 0;
+    virtual unsigned int AddRef() = 0;
+    virtual unsigned int Release() = 0;
+};
+
+struct ISequentialStream : public IUnknown
+{
+    virtual int Read() = 0;
+    virtual int Write() = 0;
+};
+
+typedef struct IStream IStream;
+
+struct IStream : public ISequentialStream
+{
+    virtual int Seek() = 0;
+    virtual int Clone() = 0;
+};
+
+struct IStream;
+
+struct IStreamAsync : public IStream
+{
+    virtual int ReadAsync() = 0;
+};
+";
+
+        return ValidateAsync(nameof(MultiLevelComInheritanceTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
+    }
+
+    [Test]
+    public Task TemplateArgumentNamespaceUsingTest()
+    {
+        // A namespaced type (System.Numerics.Matrix4x4) used only as a generic-pointer-wrapper template argument
+        // must still emit its `using`; dropping it leaves the `Matrix4x4` reference unresolved (CS0246).
+        var inputContents = @"namespace ABI { namespace Windows { namespace Foundation {
+    template<typename T> struct IReference { T value; };
+    namespace Numerics { struct Matrix4x4 { float m[16]; }; }
+}}}
+
+struct ISpatial
+{
+    virtual ABI::Windows::Foundation::IReference<ABI::Windows::Foundation::Numerics::Matrix4x4>* GetTransform() = 0;
+};
+";
+
+        var remappedNames = new Dictionary<string, string> { ["ABI.Windows.Foundation.Numerics.Matrix4x4"] = "Matrix4x4" };
+        var withNamespaces = new Dictionary<string, string> { ["Matrix4x4"] = "System.Numerics" };
+        return ValidateAsync(nameof(TemplateArgumentNamespaceUsingTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateGenericPointerWrapper | PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces, remappedNames: remappedNames, withNamespaces: withNamespaces);
     }
 
     [TestCase("double", "double", 10, 5)]

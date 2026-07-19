@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" lib="ClangSharpPInvokeGenerator" convention="Cdecl" static="true">
+        <type>void</type>
+        <param name="value">
+          <type>HRESULT</type>
+          <init>
+            <code>((HRESULT)(<value>0</value>))</code>
+          </init>
+        </param>
+      </function>
+      <constant name="S_OK" access="public">
+        <type primitive="True">int</type>
+        <value>
+          <code>((int)(<value>0</value>))</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>

@@ -124,6 +124,14 @@ public partial class PInvokeGenerator
                 flags |= ValueFlags.Constant;
             }
 
+            if (varDecl.HasInit && IsStmtAsWritten<CXXUuidofExpr>(varDecl.Init, out _, removeParens: true))
+            {
+                // A `__uuidof` binding (e.g. WinRT `MIDL_CONST_ID IID& IID_X = __uuidof(X)`) is
+                // already emitted as a `ref readonly Guid` via _uuidsToGenerate; skip the redundant
+                // declaration to avoid a duplicate member.
+                return;
+            }
+
             if (IsStmtAsWritten<StringLiteral>(varDecl.Init, out var stringLiteral, removeParens: true))
             {
                 kind = ValueKind.String;
@@ -195,6 +203,15 @@ public partial class PInvokeGenerator
                             // It's easiest just to let _uuidsToGenerate handle it
                             return;
                         }
+
+                        // clang wraps an alias to another constant (e.g. `#define IID_X IID_Y`) in a
+                        // copy-constructor. The referenced constant has backing storage, so keep the
+                        // `ref readonly` alias rather than emitting a by-value copy.
+                        if (IsStmtAsWritten<DeclRefExpr>(cxxConstructExpr.Args[0], out _, removeParens: true))
+                        {
+                            flags |= ValueFlags.Reference;
+                        }
+
                         flags |= ValueFlags.Copy;
                     }
                     else if (IsStmtAsWritten<CXXNullPtrLiteralExpr>(varDecl.Init, out _, removeParens: true))

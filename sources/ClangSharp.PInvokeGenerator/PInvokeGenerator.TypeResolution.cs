@@ -441,7 +441,10 @@ public sealed partial class PInvokeGenerator
                     {
                         case CXTemplateArgumentKind_Type:
                         {
-                            typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out var nativeAsTypeName, skipUsing: true, isTemplate: true);
+                            // The argument name is emitted as part of the generic type (e.g.
+                            // `IReference<Matrix4x4>`), so its namespace using must be emitted too;
+                            // the enclosing type name is not itself resolved through `--with-namespace`.
+                            typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out var nativeAsTypeName, skipUsing: false, isTemplate: true);
                             break;
                         }
 

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="System">
+    <struct name="Guid" access="public" unsafe="true">
+      <field name="Data1" access="public">
+        <type native="unsigned long">uint</type>
+      </field>
+      <field name="Data2" access="public">
+        <type native="unsigned short">ushort</type>
+      </field>
+      <field name="Data3" access="public">
+        <type native="unsigned short">ushort</type>
+      </field>
+      <field name="Data4" access="public">
+        <type native="unsigned char[8]" count="8" fixed="_Data4_e__FixedBuffer">byte</type>
+      </field>
+    </struct>
+    <struct name="IInternet" access="public" uuid="79eac9e0-baf9-11ce-8c82-00aa004ba90b">
+      <field name="x" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <constant name="IID_IOInet" access="public">
+        <type primitive="False">Guid</type>
+        <value>
+          <code>ref IID_IInternet</code>
+        </value>
+      </constant>
+      <iid name="IID_IInternet" value="0x79EAC9E0, 0xBAF9, 0x11CE, 0x8C, 0x82, 0x00, 0xAA, 0x00, 0x4B, 0xA9, 0x0B" />
+    </class>
+  </namespace>
+</bindings>

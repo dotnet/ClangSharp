@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="System">
+    <struct name="Guid" access="public">
+      <field name="Data1" access="public">
+        <type native="unsigned long">uint</type>
+      </field>
+      <field name="Data2" access="public">
+        <type native="unsigned short">ushort</type>
+      </field>
+      <field name="Data3" access="public">
+        <type native="unsigned short">ushort</type>
+      </field>
+      <field name="Data4" access="public">
+        <type native="unsigned char[8]" count="8" fixed="_Data4_e__FixedBuffer">byte</type>
+      </field>
+      <struct name="_Data4_e__FixedBuffer" access="public">
+        <attribute>InlineArray(8)</attribute>
+        <field name="e0" access="public">
+          <type>byte</type>
+        </field>
+      </struct>
+    </struct>
+    <struct name="ITransferTarget" access="public" uuid="e504a81c-6b01-4a88-8e1e-000000000000">
+      <field name="x" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <class name="Methods" access="public" static="true" unsafe="true">
+      <iid name="IID_ITransferTarget" value="0xE504A81C, 0x6B01, 0x4A88, 0x8E, 0x1E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00" />
+    </class>
+  </namespace>
+</bindings>

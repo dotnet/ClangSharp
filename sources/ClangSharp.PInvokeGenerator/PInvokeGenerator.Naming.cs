@@ -502,7 +502,13 @@ public sealed partial class PInvokeGenerator
 
         if (IsType<RecordType>(cxxBaseSpecifier, baseType, out var recordType))
         {
-            return (CXXRecordDecl)recordType.Decl;
+            var recordDecl = (CXXRecordDecl)recordType.Decl;
+
+            // The referenced decl can be a redeclaration (e.g. a MIDL forward `typedef interface`)
+            // rather than the definition. A non-definition carries the base list but no members, so
+            // resolving to the definition is required to flatten every inherited method into the
+            // derived vtable.
+            return (CXXRecordDecl?)recordDecl.Definition ?? recordDecl;
         }
 
         // A dependent base (such as `Base<T>` used within a class template) has no resolved

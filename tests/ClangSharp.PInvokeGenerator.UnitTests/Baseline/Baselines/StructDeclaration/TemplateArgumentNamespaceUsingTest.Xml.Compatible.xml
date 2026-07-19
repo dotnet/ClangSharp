@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="System.Numerics">
+    <struct name="Matrix4x4" access="public" unsafe="true">
+      <field name="m" access="public">
+        <type native="float[16]" count="16" fixed="_m_e__FixedBuffer">float</type>
+      </field>
+    </struct>
+    <struct name="ISpatial" access="public" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <delegate name="_GetTransform" access="public" convention="ThisCall" unsafe="true">
+        <type native="ABI::Windows::Foundation::IReference&lt;ABI::Windows::Foundation::Numerics::Matrix4x4&gt; *">IReference&lt;Matrix4x4&gt;*</type>
+        <param name="pThis">
+          <type>ISpatial*</type>
+        </param>
+      </delegate>
+      <function name="GetTransform" access="public" unsafe="true">
+        <type native="ABI::Windows::Foundation::IReference&lt;ABI::Windows::Foundation::Numerics::Matrix4x4&gt; *">IReference&lt;Matrix4x4&gt;*</type>
+        <body>
+          <code>fixed (ISpatial* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetTransform</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <interface>
+        <function name="GetTransform" access="public" unsafe="true">
+          <type native="ABI::Windows::Foundation::IReference&lt;ABI::Windows::Foundation::Numerics::Matrix4x4&gt; *">IReference&lt;Matrix4x4&gt;*</type>
+        </function>
+      </interface>
+    </struct>
+  </namespace>
+</bindings>
