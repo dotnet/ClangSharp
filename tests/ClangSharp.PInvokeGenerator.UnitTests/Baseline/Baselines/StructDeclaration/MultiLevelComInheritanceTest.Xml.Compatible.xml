@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="IUnknown" access="public" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <delegate name="_QueryInterface" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IUnknown*</type>
+        </param>
+      </delegate>
+      <delegate name="_AddRef" access="public" convention="ThisCall">
+        <type native="unsigned int">uint</type>
+        <param name="pThis">
+          <type>IUnknown*</type>
+        </param>
+      </delegate>
+      <delegate name="_Release" access="public" convention="ThisCall">
+        <type native="unsigned int">uint</type>
+        <param name="pThis">
+          <type>IUnknown*</type>
+        </param>
+      </delegate>
+      <function name="QueryInterface" access="public" unsafe="true" vtblindex="0">
+        <type>int</type>
+        <body>
+          <code>fixed (IUnknown* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_QueryInterface</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="AddRef" access="public" unsafe="true" vtblindex="1">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>fixed (IUnknown* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_AddRef</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">1</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Release" access="public" unsafe="true" vtblindex="2">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>fixed (IUnknown* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Release</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">2</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+    </struct>
+    <struct name="ISequentialStream" access="public" native="struct ISequentialStream : IUnknown" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <delegate name="_QueryInterface" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>ISequentialStream*</type>
+        </param>
+      </delegate>
+      <delegate name="_AddRef" access="public" convention="ThisCall">
+        <type native="unsigned int">uint</type>
+        <param name="pThis">
+          <type>ISequentialStream*</type>
+        </param>
+      </delegate>
+      <delegate name="_Release" access="public" convention="ThisCall">
+        <type native="unsigned int">uint</type>
+        <param name="pThis">
+          <type>ISequentialStream*</type>
+        </param>
+      </delegate>
+      <delegate name="_Read" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>ISequentialStream*</type>
+        </param>
+      </delegate>
+      <delegate name="_Write" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>ISequentialStream*</type>
+        </param>
+      </delegate>
+      <function name="QueryInterface" access="public" unsafe="true" vtblindex="0">
+        <type>int</type>
+        <body>
+          <code>fixed (ISequentialStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_QueryInterface</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="AddRef" access="public" unsafe="true" vtblindex="1">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>fixed (ISequentialStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_AddRef</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">1</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Release" access="public" unsafe="true" vtblindex="2">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>fixed (ISequentialStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Release</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">2</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Read" access="public" unsafe="true" vtblindex="3">
+        <type>int</type>
+        <body>
+          <code>fixed (ISequentialStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Read</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">3</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Write" access="public" unsafe="true" vtblindex="4">
+        <type>int</type>
+        <body>
+          <code>fixed (ISequentialStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Write</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">4</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+    </struct>
+    <struct name="IStream" access="public" native="struct IStream : ISequentialStream" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <delegate name="_QueryInterface" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IStream*</type>
+        </param>
+      </delegate>
+      <delegate name="_AddRef" access="public" convention="ThisCall">
+        <type native="unsigned int">uint</type>
+        <param name="pThis">
+          <type>IStream*</type>
+        </param>
+      </delegate>
+      <delegate name="_Release" access="public" convention="ThisCall">
+        <type native="unsigned int">uint</type>
+        <param name="pThis">
+          <type>IStream*</type>
+        </param>
+      </delegate>
+      <delegate name="_Read" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IStream*</type>
+        </param>
+      </delegate>
+      <delegate name="_Write" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IStream*</type>
+        </param>
+      </delegate>
+      <delegate name="_Seek" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IStream*</type>
+        </param>
+      </delegate>
+      <delegate name="_Clone" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IStream*</type>
+        </param>
+      </delegate>
+      <function name="QueryInterface" access="public" unsafe="true" vtblindex="0">
+        <type>int</type>
+        <body>
+          <code>fixed (IStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_QueryInterface</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="AddRef" access="public" unsafe="true" vtblindex="1">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>fixed (IStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_AddRef</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">1</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Release" access="public" unsafe="true" vtblindex="2">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>fixed (IStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Release</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">2</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Read" access="public" unsafe="true" vtblindex="3">
+        <type>int</type>
+        <body>
+          <code>fixed (IStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Read</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">3</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Write" access="public" unsafe="true" vtblindex="4">
+        <type>int</type>
+        <body>
+          <code>fixed (IStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Write</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">4</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Seek" access="public" unsafe="true" vtblindex="5">
+        <type>int</type>
+        <body>
+          <code>fixed (IStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Seek</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">5</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Clone" access="public" unsafe="true" vtblindex="6">
+        <type>int</type>
+        <body>
+          <code>fixed (IStream* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Clone</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">6</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+    </struct>
+    <struct name="IStreamAsync" access="public" native="struct IStreamAsync : IStream" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <delegate name="_QueryInterface" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IStreamAsync*</type>
+        </param>
+      </delegate>
+      <delegate name="_AddRef" access="public" convention="ThisCall">
+        <type native="unsigned int">uint</type>
+        <param name="pThis">
+          <type>IStreamAsync*</type>
+        </param>
+      </delegate>
+      <delegate name="_Release" access="public" convention="ThisCall">
+        <type native="unsigned int">uint</type>
+        <param name="pThis">
+          <type>IStreamAsync*</type>
+        </param>
+      </delegate>
+      <delegate name="_Read" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IStreamAsync*</type>
+        </param>
+      </delegate>
+      <delegate name="_Write" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IStreamAsync*</type>
+        </param>
+      </delegate>
+      <delegate name="_Seek" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IStreamAsync*</type>
+        </param>
+      </delegate>
+      <delegate name="_Clone" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IStreamAsync*</type>
+        </param>
+      </delegate>
+      <delegate name="_ReadAsync" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IStreamAsync*</type>
+        </param>
+      </delegate>
+      <function name="QueryInterface" access="public" unsafe="true" vtblindex="0">
+        <type>int</type>
+        <body>
+          <code>fixed (IStreamAsync* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_QueryInterface</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="AddRef" access="public" unsafe="true" vtblindex="1">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>fixed (IStreamAsync* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_AddRef</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">1</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Release" access="public" unsafe="true" vtblindex="2">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>fixed (IStreamAsync* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Release</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">2</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Read" access="public" unsafe="true" vtblindex="3">
+        <type>int</type>
+        <body>
+          <code>fixed (IStreamAsync* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Read</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">3</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Write" access="public" unsafe="true" vtblindex="4">
+        <type>int</type>
+        <body>
+          <code>fixed (IStreamAsync* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Write</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">4</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Seek" access="public" unsafe="true" vtblindex="5">
+        <type>int</type>
+        <body>
+          <code>fixed (IStreamAsync* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Seek</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">5</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="Clone" access="public" unsafe="true" vtblindex="6">
+        <type>int</type>
+        <body>
+          <code>fixed (IStreamAsync* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Clone</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">6</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <function name="ReadAsync" access="public" unsafe="true" vtblindex="7">
+        <type>int</type>
+        <body>
+          <code>fixed (IStreamAsync* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_ReadAsync</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">7</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+    </struct>
+  </namespace>
+</bindings>

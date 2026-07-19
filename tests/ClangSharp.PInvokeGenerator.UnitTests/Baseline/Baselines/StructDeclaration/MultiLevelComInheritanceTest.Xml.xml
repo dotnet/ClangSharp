@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="IUnknown" access="public" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <function name="QueryInterface" access="public" unsafe="true" vtblindex="0">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IUnknown*, int&gt;)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">(IUnknown*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="AddRef" access="public" unsafe="true" vtblindex="1">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IUnknown*, uint&gt;)(lpVtbl[<vtbl explicit="False">1</vtbl>]))(<param special="thisPtr">(IUnknown*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Release" access="public" unsafe="true" vtblindex="2">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IUnknown*, uint&gt;)(lpVtbl[<vtbl explicit="False">2</vtbl>]))(<param special="thisPtr">(IUnknown*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+    </struct>
+    <struct name="ISequentialStream" access="public" native="struct ISequentialStream : IUnknown" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <function name="QueryInterface" access="public" unsafe="true" vtblindex="0">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;ISequentialStream*, int&gt;)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">(ISequentialStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="AddRef" access="public" unsafe="true" vtblindex="1">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;ISequentialStream*, uint&gt;)(lpVtbl[<vtbl explicit="False">1</vtbl>]))(<param special="thisPtr">(ISequentialStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Release" access="public" unsafe="true" vtblindex="2">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;ISequentialStream*, uint&gt;)(lpVtbl[<vtbl explicit="False">2</vtbl>]))(<param special="thisPtr">(ISequentialStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Read" access="public" unsafe="true" vtblindex="3">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;ISequentialStream*, int&gt;)(lpVtbl[<vtbl explicit="False">3</vtbl>]))(<param special="thisPtr">(ISequentialStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Write" access="public" unsafe="true" vtblindex="4">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;ISequentialStream*, int&gt;)(lpVtbl[<vtbl explicit="False">4</vtbl>]))(<param special="thisPtr">(ISequentialStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+    </struct>
+    <struct name="IStream" access="public" native="struct IStream : ISequentialStream" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <function name="QueryInterface" access="public" unsafe="true" vtblindex="0">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStream*, int&gt;)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">(IStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="AddRef" access="public" unsafe="true" vtblindex="1">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStream*, uint&gt;)(lpVtbl[<vtbl explicit="False">1</vtbl>]))(<param special="thisPtr">(IStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Release" access="public" unsafe="true" vtblindex="2">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStream*, uint&gt;)(lpVtbl[<vtbl explicit="False">2</vtbl>]))(<param special="thisPtr">(IStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Read" access="public" unsafe="true" vtblindex="3">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStream*, int&gt;)(lpVtbl[<vtbl explicit="False">3</vtbl>]))(<param special="thisPtr">(IStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Write" access="public" unsafe="true" vtblindex="4">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStream*, int&gt;)(lpVtbl[<vtbl explicit="False">4</vtbl>]))(<param special="thisPtr">(IStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Seek" access="public" unsafe="true" vtblindex="5">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStream*, int&gt;)(lpVtbl[<vtbl explicit="False">5</vtbl>]))(<param special="thisPtr">(IStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Clone" access="public" unsafe="true" vtblindex="6">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStream*, int&gt;)(lpVtbl[<vtbl explicit="False">6</vtbl>]))(<param special="thisPtr">(IStream*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+    </struct>
+    <struct name="IStreamAsync" access="public" native="struct IStreamAsync : IStream" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <function name="QueryInterface" access="public" unsafe="true" vtblindex="0">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStreamAsync*, int&gt;)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">(IStreamAsync*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="AddRef" access="public" unsafe="true" vtblindex="1">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStreamAsync*, uint&gt;)(lpVtbl[<vtbl explicit="False">1</vtbl>]))(<param special="thisPtr">(IStreamAsync*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Release" access="public" unsafe="true" vtblindex="2">
+        <type native="unsigned int">uint</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStreamAsync*, uint&gt;)(lpVtbl[<vtbl explicit="False">2</vtbl>]))(<param special="thisPtr">(IStreamAsync*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Read" access="public" unsafe="true" vtblindex="3">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStreamAsync*, int&gt;)(lpVtbl[<vtbl explicit="False">3</vtbl>]))(<param special="thisPtr">(IStreamAsync*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Write" access="public" unsafe="true" vtblindex="4">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStreamAsync*, int&gt;)(lpVtbl[<vtbl explicit="False">4</vtbl>]))(<param special="thisPtr">(IStreamAsync*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Seek" access="public" unsafe="true" vtblindex="5">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStreamAsync*, int&gt;)(lpVtbl[<vtbl explicit="False">5</vtbl>]))(<param special="thisPtr">(IStreamAsync*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="Clone" access="public" unsafe="true" vtblindex="6">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStreamAsync*, int&gt;)(lpVtbl[<vtbl explicit="False">6</vtbl>]))(<param special="thisPtr">(IStreamAsync*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name="ReadAsync" access="public" unsafe="true" vtblindex="7">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;IStreamAsync*, int&gt;)(lpVtbl[<vtbl explicit="False">7</vtbl>]))(<param special="thisPtr">(IStreamAsync*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+    </struct>
+  </namespace>
+</bindings>

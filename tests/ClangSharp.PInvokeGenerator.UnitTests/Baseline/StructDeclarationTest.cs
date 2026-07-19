@@ -684,6 +684,44 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
         return ValidateAsync(nameof(InheritanceWithNativeInheritanceAttributeTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
     }
 
+    [Test]
+    public Task MultiLevelComInheritanceTest()
+    {
+        // When an intermediate base is reached through a forward `typedef struct X X;` (as MIDL interfaces are
+        // declared), clang binds the base to a non-definition redeclaration whose own members would otherwise be
+        // dropped. All inherited vtbl slots must still flatten in order (CS0535 when they don't).
+        var inputContents = @"struct IUnknown
+{
+    virtual int QueryInterface() = 0;
+    virtual unsigned int AddRef() = 0;
+    virtual unsigned int Release() = 0;
+};
+
+struct ISequentialStream : public IUnknown
+{
+    virtual int Read() = 0;
+    virtual int Write() = 0;
+};
+
+typedef struct IStream IStream;
+
+struct IStream : public ISequentialStream
+{
+    virtual int Seek() = 0;
+    virtual int Clone() = 0;
+};
+
+struct IStream;
+
+struct IStreamAsync : public IStream
+{
+    virtual int ReadAsync() = 0;
+};
+";
+
+        return ValidateAsync(nameof(MultiLevelComInheritanceTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
+    }
+
     [TestCase("double", "double", 10, 5)]
     [TestCase("short", "short", 10, 5)]
     [TestCase("int", "int", 10, 5)]
