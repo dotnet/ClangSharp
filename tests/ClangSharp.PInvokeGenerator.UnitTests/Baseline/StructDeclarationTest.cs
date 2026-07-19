@@ -604,9 +604,9 @@ static const IID& IID_ITransferTarget = __uuidof(ITransferTarget);
             return Task.CompletedTask;
         }
 
-        // A `#define IID_X IID_Y` alias and a `#define X (*(const GUID*)(n))` computed-pointer deref (as `MAKEDIPROP`
-        // expands to) both produce a `ref`-returning body, so both must keep the `ref readonly` return; dropping it
-        // leaves a by-value `Guid` return paired with a `=> ref` body.
+        // A `#define IID_X IID_Y` alias references another constant's storage, so it stays a `ref readonly Guid`
+        // alias. A `#define X (*(const GUID*)(n))` computed-pointer deref (as `MAKEDIPROP` expands to) targets an
+        // arbitrary address, so it is exposed as a `Guid*` pointer rather than an invalid managed byref.
         var inputContents = @"#define DECLSPEC_UUID(x) __declspec(uuid(x))
 #define EXTERN_C extern ""C""
 
