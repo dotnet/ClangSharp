@@ -141,6 +141,16 @@ struct MyStruct
     }
 
     [Test]
+    public Task OptionalParameterUnsignedNegativeLiteralTest()
+    {
+        // A bare negative literal default on an unsigned parameter must keep the explicit `(uint)` cast; otherwise
+        // `unchecked(-1)` stays `int` and fails to bind to the `uint` parameter (CS1750).
+        var inputContents = @"extern ""C"" void MyFunction(unsigned int value = -1);";
+
+        return ValidateAsync(nameof(OptionalParameterUnsignedNegativeLiteralTest), inputContents);
+    }
+
+    [Test]
     public Task WithCallConvTest()
     {
         var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";

@@ -2511,6 +2511,14 @@ public sealed partial class PInvokeGenerator : IDisposable
                 needsCast = true;
             }
 
+            // A signed-negative value does not implicitly convert to an unsigned target in C#
+            // (e.g. `uint x = -1`), so emit the explicit cast to the target type.
+            if (IsPrevContextDecl<VarDecl>(out _, out _) && IsUnsigned(targetTypeName)
+                && !IsStmtAsWritten<CastExpr>(stmt, out _, removeParens: true) && IsNegativeConstant(stmt))
+            {
+                needsCast = true;
+            }
+
             if (needsCast)
             {
                 _outputBuilder.BeginInnerValue();
@@ -2543,6 +2551,13 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             VisitStmt(stmt);
         }
+    }
+
+    private static bool IsNegativeConstant(Stmt stmt)
+    {
+        var written = (stmt is Expr expr) ? GetExprAsWritten(expr, removeParens: true) : stmt;
+        var evaluation = written.Handle.Evaluate;
+        return (evaluation.Kind == CXEval_Int) && (evaluation.AsLongLong < 0);
     }
 
     private bool EnumConstantInitNeedsCast(string targetTypeName, Stmt stmt)
