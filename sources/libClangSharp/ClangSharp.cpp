@@ -109,6 +109,36 @@ int64_t getVtblIdx(const GlobalDecl& d)
 
         if (MicrosoftVTableContext* MSVTC = dyn_cast<MicrosoftVTableContext>(VTC)) {
             MethodVFTableLocation ML = MSVTC->getMethodVFTableLocation(d);
+
+            // clang 22's Microsoft vftable layout reports Index == 0 for a virtual destructor
+            // regardless of its declaration position, so it collides with whatever occupies slot 0
+            // whenever the destructor is not declared first. The vftable layout itself is ordered
+            // correctly, so recover the true slot by counting the function-pointer components that
+            // precede the deleting-destructor component (non-slot components such as offsets are
+            // skipped so the count stays in the same space as MethodVFTableLocation::Index).
+            if (const CXXDestructorDecl* DD = dyn_cast<CXXDestructorDecl>(CMD)) {
+                const VTableLayout& layout = MSVTC->getVFTableLayout(RD, ML.VFPtrOffset);
+                int64_t slot = 0;
+
+                for (const VTableComponent& component : layout.vtable_components()) {
+                    switch (component.getKind()) {
+                    case VTableComponent::CK_DeletingDtorPointer:
+                        if (component.getDestructorDecl()->getCanonicalDecl() == DD->getCanonicalDecl()) {
+                            return slot;
+                        }
+                        slot++;
+                        break;
+                    case VTableComponent::CK_FunctionPointer:
+                    case VTableComponent::CK_UnusedFunctionPointer:
+                    case VTableComponent::CK_CompleteDtorPointer:
+                        slot++;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+
             return ML.Index;
         }
 
