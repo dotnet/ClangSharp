@@ -559,6 +559,39 @@ EXTERN_C const IID IID_ITextHost;
     }
 
     [Test]
+    public Task GuidInterfaceDuplicateIidTest()
+    {
+        if (Variant.Os != BaselineOs.Windows)
+        {
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
+
+        // A `static const IID&` alias initialized from `__uuidof` names the same `IID_` symbol the interface's uuid
+        // already emits. Only one definition may be generated; the alias var must not add a second (CS0102).
+        var inputContents = @"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+
+struct _GUID
+{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+};
+
+typedef struct _GUID GUID;
+typedef GUID IID;
+
+struct DECLSPEC_UUID(""e504a81c-6b01-4a88-8e1e-000000000000"") ITransferTarget
+{
+    int x;
+};
+
+static const IID& IID_ITransferTarget = __uuidof(ITransferTarget);
+";
+
+        var remappedNames = new Dictionary<string, string> { ["_GUID"] = "Guid", ["GUID"] = "Guid" };
+        return ValidateAsync(nameof(GuidInterfaceDuplicateIidTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateUnmanagedConstants, excludedNames: GuidTestExcludedNames, remappedNames: remappedNames);
     public Task InheritanceTest()
     {
         var inputContents = @"struct MyStruct1A
