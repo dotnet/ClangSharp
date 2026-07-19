@@ -37,6 +37,15 @@
       <field name="constRealPtr" access="public">
         <type native="const Ns::Real *">float*</type>
       </field>
+      <field name="elabPointPtr" access="public">
+        <type native="struct Ns::Point *">Point*</type>
+      </field>
+      <field name="constElabPointPtr" access="public">
+        <type native="const struct Ns::Point *">Point*</type>
+      </field>
+      <field name="elabStatusPtr" access="public">
+        <type native="enum Ns::Status *">Status*</type>
+      </field>
       <field name="r" access="public">
         <type native="Ns::Real">float</type>
       </field>

@@ -29,6 +29,15 @@ namespace ClangSharp.Test
         [NativeTypeName("const Ns::Real *")]
         public float* constRealPtr;
 
+        [NativeTypeName("struct Ns::Point *")]
+        public Point* elabPointPtr;
+
+        [NativeTypeName("const struct Ns::Point *")]
+        public Point* constElabPointPtr;
+
+        [NativeTypeName("enum Ns::Status *")]
+        public Status* elabStatusPtr;
+
         [NativeTypeName("Ns::Real")]
         public float r;
 

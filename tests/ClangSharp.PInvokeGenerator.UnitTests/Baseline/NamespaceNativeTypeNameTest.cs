@@ -17,8 +17,9 @@ public sealed class NamespaceNativeTypeNameTest : BaselineTest
     // clang 22's type printer omits the enclosing C++ namespace from a reference spelled from within that
     // same namespace, where-as older releases always spelled it. The generator restores the dropped
     // `Namespace::` prefix from the decl so the emitted `NativeTypeName` keeps the fully qualified source
-    // spelling for typedef, record (including by-pointer and const-qualified by-pointer), and enum
-    // references, placing the qualifier after any leading cv-qualifiers, and stays version-stable.
+    // spelling for typedef, record (including by-pointer, const-qualified, and elaborated `struct`/`enum`
+    // specifiers), and enum references, placing the qualifier after any leading cv-qualifiers or tag
+    // keywords, and stays version-stable.
     [Test]
     public Task NamespaceQualifiedNativeTypeNameIsPreservedTest()
     {
@@ -44,6 +45,9 @@ public sealed class NamespaceNativeTypeNameTest : BaselineTest
         Point* pointPtr;
         const Point* constPointPtr;
         const Real* constRealPtr;
+        struct Point* elabPointPtr;
+        const struct Point* constElabPointPtr;
+        enum Status* elabStatusPtr;
         Real r;
         Status status;
     };

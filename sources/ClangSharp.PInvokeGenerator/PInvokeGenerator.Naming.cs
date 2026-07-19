@@ -190,6 +190,11 @@ public sealed partial class PInvokeGenerator
         return GetNamespaceQualifiedNativeTypeName(decl, nativeTypeName);
     }
 
+    // Tokens the clang type printer can spell before a type's nested-name-specifier: cv-qualifiers,
+    // elaborated tag keywords, and the MS `__unaligned` type qualifier. A restored `Namespace::`
+    // qualifier belongs on the type name, after any leading run of these.
+    private static readonly string[] s_leadingTypeQualifiers = ["const ", "volatile ", "struct ", "class ", "union ", "enum ", "__unaligned "];
+
     private static string GetNamespaceQualifiedNativeTypeName(Decl decl, string nativeTypeName)
     {
         // clang 22's type printer omits the enclosing C++ namespace from a reference when a
@@ -214,23 +219,27 @@ public sealed partial class PInvokeGenerator
 
         var qualifier = qualifierBuilder.ToString();
 
-        // The qualifier belongs on the type name, after any leading cv-qualifiers, so a `const`
-        // pointer stays `const Ns::Point *` rather than the malformed `Ns::const Point *`.
+        // The qualifier belongs on the type name, after any leading cv-qualifiers, elaborated tag
+        // keywords, or `__unaligned`, so e.g. a `const struct` pointer stays `const struct Ns::Point *`
+        // rather than the malformed `Ns::const struct Point *`.
         var offset = 0;
 
         while (true)
         {
             var rest = nativeTypeName.AsSpan(offset);
+            var matched = false;
 
-            if (rest.StartsWith("const ", StringComparison.Ordinal))
+            foreach (var prefix in s_leadingTypeQualifiers)
             {
-                offset += 6;
+                if (rest.StartsWith(prefix, StringComparison.Ordinal))
+                {
+                    offset += prefix.Length;
+                    matched = true;
+                    break;
+                }
             }
-            else if (rest.StartsWith("volatile ", StringComparison.Ordinal))
-            {
-                offset += 9;
-            }
-            else
+
+            if (!matched)
             {
                 break;
             }
