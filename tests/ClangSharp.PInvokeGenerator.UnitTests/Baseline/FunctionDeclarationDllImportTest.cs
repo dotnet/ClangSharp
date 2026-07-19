@@ -151,6 +151,24 @@ struct MyStruct
     }
 
     [Test]
+    public Task OptionalParameterTransparentStructTest()
+    {
+        // A transparent-struct-typed parameter default must emit the bare constant. Wrapping it in a cast to the
+        // struct (`((HRESULT)(0))`) is not a constant expression and fails inside `DefaultParameterValue` (CS0182).
+        var inputContents = @"typedef long HRESULT;
+#define S_OK ((HRESULT)0L)
+
+extern ""C"" void MyFunction(HRESULT value = S_OK);";
+
+        var withTransparentStructs = new Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)>
+        {
+            ["HRESULT"] = ("int", PInvokeGeneratorTransparentStructKind.Unknown)
+        };
+        var remappedNames = new Dictionary<string, string> { ["HRESULT"] = "HRESULT" };
+        return ValidateAsync(nameof(OptionalParameterTransparentStructTest), inputContents, remappedNames: remappedNames, withTransparentStructs: withTransparentStructs);
+    }
+
+    [Test]
     public Task WithCallConvTest()
     {
         var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";

@@ -1360,7 +1360,7 @@ public partial class PInvokeGenerator
                     if (defaultArg is not null)
                     {
                         csharpOutputBuilder.WriteCustomAttribute("Optional, DefaultParameterValue(", () => {
-                            generator.Visit(defaultArg);
+                            generator.VisitTransparentStructDefaultArg(defaultArg);
                             csharpOutputBuilder.Write(')');
                         });
                     }
@@ -1484,6 +1484,24 @@ public partial class PInvokeGenerator
                    (IsStmtAsWritten<CastExpr>(defaultArg, out var castExpr, removeParens: true) && (castExpr.CastKind == CX_CK_NullToPointer)) ||
                    (IsStmtAsWritten<IntegerLiteral>(defaultArg, out var integerLiteral, removeParens: true) && (integerLiteral.Value == 0));
         }
+    }
+
+    private void VisitTransparentStructDefaultArg(Expr defaultArg)
+    {
+        // A default value cast to a transparent struct (e.g. `S_OK` => `(HRESULT)0`) is not a
+        // constant expression, so `DefaultParameterValue` must receive the underlying constant.
+        if (IsStmtAsWritten<ExplicitCastExpr>(defaultArg, out var castExpr, removeParens: true))
+        {
+            var typeName = GetRemappedTypeName(castExpr, context: null, castExpr.Type, out _);
+
+            if (_config.WithTransparentStructs.ContainsKey(typeName))
+            {
+                Visit(castExpr.SubExprAsWritten);
+                return;
+            }
+        }
+
+        Visit(defaultArg);
     }
 
     private void VisitTranslationUnitDecl(TranslationUnitDecl translationUnitDecl)
