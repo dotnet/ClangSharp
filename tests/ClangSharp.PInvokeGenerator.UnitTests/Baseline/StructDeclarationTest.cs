@@ -722,6 +722,27 @@ struct IStreamAsync : public IStream
         return ValidateAsync(nameof(MultiLevelComInheritanceTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
     }
 
+    [Test]
+    public Task TemplateArgumentNamespaceUsingTest()
+    {
+        // A namespaced type (System.Numerics.Matrix4x4) used only as a generic-pointer-wrapper template argument
+        // must still emit its `using`; dropping it leaves the `Matrix4x4` reference unresolved (CS0246).
+        var inputContents = @"namespace ABI { namespace Windows { namespace Foundation {
+    template<typename T> struct IReference { T value; };
+    namespace Numerics { struct Matrix4x4 { float m[16]; }; }
+}}}
+
+struct ISpatial
+{
+    virtual ABI::Windows::Foundation::IReference<ABI::Windows::Foundation::Numerics::Matrix4x4>* GetTransform() = 0;
+};
+";
+
+        var remappedNames = new Dictionary<string, string> { ["ABI.Windows.Foundation.Numerics.Matrix4x4"] = "Matrix4x4" };
+        var withNamespaces = new Dictionary<string, string> { ["Matrix4x4"] = "System.Numerics" };
+        return ValidateAsync(nameof(TemplateArgumentNamespaceUsingTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateGenericPointerWrapper | PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces, remappedNames: remappedNames, withNamespaces: withNamespaces);
+    }
+
     [TestCase("double", "double", 10, 5)]
     [TestCase("short", "short", 10, 5)]
     [TestCase("int", "int", 10, 5)]
