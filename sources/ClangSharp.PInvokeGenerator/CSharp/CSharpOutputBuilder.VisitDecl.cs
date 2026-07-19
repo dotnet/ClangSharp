@@ -854,6 +854,11 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
             baseTypeNames.Add($"IEquatable<{desc.EscapedName}>");
         }
 
+        if (desc.ExtraBaseTypeNames is not null)
+        {
+            baseTypeNames.AddRange(desc.ExtraBaseTypeNames);
+        }
+
         if (baseTypeNames.Count != 0)
         {
             Write(" : ");
@@ -864,22 +869,29 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
         WriteBlockStart();
     }
 
-    public void BeginMarkerInterface(string[]? baseTypeNames)
+    public void BeginMarkerInterface(string[]? baseTypeNames, IReadOnlyList<string>? extraBaseTypeNames)
     {
         WriteIndented("public interface Interface");
 
+        var bases = new List<string>();
+
         if (baseTypeNames is not null)
         {
-            Write(" : ");
-            Write(baseTypeNames[0]);
-            Write(".Interface");
-
-            for (var i = 1; i < baseTypeNames.Length; i++)
+            foreach (var baseTypeName in baseTypeNames)
             {
-                Write(", ");
-                Write(baseTypeNames[i]);
-                Write(".Interface");
+                bases.Add($"{baseTypeName}.Interface");
             }
+        }
+
+        if (extraBaseTypeNames is not null)
+        {
+            bases.AddRange(extraBaseTypeNames);
+        }
+
+        if (bases.Count != 0)
+        {
+            Write(" : ");
+            Write(string.Join(", ", bases));
         }
 
         WriteNewline();

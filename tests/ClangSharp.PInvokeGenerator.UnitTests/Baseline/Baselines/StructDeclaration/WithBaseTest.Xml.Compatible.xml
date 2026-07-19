@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="IThing" access="public" vtbl="true" unsafe="true">
+      <field name="lpVtbl" access="public">
+        <type>void**</type>
+      </field>
+      <delegate name="_DoWork" access="public" convention="ThisCall">
+        <type>int</type>
+        <param name="pThis">
+          <type>IThing*</type>
+        </param>
+      </delegate>
+      <function name="DoWork" access="public" unsafe="true">
+        <type>int</type>
+        <body>
+          <code>fixed (IThing* pThis = &amp;this)
+    {
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_DoWork</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit="False">0</vtbl>]))(<param special="thisPtr">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <interface>
+        <function name="DoWork" access="public" unsafe="true">
+          <type>int</type>
+        </function>
+      </interface>
+    </struct>
+    <struct name="PlainThing" access="public">
+      <field name="value" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

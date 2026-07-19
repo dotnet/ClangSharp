@@ -168,6 +168,7 @@ internal static partial class Program
         var withConditional = s_withConditional.SingleValue;
         var withAccessSpecifierNameValuePairs = s_withAccessSpecifierNameValuePairs.GetValues();
         var withAttributeNameValuePairs = s_withAttributeNameValuePairs.GetValues();
+        var withBaseNameValuePairs = s_withBaseNameValuePairs.GetValues();
         var withCallConvNameValuePairs = s_withCallConvNameValuePairs.GetValues();
         var withClassNameValuePairs = s_withClassNameValuePairs.GetValues();
         var withConstantFoldedValues = s_withConstantFoldedValues.GetValues();
@@ -223,6 +224,7 @@ internal static partial class Program
         ParseKeyValuePairs(remappedFieldNameValuePairs, errorList, out Dictionary<string, string> remappedFieldNames);
         ParseKeyValuePairs(withAccessSpecifierNameValuePairs, errorList, out Dictionary<string, AccessSpecifier> withAccessSpecifiers);
         ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
+        ParseKeyValuePairs(withBaseNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withBases);
         ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
         ParseKeyValuePairs(withClassNameValuePairs, errorList, out Dictionary<string, string> withClasses);
         ParseKeyValuePairs(withEnumMemberStripNameValuePairs, errorList, out Dictionary<string, string> withEnumMemberStrip);
@@ -395,6 +397,7 @@ internal static partial class Program
                 TestOutputLocation = testOutputLocation,
                 WithAccessSpecifiers = withAccessSpecifiers,
                 WithAttributes = withAttributes,
+                WithBases = withBases,
                 WithCallConvs = withCallConvs,
                 WithClasses = withClasses,
                 WithConditional = withConditional,

@@ -35,6 +35,7 @@ internal static partial class Program
     private static readonly string[] s_versionOptionAliases = ["--version", "-v"];
     private static readonly string[] s_withAccessSpecifierOptionAliases = ["--with-access-specifier", "-was"];
     private static readonly string[] s_withAttributeOptionAliases = ["--with-attribute", "-wa"];
+    private static readonly string[] s_withBaseOptionAliases = ["--with-base", "-wb"];
     private static readonly string[] s_withCallConvOptionAliases = ["--with-callconv", "-wcc"];
     private static readonly string[] s_withClassOptionAliases = ["--with-class", "-wc"];
     private static readonly string[] s_withConditionalOptionAliases = ["--with-conditional", "-wcond"];
@@ -98,6 +99,7 @@ internal static partial class Program
     private static readonly CommandLineOption s_versionOption = Flag(s_versionOptionAliases, "Prints the current version information for the tool and its native dependencies.");
     private static readonly CommandLineOption s_withAccessSpecifierNameValuePairs = Multi(s_withAccessSpecifierOptionAliases, "An access specifier to be used with the given qualified or remapped declaration name during binding generation. Supports `*` (any run) and `?` (single character) wildcards; exact matches take precedence.");
     private static readonly CommandLineOption s_withAttributeNameValuePairs = Multi(s_withAttributeOptionAliases, "An attribute to be added to the given remapped declaration name during binding generation. Supports `*` (any run) and `?` (single character) wildcards; exact matches take precedence.");
+    private static readonly CommandLineOption s_withBaseNameValuePairs = Multi(s_withBaseOptionAliases, "An additional base type the generated type should derive from during binding generation. Applies to structs and COM interface types. Supports `*` (any run) and `?` (single character) wildcards; exact matches take precedence.");
     private static readonly CommandLineOption s_withCallConvNameValuePairs = Multi(s_withCallConvOptionAliases, "A calling convention to be used for the given declaration during binding generation. Supports `*` (any run) and `?` (single character) wildcards; exact matches take precedence.");
     private static readonly CommandLineOption s_withClassNameValuePairs = Multi(s_withClassOptionAliases, "A class to be used for the given remapped constant or function declaration name during binding generation. Supports a trailing `*` wildcard for prefix matching; an exact match takes precedence.");
     private static readonly CommandLineOption s_withConditional = Single(s_withConditionalOptionAliases, "A preprocessor symbol used to wrap single-file C# output in a leading '#if <symbol>' and trailing '#endif'. Useful when files can't be conditionally excluded at the project level (e.g. Unity).", valueName: "symbol");
@@ -163,6 +165,7 @@ internal static partial class Program
         s_versionOption,
         s_withAccessSpecifierNameValuePairs,
         s_withAttributeNameValuePairs,
+        s_withBaseNameValuePairs,
         s_withCallConvNameValuePairs,
         s_withClassNameValuePairs,
         s_withConditional,

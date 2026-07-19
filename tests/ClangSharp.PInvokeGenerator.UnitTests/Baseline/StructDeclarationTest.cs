@@ -1243,4 +1243,29 @@ struct MyStruct
 
         return ValidateAsync(nameof(UserDeclaredDestructorTest), inputContents);
     }
+
+    // A user-supplied `--with-base` entry appends extra base types: onto the nested marker `Interface`
+    // for a COM/vtbl type (the `IUnknown.Interface : INativeGuid` case terrafx patches by hand) and onto
+    // the struct itself for a plain value type.
+    [Test]
+    public Task WithBaseTest()
+    {
+        var inputContents = @"struct IThing
+{
+    virtual int DoWork() = 0;
+};
+
+struct PlainThing
+{
+    int value;
+};
+";
+
+        var withBases = new Dictionary<string, IReadOnlyList<string>> {
+            ["IThing"] = ["INativeGuid"],
+            ["PlainThing"] = ["IDisposable"],
+        };
+
+        return ValidateAsync(nameof(WithBaseTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces, withBases: withBases);
+    }
 }

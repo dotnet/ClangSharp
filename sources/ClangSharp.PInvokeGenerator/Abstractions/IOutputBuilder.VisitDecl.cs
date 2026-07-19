@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ClangSharp.CSharp;
 
 namespace ClangSharp.Abstractions;
@@ -49,7 +50,7 @@ internal partial interface IOutputBuilder
     void EndFunctionOrDelegate(in FunctionOrDelegateDesc info);
 
     void BeginStruct(in StructDesc info);
-    void BeginMarkerInterface(string[]? baseTypeNames);
+    void BeginMarkerInterface(string[]? baseTypeNames, IReadOnlyList<string>? extraBaseTypeNames);
     void EndMarkerInterface();
     void BeginExplicitVtbl();
     void EndExplicitVtbl();

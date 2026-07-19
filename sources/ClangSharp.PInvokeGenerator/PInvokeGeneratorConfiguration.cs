@@ -62,6 +62,7 @@ public sealed class PInvokeGeneratorConfiguration
     internal readonly Dictionary<string, string> _remappedFieldNames;
     internal readonly Dictionary<string, AccessSpecifier> _withAccessSpecifiers;
     internal readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
+    internal readonly Dictionary<string, IReadOnlyList<string>> _withBases;
     internal readonly Dictionary<string, string> _withCallConvs;
     internal readonly Dictionary<string, string> _withClasses;
     internal readonly Dictionary<string, string> _withEnumMemberStrip;
@@ -137,6 +138,7 @@ public sealed class PInvokeGeneratorConfiguration
         _remappedFieldNames = new Dictionary<string, string>(QualifiedNameComparer.Default);
         _withAccessSpecifiers = new Dictionary<string, AccessSpecifier>(QualifiedNameComparer.Default);
         _withAttributes = new Dictionary<string, IReadOnlyList<string>>(QualifiedNameComparer.Default);
+        _withBases = new Dictionary<string, IReadOnlyList<string>>(QualifiedNameComparer.Default);
         _withCallConvs = new Dictionary<string, string>(QualifiedNameComparer.Default);
         _withClasses = new Dictionary<string, string>(StringComparer.Ordinal);
         _withEnumMemberStrip = new Dictionary<string, string>(QualifiedNameComparer.Default);
@@ -606,6 +608,20 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             AddRange(_withAttributes, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> WithBases
+    {
+        get
+        {
+            return _withBases;
+        }
+
+        init
+        {
+            AddRange(_withBases, value);
         }
     }
 
