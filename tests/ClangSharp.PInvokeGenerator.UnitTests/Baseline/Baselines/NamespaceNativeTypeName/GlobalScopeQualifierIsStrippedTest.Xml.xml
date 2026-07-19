@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="@boolean" access="public">
+      <field name="x" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name="Holder" access="public" unsafe="true">
+      <field name="globalPtr" access="public">
+        <type native="boolean *">byte*</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

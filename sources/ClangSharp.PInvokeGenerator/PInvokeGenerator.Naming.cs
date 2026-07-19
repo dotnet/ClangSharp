@@ -146,6 +146,16 @@ public sealed partial class PInvokeGenerator
 
     private static string GetNamespaceQualifiedNativeTypeName(Type type, string nativeTypeName)
     {
+        // clang 22 can spell a global-scope name with a redundant leading `::` (e.g. `::boolean`)
+        // when the unqualified name is shadowed in an enclosing namespace. Drop the global-scope
+        // qualifier so the NativeTypeName stays consistent with every other unqualified spelling.
+        var globalScopeOffset = SkipLeadingTypeQualifiers(nativeTypeName);
+
+        if (nativeTypeName.AsSpan(globalScopeOffset).StartsWith("::", StringComparison.Ordinal))
+        {
+            nativeTypeName = nativeTypeName.Remove(globalScopeOffset, 2);
+        }
+
         // Peel pointer/reference/array layers so a stripped namespace is restored even for
         // `Ns::Point *` and similar, where clang only ever drops the leading `Namespace::`.
 
@@ -195,6 +205,36 @@ public sealed partial class PInvokeGenerator
     // qualifier belongs on the type name, after any leading run of these.
     private static readonly string[] s_leadingTypeQualifiers = ["const ", "volatile ", "struct ", "class ", "union ", "enum ", "__unaligned "];
 
+    // Advances past any leading run of cv-qualifiers, elaborated tag keywords, or `__unaligned` to
+    // the offset where the type's nested-name-specifier begins.
+    private static int SkipLeadingTypeQualifiers(string nativeTypeName)
+    {
+        var offset = 0;
+
+        while (true)
+        {
+            var rest = nativeTypeName.AsSpan(offset);
+            var matched = false;
+
+            foreach (var prefix in s_leadingTypeQualifiers)
+            {
+                if (rest.StartsWith(prefix, StringComparison.Ordinal))
+                {
+                    offset += prefix.Length;
+                    matched = true;
+                    break;
+                }
+            }
+
+            if (!matched)
+            {
+                break;
+            }
+        }
+
+        return offset;
+    }
+
     private static string GetNamespaceQualifiedNativeTypeName(Decl decl, string nativeTypeName)
     {
         // clang 22's type printer omits the enclosing C++ namespace from a reference when a
@@ -220,28 +260,7 @@ public sealed partial class PInvokeGenerator
         // The qualifier belongs on the type name, after any leading cv-qualifiers, elaborated tag
         // keywords, or `__unaligned`, so e.g. a `const struct` pointer stays `const struct Ns::Point *`
         // rather than the malformed `Ns::const struct Point *`.
-        var offset = 0;
-
-        while (true)
-        {
-            var rest = nativeTypeName.AsSpan(offset);
-            var matched = false;
-
-            foreach (var prefix in s_leadingTypeQualifiers)
-            {
-                if (rest.StartsWith(prefix, StringComparison.Ordinal))
-                {
-                    offset += prefix.Length;
-                    matched = true;
-                    break;
-                }
-            }
-
-            if (!matched)
-            {
-                break;
-            }
-        }
+        var offset = SkipLeadingTypeQualifiers(nativeTypeName);
 
         // The source spelling may already carry a trailing run of the namespace (a minimally
         // qualified reference, e.g. `Windows::Foundation::IPropertyValue` written inside

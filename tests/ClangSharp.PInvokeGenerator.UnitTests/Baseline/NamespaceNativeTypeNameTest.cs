@@ -100,4 +100,30 @@ public sealed class NamespaceNativeTypeNameTest : BaselineTest
 
         return ValidateAsync(nameof(PartiallyQualifiedNamespaceIsNotDuplicatedTest), inputContents);
     }
+
+    // clang 22 can spell a global-scope reference with a redundant leading `::` (e.g. `::boolean`)
+    // when the unqualified name is shadowed by a type in the enclosing namespace. The generator
+    // drops that global-scope qualifier so the `NativeTypeName` stays consistent with every other
+    // unqualified spelling rather than churning to `::boolean`.
+    [Test]
+    public Task GlobalScopeQualifierIsStrippedTest()
+    {
+        var inputContents = @"typedef unsigned char boolean;
+
+namespace Ns
+{
+    struct boolean
+    {
+        int x;
+    };
+
+    struct Holder
+    {
+        ::boolean* globalPtr;
+    };
+}
+";
+
+        return ValidateAsync(nameof(GlobalScopeQualifierIsStrippedTest), inputContents);
+    }
 }

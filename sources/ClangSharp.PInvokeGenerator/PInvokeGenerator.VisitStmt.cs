@@ -1526,6 +1526,15 @@ public partial class PInvokeGenerator
                 }
                 else
                 {
+                    // A constant-array field decayed to a pointer projects to an `[InlineArray]`
+                    // value type, which has no implicit pointer conversion, so take its address to
+                    // bind it to a pointer. A compatible-mode fixed buffer decays on its own, and
+                    // array locals (managed arrays) or string literals must not be addressed here.
+                    if (!Config.GenerateCompatibleCode && (subExpr is MemberExpr) && (subExpr.Type.CanonicalType is ConstantArrayType) && (implicitCastExpr.Type.CanonicalType is PointerType))
+                    {
+                        outputBuilder.Write('&');
+                    }
+
                     VisitStmt(subExpr);
                 }
                 break;

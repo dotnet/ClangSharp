@@ -44,6 +44,28 @@ void MyFunction()
         return ValidateAsync(nameof(ArraySubscriptTest), inputContents);
     }
 
+    // A constant-array field projects to an `[InlineArray]` value type, which has no implicit
+    // pointer conversion, so a decay to a pointer argument must take its address (`&pStruct->Data`).
+    // A compatible-mode fixed buffer decays to a pointer on its own, so it stays unaddressed.
+    [Test]
+    public Task ArrayFieldToPointerArgumentTest()
+    {
+        var inputContents = @"void MyOtherFunction(void* pData);
+
+struct MyStruct
+{
+    unsigned char Data[16];
+};
+
+void MyFunction(struct MyStruct* pStruct)
+{
+    MyOtherFunction(pStruct->Data);
+}
+";
+
+        return ValidateAsync(nameof(ArrayFieldToPointerArgumentTest), inputContents);
+    }
+
     [Test]
     public Task BasicTest()
     {
