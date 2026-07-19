@@ -27,10 +27,13 @@ namespace System
         public int x;
     }
 
-    public static partial class Methods
+    public static unsafe partial class Methods
     {
         [NativeTypeName("#define IID_IOInet IID_IInternet")]
         public static ref readonly Guid IID_IOInet => ref IID_IInternet;
+
+        [NativeTypeName("#define DIPROP_BUFFERSIZE (*(const GUID *)(1))")]
+        public static Guid* DIPROP_BUFFERSIZE => unchecked((Guid*)(1));
 
         public static ref readonly Guid IID_IInternet
         {

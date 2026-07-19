@@ -20,11 +20,18 @@
         <type>int</type>
       </field>
     </struct>
-    <class name="Methods" access="public" static="true">
+    <class name="Methods" access="public" static="true" unsafe="true">
       <constant name="IID_IOInet" access="public">
         <type primitive="False">Guid</type>
         <value>
           <code>ref IID_IInternet</code>
+        </value>
+      </constant>
+      <constant name="DIPROP_BUFFERSIZE" access="public">
+        <type primitive="False">Guid*</type>
+        <value>
+          <code>
+            <unchecked></unchecked>(<value>(Guid*)(1)</value>)</code>
         </value>
       </constant>
       <iid name="IID_IInternet" value="0x79EAC9E0, 0xBAF9, 0x11CE, 0x8C, 0x82, 0x00, 0xAA, 0x00, 0x4B, 0xA9, 0x0B" />

@@ -385,12 +385,24 @@ public sealed partial class PInvokeGenerator
                     result.typeName = GetRemappedCursorName(tagType.Decl, out _, skipUsing: true);
 
                     // A nested type needs to be qualified by its containing type(s) so it resolves
-                    // when referenced from another scope (e.g. `A::Inner` -> `A.Inner`). Namespaces
-                    // are flattened away, so only walk the enclosing record decls.
+                    // when referenced from another scope (e.g. `A::Inner` -> `A.Inner`). A reference
+                    // from within a containing type sees the nested type directly, so only qualify
+                    // up to the scope shared with the reference site. Namespaces are flattened away,
+                    // so only walk the enclosing record decls.
+
+                    var referenceScope = new HashSet<Decl>();
+
+                    for (var refContext = (cursor as Decl)?.DeclContext ?? (context as Decl)?.DeclContext; refContext is Decl refParent; refContext = refParent.DeclContext)
+                    {
+                        if (refParent is RecordDecl)
+                        {
+                            _ = referenceScope.Add(refParent);
+                        }
+                    }
 
                     var qualificationBuilder = new StringBuilder();
 
-                    for (var declContext = tagType.Decl.DeclContext; declContext is RecordDecl parentRecordDecl; declContext = parentRecordDecl.DeclContext)
+                    for (var declContext = tagType.Decl.DeclContext; declContext is RecordDecl parentRecordDecl && !referenceScope.Contains(parentRecordDecl); declContext = parentRecordDecl.DeclContext)
                     {
                         var parentRecordDeclName = GetRemappedCursorName(parentRecordDecl, out _, skipUsing: true);
                         _ = qualificationBuilder.Insert(0, '.').Insert(0, EscapeName(parentRecordDeclName));

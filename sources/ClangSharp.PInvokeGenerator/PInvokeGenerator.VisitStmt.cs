@@ -749,27 +749,38 @@ public partial class PInvokeGenerator
 
         if (args.Count != 0)
         {
-            if (isUnmanagedConstant)
+            if (isUnmanagedConstant
+             && IsStmtAsWritten<UnaryOperator>(args[0], out var derefOperator, removeParens: true)
+             && (derefOperator.Opcode == CXUnaryOperator_Deref))
             {
-                outputBuilder.Write("ref ");
+                // A computed-pointer GUID macro (e.g. `MAKEDIPROP(n)` -> `*(const GUID*)(n)`) is exposed
+                // as the pointer itself, so emit its operand rather than a byref to arbitrary memory.
+                Visit(derefOperator.SubExpr);
             }
-
-            var needsComma = false;
-
-            for (var i = 0; i < args.Count; i++)
+            else
             {
-                var arg = args[i];
-
-                if (needsComma && (arg is not CXXDefaultArgExpr))
+                if (isUnmanagedConstant)
                 {
-                    outputBuilder.Write(", ");
+                    outputBuilder.Write("ref ");
                 }
 
-                Visit(arg);
+                var needsComma = false;
 
-                if (arg is not CXXDefaultArgExpr)
+                for (var i = 0; i < args.Count; i++)
                 {
-                    needsComma = true;
+                    var arg = args[i];
+
+                    if (needsComma && (arg is not CXXDefaultArgExpr))
+                    {
+                        outputBuilder.Write(", ");
+                    }
+
+                    Visit(arg);
+
+                    if (arg is not CXXDefaultArgExpr)
+                    {
+                        needsComma = true;
+                    }
                 }
             }
         }

@@ -190,6 +190,11 @@ public sealed partial class PInvokeGenerator
         return GetNamespaceQualifiedNativeTypeName(decl, nativeTypeName);
     }
 
+    // Tokens the clang type printer can spell before a type's nested-name-specifier: cv-qualifiers,
+    // elaborated tag keywords, and the MS `__unaligned` type qualifier. A restored `Namespace::`
+    // qualifier belongs on the type name, after any leading run of these.
+    private static readonly string[] s_leadingTypeQualifiers = ["const ", "volatile ", "struct ", "class ", "union ", "enum ", "__unaligned "];
+
     private static string GetNamespaceQualifiedNativeTypeName(Decl decl, string nativeTypeName)
     {
         // clang 22's type printer omits the enclosing C++ namespace from a reference when a
@@ -213,7 +218,34 @@ public sealed partial class PInvokeGenerator
         }
 
         var qualifier = qualifierBuilder.ToString();
-        return nativeTypeName.StartsWith(qualifier, StringComparison.Ordinal) ? nativeTypeName : qualifier + nativeTypeName;
+
+        // The qualifier belongs on the type name, after any leading cv-qualifiers, elaborated tag
+        // keywords, or `__unaligned`, so e.g. a `const struct` pointer stays `const struct Ns::Point *`
+        // rather than the malformed `Ns::const struct Point *`.
+        var offset = 0;
+
+        while (true)
+        {
+            var rest = nativeTypeName.AsSpan(offset);
+            var matched = false;
+
+            foreach (var prefix in s_leadingTypeQualifiers)
+            {
+                if (rest.StartsWith(prefix, StringComparison.Ordinal))
+                {
+                    offset += prefix.Length;
+                    matched = true;
+                    break;
+                }
+            }
+
+            if (!matched)
+            {
+                break;
+            }
+        }
+
+        return nativeTypeName.AsSpan(offset).StartsWith(qualifier, StringComparison.Ordinal) ? nativeTypeName : nativeTypeName.Insert(offset, qualifier);
     }
 
     private string GetCursorQualifiedName(NamedDecl namedDecl, bool truncateParameters = false)
