@@ -35,4 +35,22 @@ struct B
 
         return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents);
     }
+
+    [Test]
+    public Task NestedTypeIsNotQualifiedWithinContainer()
+    {
+        var inputContents = @"struct Outer
+{
+    struct Inner
+    {
+        int value;
+    };
+
+    Inner field;
+    Inner* fieldPtr;
+};
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents);
+    }
 }
