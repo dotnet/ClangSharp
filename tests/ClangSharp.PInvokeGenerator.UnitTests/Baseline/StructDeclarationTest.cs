@@ -1220,4 +1220,52 @@ struct MyStruct
 
         return ValidateAsync(nameof(DeeplyNestedAnonStructs), inputContents);
     }
+
+    // A user-declared destructor lowers to `Dispose`. `delete`/`delete[]` has no direct C# form, so it
+    // emits the `cxx_delete(...)` placeholder (mirroring `cxx_new`) instead of nothing, which would
+    // leave a silently empty `if (data != null) { }` body that leaks.
+    [Test]
+    public Task UserDeclaredDestructorTest()
+    {
+        var inputContents = @"struct WithDestructor
+{
+    int* data;
+
+    ~WithDestructor()
+    {
+        if (data != 0)
+        {
+            delete[] data;
+        }
+    }
+};
+";
+
+        return ValidateAsync(nameof(UserDeclaredDestructorTest), inputContents);
+    }
+
+    // A user-supplied `--with-base` entry appends extra base types: onto the nested marker `Interface`
+    // for a COM/vtbl type (the `IUnknown.Interface : INativeGuid` case terrafx patches by hand) and onto
+    // the struct itself for a plain value type.
+    [Test]
+    public Task WithBaseTest()
+    {
+        var inputContents = @"struct IThing
+{
+    virtual int DoWork() = 0;
+};
+
+struct PlainThing
+{
+    int value;
+};
+";
+
+        var withBases = new Dictionary<string, IReadOnlyList<string>> {
+            ["IThing"] = ["INativeGuid"],
+            ["PlainThing"] = ["IDisposable"],
+        };
+
+        return ValidateAsync(nameof(WithBaseTest), inputContents, additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces, withBases: withBases);
+    }
 }

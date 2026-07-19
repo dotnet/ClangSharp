@@ -153,6 +153,11 @@ public partial class PInvokeGenerator
 
             string[]? baseTypeNames = null;
 
+            if (!TryGetRemappedValue(recordDecl, _config._withBases, optOuts: null, out var extraBaseTypeNames, matchStar: true))
+            {
+                extraBaseTypeNames = null;
+            }
+
             string? nativeNameWithExtras = null, nativeInheritance = null;
             if ((cxxRecordDecl is not null) && cxxRecordDecl.Bases.Any())
             {
@@ -231,6 +236,7 @@ public partial class PInvokeGenerator
                 },
                 Uuid = nullableUuid,
                 NativeType = nativeNameWithExtras,
+                ExtraBaseTypeNames = ((hasVtbl || hasBaseVtbl) && _config.GenerateMarkerInterfaces) ? null : extraBaseTypeNames,
                 NativeInheritance = _config.GenerateNativeInheritanceAttribute ? nativeInheritance : null,
                 NativeAlignment = nativeAlignment,
                 Location = recordDecl.Location,
@@ -625,7 +631,7 @@ public partial class PInvokeGenerator
                         csharpOutputBuilder.NeedsNewline = true;
                     }
 
-                    _outputBuilder.BeginMarkerInterface(baseTypeNames);
+                    _outputBuilder.BeginMarkerInterface(baseTypeNames, extraBaseTypeNames);
                     OutputMarkerInterfaces(cxxRecordDecl, cxxRecordDecl);
                     _outputBuilder.EndMarkerInterface();
                 }

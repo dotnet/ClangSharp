@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ClangSharp.Interop;
@@ -17,6 +18,7 @@ internal struct StructDesc
     public LayoutDesc Layout { get; set; }
     public Guid? Uuid { get; set; }
     public StructFlags Flags { get; set; }
+    public IReadOnlyList<string>? ExtraBaseTypeNames { get; set; }
     public CXSourceLocation? Location { get; set; }
 
     public bool IsNested

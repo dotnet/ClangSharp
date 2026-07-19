@@ -56,4 +56,48 @@ public sealed class NamespaceNativeTypeNameTest : BaselineTest
 
         return ValidateAsync(nameof(NamespaceQualifiedNativeTypeNameIsPreservedTest), inputContents);
     }
+
+    // A reference spelled from within a nested namespace already carries part of the enclosing
+    // qualifier (e.g. `Windows::Foundation::PropertyValue` written inside `Abi`). The restored prefix
+    // must only add the leading segments the spelling is missing, so it stays
+    // `Abi::Windows::Foundation::PropertyValue` rather than doubling into
+    // `Abi::Windows::Foundation::Windows::Foundation::PropertyValue`.
+    [Test]
+    public Task PartiallyQualifiedNamespaceIsNotDuplicatedTest()
+    {
+        var inputContents = @"namespace Abi
+{
+    namespace Windows
+    {
+        namespace Foundation
+        {
+            struct PropertyValue
+            {
+                int value;
+            };
+        }
+
+        namespace Graphics
+        {
+            namespace Effects
+            {
+                struct EffectSource
+                {
+                    int source;
+                };
+
+                struct Interop
+                {
+                    Windows::Foundation::PropertyValue** partiallyQualified;
+                    Abi::Windows::Foundation::PropertyValue** fullyQualified;
+                    EffectSource** sameNamespace;
+                };
+            }
+        }
+    }
+}
+";
+
+        return ValidateAsync(nameof(PartiallyQualifiedNamespaceIsNotDuplicatedTest), inputContents);
+    }
 }
