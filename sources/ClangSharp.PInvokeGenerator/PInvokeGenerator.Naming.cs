@@ -202,22 +202,20 @@ public sealed partial class PInvokeGenerator
         // Rebuild the dropped `Namespace::` prefix from the decl so the NativeTypeName keeps the
         // fully qualified source spelling (e.g. `Gdiplus::Status`) and stays stable across versions.
 
-        var qualifierBuilder = new StringBuilder();
+        var namespaceNames = new List<string>();
 
         for (var declContext = decl.DeclContext; declContext is Decl parentDecl; declContext = parentDecl.DeclContext)
         {
             if (parentDecl is NamespaceDecl namespaceDecl && !string.IsNullOrEmpty(namespaceDecl.Name))
             {
-                _ = qualifierBuilder.Insert(0, "::").Insert(0, namespaceDecl.Name);
+                namespaceNames.Insert(0, namespaceDecl.Name);
             }
         }
 
-        if (qualifierBuilder.Length == 0)
+        if (namespaceNames.Count == 0)
         {
             return nativeTypeName;
         }
-
-        var qualifier = qualifierBuilder.ToString();
 
         // The qualifier belongs on the type name, after any leading cv-qualifiers, elaborated tag
         // keywords, or `__unaligned`, so e.g. a `const struct` pointer stays `const struct Ns::Point *`
@@ -245,7 +243,21 @@ public sealed partial class PInvokeGenerator
             }
         }
 
-        return nativeTypeName.AsSpan(offset).StartsWith(qualifier, StringComparison.Ordinal) ? nativeTypeName : nativeTypeName.Insert(offset, qualifier);
+        // The source spelling may already carry a trailing run of the namespace (a minimally
+        // qualified reference, e.g. `Windows::Foundation::IPropertyValue` written inside
+        // `namespace ABI`). Insert only the leading segments it is missing so the qualifier isn't
+        // duplicated into `ABI::Windows::Foundation::Windows::Foundation::IPropertyValue`.
+        for (var index = 0; index <= namespaceNames.Count; index++)
+        {
+            var suffix = index < namespaceNames.Count ? string.Concat(string.Join("::", namespaceNames.Skip(index)), "::") : "";
+
+            if (nativeTypeName.AsSpan(offset).StartsWith(suffix, StringComparison.Ordinal))
+            {
+                return index == 0 ? nativeTypeName : nativeTypeName.Insert(offset, string.Concat(string.Join("::", namespaceNames.Take(index)), "::"));
+            }
+        }
+
+        return nativeTypeName;
     }
 
     private string GetCursorQualifiedName(NamedDecl namedDecl, bool truncateParameters = false)

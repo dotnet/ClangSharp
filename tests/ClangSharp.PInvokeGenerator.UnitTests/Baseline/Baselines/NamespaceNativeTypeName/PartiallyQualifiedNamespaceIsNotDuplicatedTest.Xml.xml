@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="PropertyValue" access="public">
+      <field name="value" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name="EffectSource" access="public">
+      <field name="source" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name="Interop" access="public" unsafe="true">
+      <field name="partiallyQualified" access="public">
+        <type native="Abi::Windows::Foundation::PropertyValue **">PropertyValue**</type>
+      </field>
+      <field name="fullyQualified" access="public">
+        <type native="Abi::Windows::Foundation::PropertyValue **">PropertyValue**</type>
+      </field>
+      <field name="sameNamespace" access="public">
+        <type native="Abi::Windows::Graphics::Effects::EffectSource **">EffectSource**</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>
