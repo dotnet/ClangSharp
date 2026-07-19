@@ -23,6 +23,12 @@ namespace ClangSharp.Test
         [NativeTypeName("Ns::Point *")]
         public Point* pointPtr;
 
+        [NativeTypeName("const Ns::Point *")]
+        public Point* constPointPtr;
+
+        [NativeTypeName("const Ns::Real *")]
+        public float* constRealPtr;
+
         [NativeTypeName("Ns::Real")]
         public float r;
 

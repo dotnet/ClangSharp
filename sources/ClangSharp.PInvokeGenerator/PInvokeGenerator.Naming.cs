@@ -213,7 +213,30 @@ public sealed partial class PInvokeGenerator
         }
 
         var qualifier = qualifierBuilder.ToString();
-        return nativeTypeName.StartsWith(qualifier, StringComparison.Ordinal) ? nativeTypeName : qualifier + nativeTypeName;
+
+        // The qualifier belongs on the type name, after any leading cv-qualifiers, so a `const`
+        // pointer stays `const Ns::Point *` rather than the malformed `Ns::const Point *`.
+        var offset = 0;
+
+        while (true)
+        {
+            var rest = nativeTypeName.AsSpan(offset);
+
+            if (rest.StartsWith("const ", StringComparison.Ordinal))
+            {
+                offset += 6;
+            }
+            else if (rest.StartsWith("volatile ", StringComparison.Ordinal))
+            {
+                offset += 9;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return nativeTypeName.AsSpan(offset).StartsWith(qualifier, StringComparison.Ordinal) ? nativeTypeName : nativeTypeName.Insert(offset, qualifier);
     }
 
     private string GetCursorQualifiedName(NamedDecl namedDecl, bool truncateParameters = false)
