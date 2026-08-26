@@ -11,7 +11,8 @@ public sealed class SizeOfMacroTestTest : StandaloneBaselineTest
     protected override string Area => "SizeOfMacroTestTest";
 
     [Test]
-    public Task RuntimeSizeofMacroTest()
+    [Platform("win")]
+    public Task RuntimeSizeofMacroTestWindows()
     {
         var inputContents = """
             typedef struct XrEventDataBuffer {
@@ -22,5 +23,20 @@ public sealed class SizeOfMacroTestTest : StandaloneBaselineTest
             """;
 
         return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents);
+    }
+
+    [Test]
+    [Platform("unix")]
+    public Task RuntimeSizeofMacroTestUnix()
+    {
+        var inputContents = """
+            typedef struct XrEventDataBuffer {
+                const void* next;
+            } XrEventDataBuffer;
+
+            #define XR_MAX_EVENT_DATA_SIZE sizeof(XrEventDataBuffer)
+            """;
+
+        return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents);
     }
 }
