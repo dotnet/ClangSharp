@@ -3266,7 +3266,7 @@ public partial class PInvokeGenerator
                         }
 
                         needsCast = IsType<BuiltinType>(unaryExprOrTypeTraitExpr, parentType, out var builtinType) &&
-                                    ((builtinType.Kind == CXType_UInt) || (builtinType.Kind == CXType_ULong));
+                                    (builtinType.Kind is CXType_UInt or CXType_ULong or CXType_ULongLong);
                         needsCast &= !IsSupportedFixedSizedBufferType(typeName);
                         needsCast &= !IsType<EnumType>(unaryExprOrTypeTraitExpr, argumentType);
                         needsCast |= parentTypeIsVariableSized;
