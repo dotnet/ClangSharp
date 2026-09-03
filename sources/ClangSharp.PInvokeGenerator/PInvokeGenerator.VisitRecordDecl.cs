@@ -251,6 +251,8 @@ public partial class PInvokeGenerator
             };
             Debug.Assert(_outputBuilder is not null);
 
+            WriteDocCommentXml(recordDecl.Handle.ParsedComment);
+
             if (!isTopLevelStruct)
             {
                 _outputBuilder.BeginStruct(in desc);
@@ -835,6 +837,7 @@ public partial class PInvokeGenerator
             };
 
             var isUnsafe = true;
+            WriteDocCommentXml(cxxMethodDecl.Handle.ParsedComment);
             _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
 
             _outputBuilder.BeginFunctionInnerPrototype(in desc);
@@ -1006,6 +1009,7 @@ public partial class PInvokeGenerator
             };
 
             var isUnsafe = true;
+            WriteDocCommentXml(cxxMethodDecl.Handle.ParsedComment);
             _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
 
             _outputBuilder.BeginFunctionInnerPrototype(in desc);
