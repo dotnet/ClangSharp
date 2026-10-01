@@ -292,6 +292,26 @@ const int ShiftSignedLong = 1 << SignedLong;
     }
 
     [Test]
+    public Task EnumConstantBitshiftTest()
+    {
+        // In C an enumerator has type int, but it is emitted as a member of its enum, so a shift by it needs a cast
+        var inputContents = @"
+enum Bits {
+    BIT_A,
+    BIT_B
+};
+
+const unsigned int FlagA = 1U << BIT_A;
+const unsigned int FlagB = 1U << (BIT_B);
+
+#define FLAG_A (1U << BIT_A)
+#define FLAG_B (1U << (BIT_B))
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
     [Platform("unix")]
     public Task BitfieldEnumPropertySmallBackingTypeTestUnix()
     {
