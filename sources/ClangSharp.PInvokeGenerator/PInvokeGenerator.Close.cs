@@ -41,6 +41,7 @@ public partial class PInvokeGenerator
         var methodClassOutputBuilders = new Dictionary<string, IOutputBuilder>(StringComparer.Ordinal);
         var methodClassTestOutputBuilders = new Dictionary<string, IOutputBuilder>(StringComparer.Ordinal);
         var emitNamespaceDeclaration = true;
+        var emitTestNamespaceDeclaration = true;
         var leaveStreamOpen = false;
         var generateHelperTypes = _config.GenerateHelperTypes && (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp);
 
@@ -68,8 +69,12 @@ public partial class PInvokeGenerator
 
             leaveStreamOpen = true;
 
+            // The test output builders go to their own file, so the bindings and the tests each get only the
+            // using directives their own builders recorded.
             var usingDirectives = new SortedSet<string>(StringComparer.Ordinal);
             var staticUsingDirectives = new SortedSet<string>(StringComparer.Ordinal);
+            var testUsingDirectives = new SortedSet<string>(StringComparer.Ordinal);
+            var testStaticUsingDirectives = new SortedSet<string>(StringComparer.Ordinal);
             var hasAnyContents = false;
             var testHasAnyContents = false;
 
@@ -79,12 +84,12 @@ public partial class PInvokeGenerator
                 {
                     foreach (var usingDirective in csharpOutputBuilder.UsingDirectives)
                     {
-                        _ = usingDirectives.Add(usingDirective);
+                        _ = (csharpOutputBuilder.IsTestOutput ? testUsingDirectives : usingDirectives).Add(usingDirective);
                     }
 
                     foreach (var staticUsingDirective in csharpOutputBuilder.StaticUsingDirectives)
                     {
-                        _ = staticUsingDirectives.Add(staticUsingDirective);
+                        _ = (csharpOutputBuilder.IsTestOutput ? testStaticUsingDirectives : staticUsingDirectives).Add(staticUsingDirective);
                     }
 
                     // The method class emits its [GeneratedCode] attribute directly rather than through
@@ -114,6 +119,11 @@ public partial class PInvokeGenerator
             foreach (var staticUsingDirective in staticUsingDirectives)
             {
                 _ = usingDirectives.Add(staticUsingDirective);
+            }
+
+            foreach (var testStaticUsingDirective in testStaticUsingDirectives)
+            {
+                _ = testUsingDirectives.Add(testStaticUsingDirective);
             }
 
             if (generateHelperTypes)
@@ -265,12 +275,12 @@ public partial class PInvokeGenerator
                         sw.WriteLine(_config.HeaderText);
                     }
 
-                    if (usingDirectives.Count != 0)
+                    if (testUsingDirectives.Count != 0)
                     {
-                        foreach (var usingDirective in usingDirectives)
+                        foreach (var testUsingDirective in testUsingDirectives)
                         {
                             sw.Write("using ");
-                            sw.Write(usingDirective);
+                            sw.Write(testUsingDirective);
                             sw.WriteLine(';');
                         }
 
@@ -324,14 +334,17 @@ public partial class PInvokeGenerator
             }
 
             Debug.Assert(stream is not null);
-            CloseOutputBuilder(stream, outputBuilder, isMethodClass, leaveStreamOpen, emitNamespaceDeclaration);
 
-            if (testStream is not null)
+            if (outputBuilder.IsTestOutput && (testStream is not null))
             {
-                CloseOutputBuilder(testStream, outputBuilder, isMethodClass, leaveStreamOpen, emitNamespaceDeclaration);
+                CloseOutputBuilder(testStream, outputBuilder, isMethodClass, leaveStreamOpen, emitTestNamespaceDeclaration);
+                emitTestNamespaceDeclaration = false;
             }
-
-            emitNamespaceDeclaration = false;
+            else
+            {
+                CloseOutputBuilder(stream, outputBuilder, isMethodClass, leaveStreamOpen, emitNamespaceDeclaration);
+                emitNamespaceDeclaration = false;
+            }
 
             if (_config.GenerateMultipleFiles)
             {
@@ -358,7 +371,16 @@ public partial class PInvokeGenerator
 
             foreach (var entry in methodClassTestOutputBuilders)
             {
-                CloseOutputBuilder(testStream ?? stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
+                if (testStream is not null)
+                {
+                    CloseOutputBuilder(testStream, entry.Value, isMethodClass: true, leaveStreamOpen, emitTestNamespaceDeclaration);
+                    emitTestNamespaceDeclaration = false;
+                }
+                else
+                {
+                    CloseOutputBuilder(stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
+                    emitNamespaceDeclaration = false;
+                }
             }
         }
         else
