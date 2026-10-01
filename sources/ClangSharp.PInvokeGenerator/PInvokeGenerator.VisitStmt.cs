@@ -83,6 +83,14 @@ public partial class PInvokeGenerator
 
                     break;
                 }
+                // A C enumerator has type int, but it is emitted as a member of its generated enum, which C# cannot shift by
+                case Expr when IsStmtAsWritten<DeclRefExpr>(rhs, out var declRefExpr, removeParens: true) && (declRefExpr.Decl is EnumConstantDecl):
+                {
+                    outputBuilder.Write("(int)(");
+                    Visit(binaryOperator.RHS);
+                    outputBuilder.Write(")");
+                    break;
+                }
                 // Already the correct type or implicitly castable
                 case { Type.Kind: CXType_Int or CXType_UShort or CXType_Short or CXType_Char_U or CXType_Char_S or CXType_UChar or CXType_SChar }:
                 case { Type.Kind: CXType_Long } when _config is { GenerateUnixTypes: false }:
