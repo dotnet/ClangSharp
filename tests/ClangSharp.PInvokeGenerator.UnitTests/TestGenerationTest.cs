@@ -37,15 +37,8 @@ struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000046"") MyStruct1
         var expectedTestOutputContents = @"using NUnit.Framework;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Test
+namespace ClangSharp.Test.UnitTests
 {
-    public partial struct MyStruct
-    {
-        public int x;
-
-        public int y;
-    }
-
     /// <summary>Provides validation of the <see cref=""MyStruct"" /> struct.</summary>
     public static unsafe partial class MyStructTests
     {
@@ -82,15 +75,8 @@ namespace ClangSharp.Test
         var expectedTestOutputContents = @"using System.Runtime.InteropServices;
 using Xunit;
 
-namespace ClangSharp.Test
+namespace ClangSharp.Test.UnitTests
 {
-    public partial struct MyStruct
-    {
-        public int x;
-
-        public int y;
-    }
-
     /// <summary>Provides validation of the <see cref=""MyStruct"" /> struct.</summary>
     public static unsafe partial class MyStructTests
     {
@@ -130,14 +116,8 @@ using System;
 using System.Runtime.InteropServices;
 using static ClangSharp.Test.Methods;
 
-namespace ClangSharp.Test
+namespace ClangSharp.Test.UnitTests
 {
-    [Guid(""00000000-0000-0000-C000-000000000046"")]
-    public partial struct MyStruct1
-    {
-        public int x;
-    }
-
     /// <summary>Provides validation of the <see cref=""MyStruct1"" /> struct.</summary>
     public static unsafe partial class MyStruct1Tests
     {
@@ -184,14 +164,8 @@ using System.Runtime.InteropServices;
 using Xunit;
 using static ClangSharp.Test.Methods;
 
-namespace ClangSharp.Test
+namespace ClangSharp.Test.UnitTests
 {
-    [Guid(""00000000-0000-0000-C000-000000000046"")]
-    public partial struct MyStruct1
-    {
-        public int x;
-    }
-
     /// <summary>Provides validation of the <see cref=""MyStruct1"" /> struct.</summary>
     public static unsafe partial class MyStruct1Tests
     {
@@ -241,7 +215,10 @@ namespace ClangSharp.Test
     private static async Task ValidateGeneratedTestBindingsAsync(string inputContents, string expectedTestOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions, string[]? excludedNames = null)
     {
         var configOptions = PInvokeGeneratorConfigurationOptions.GenerateLatestCode | additionalConfigOptions;
-        var (_, testOutputContents) = await GenerateBindingsWithTestOutputAsync(inputContents, PInvokeGeneratorOutputMode.CSharp, configOptions, excludedNames, remappedNames: null, withAccessSpecifiers: null, withAttributes: null, withCallConvs: null, withClasses: null, withLibraryPaths: null, withNamespaces: null, withSetLastErrors: null, withTransparentStructs: null, withTypes: null, withUsings: null, withPackings: null, expectedDiagnostics: null, libraryPath: DefaultLibraryPath, commandLineArgs: null, language: "c++", languageStandard: DefaultCppStandard).ConfigureAwait(false);
+        var (outputContents, testOutputContents) = await GenerateBindingsWithTestOutputAsync(inputContents, PInvokeGeneratorOutputMode.CSharp, configOptions, excludedNames, remappedNames: null, withAccessSpecifiers: null, withAttributes: null, withCallConvs: null, withClasses: null, withLibraryPaths: null, withNamespaces: null, withSetLastErrors: null, withTransparentStructs: null, withTypes: null, withUsings: null, withPackings: null, expectedDiagnostics: null, libraryPath: DefaultLibraryPath, commandLineArgs: null, language: "c++", languageStandard: DefaultCppStandard).ConfigureAwait(false);
         Assert.That(testOutputContents.ReplaceLineEndings("\n"), Is.EqualTo(expectedTestOutputContents.ReplaceLineEndings("\n")));
+
+        // The bindings go to the other file, which must not repeat the tests or their test framework using.
+        Assert.That(outputContents, Does.Contain("partial struct MyStruct").And.Not.Contain("Provides validation of").And.Not.Contain("using NUnit.Framework;").And.Not.Contain("using Xunit;"));
     }
 }
