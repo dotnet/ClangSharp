@@ -111,6 +111,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private int _testStmtOutputBuilderUsers;
     private int _outputBuilderUsers;
     private CXXRecordDecl? _cxxRecordDeclContext;
+    private bool _warnedAboutDisabledMacroBindings;
     private bool _disposed;
     private bool _generatedObjCBindings;
 
@@ -2603,6 +2604,13 @@ public sealed partial class PInvokeGenerator : IDisposable
         if (cursor is Attr attr)
         {
             VisitAttr(attr);
+        }
+        else if (cursor is PreprocessedEntity preprocessedEntity)
+        {
+            if (!IsExcluded(preprocessedEntity))
+            {
+                VisitPreprocessedEntity(preprocessedEntity);
+            }
         }
         else if (cursor is Decl decl)
         {
