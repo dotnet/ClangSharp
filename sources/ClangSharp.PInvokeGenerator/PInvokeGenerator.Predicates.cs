@@ -92,6 +92,16 @@ public sealed partial class PInvokeGenerator
 
         bool IsExcludedByConfig(Cursor cursor)
         {
+            if (!_config.GenerateMacroBindings && (cursor is PreprocessedEntity))
+            {
+                if (!_warnedAboutDisabledMacroBindings)
+                {
+                    AddDiagnostic(DiagnosticLevel.Warning, "Preprocessing records were ignored because macro binding generation is not enabled. Enable 'GenerateMacroBindings' ('--generate-macro-bindings' in the CLI) to generate supported macro bindings.");
+                    _warnedAboutDisabledMacroBindings = true;
+                }
+                return true;
+            }
+
             return (_config.ExcludeFunctionsWithBody && (cursor is FunctionDecl functionDecl) && functionDecl.HasBody)
                 || (!_config.GenerateTemplateBindings && ((cursor is TemplateDecl) || (cursor is ClassTemplateSpecializationDecl)));
         }
