@@ -21,6 +21,33 @@ public sealed class VarDeclarationTest : BaselineTest
 
     protected override string Area => "VarDeclaration";
 
+    [Test]
+    public Task DocIncludesMacroTest()
+    {
+        var remappedNames = new Dictionary<string, string> { ["MY_MACRO"] = "MyMacro" };
+        var withClasses = new Dictionary<string, string> { ["MyMacro"] = "Constants" };
+        return ValidateAsync(nameof(DocIncludesMacroTest), "#define MY_MACRO 42", additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateDocIncludes, remappedNames: remappedNames, withClasses: withClasses);
+    }
+
+    [Test]
+    public Task DocIncludesStaticConstTest()
+        => ValidateAsync(nameof(DocIncludesStaticConstTest), @"struct MyStruct
+{
+    int value;
+};
+
+static const MyStruct MyConstant = { 0 };", additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateDocIncludes);
+
+    [Test]
+    public Task DocIncludesStaticMemberTest()
+    {
+        var remappedNames = new Dictionary<string, string> { ["NativeStruct"] = "MyStruct", ["NativeConstant"] = "MyConstant" };
+        return ValidateAsync(nameof(DocIncludesStaticMemberTest), @"struct NativeStruct
+{
+    static const int NativeConstant = 42;
+};", additionalConfigOptions: PInvokeGeneratorConfigurationOptions.GenerateDocIncludes, remappedNames: remappedNames);
+    }
+
     [TestCase("double")]
     [TestCase("short")]
     [TestCase("int")]
