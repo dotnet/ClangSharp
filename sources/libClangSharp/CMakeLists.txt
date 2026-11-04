@@ -33,6 +33,19 @@ set(LLVM_SEARCH_PATHS
   ${PATH_TO_LLVM}/share/llvm/cmake/
 )
 
+if(MSVC)
+  if(CMAKE_GENERATOR_INSTANCE)
+    set(_clangsharp_vs "${CMAKE_GENERATOR_INSTANCE}")
+  else()
+    file(TO_CMAKE_PATH "$ENV{VSINSTALLDIR}" _clangsharp_vs)
+  endif()
+  string(REGEX REPLACE "/+$" "" _clangsharp_vs "${_clangsharp_vs}")
+
+  if(_clangsharp_vs)
+    set(MSVC_DIA_SDK_DIR "${_clangsharp_vs}/DIA SDK")
+  endif()
+endif()
+
 find_package(Clang REQUIRED CONFIG
              PATHS ${LLVM_SEARCH_PATHS}
              NO_DEFAULT_PATH)
@@ -46,13 +59,6 @@ find_package(Clang REQUIRED CONFIG
 # exposes its root and target as CMAKE_GENERATOR_INSTANCE/PLATFORM; Ninja +
 # clang-cl (win-arm64) gets them from VSINSTALLDIR and the compiler arch id.
 if(MSVC AND TARGET LLVMDebugInfoPDB)
-  if(CMAKE_GENERATOR_INSTANCE)
-    set(_clangsharp_vs "${CMAKE_GENERATOR_INSTANCE}")
-  else()
-    file(TO_CMAKE_PATH "$ENV{VSINSTALLDIR}" _clangsharp_vs)
-  endif()
-  string(REGEX REPLACE "/+$" "" _clangsharp_vs "${_clangsharp_vs}")
-
   if(CMAKE_GENERATOR_PLATFORM)
     set(_clangsharp_arch "${CMAKE_GENERATOR_PLATFORM}")
   else()
@@ -94,7 +100,7 @@ add_library(ClangSharp SHARED ${SOURCES})
 target_link_libraries(ClangSharp PRIVATE clangAST clangFrontend libclang)
 
 # The official LLVM macOS release ships LTO bitcode in its static archives, so
-# linking them requires a libLTO that understands LLVM 22 bitcode. Apple's system
+# linking them requires a libLTO that understands LLVM 23 bitcode. Apple's system
 # linker defaults to Xcode's older libLTO and fails ("could not parse bitcode
 # object file ... Unknown attribute kind"). Point the linker at the libLTO.dylib
 # from the LLVM release being consumed.

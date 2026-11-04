@@ -112,6 +112,17 @@ jobs:
         - { rid: osx-arm64,   os: macos-latest }
     steps:
     - uses: actions/checkout@v4
+    - name: Install LLVM dependencies (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = "Stop"
+        $triplet = if ("${{ matrix.rid }}" -eq "win-arm64") { "arm64-windows-static" } else { "x64-windows-static" }
+        $vcpkgRoot = if ($env:VCPKG_INSTALLATION_ROOT) { $env:VCPKG_INSTALLATION_ROOT } else { $env:VCPKG_ROOT }
+        if (-not $vcpkgRoot) { throw "VCPKG_INSTALLATION_ROOT or VCPKG_ROOT must be set" }
+        $vcpkg = Join-Path -Path $vcpkgRoot -ChildPath "vcpkg.exe"
+        & $vcpkg install "zlib:$triplet" "zstd:$triplet"
+        if ($LASTEXITCODE -ne 0) { throw "vcpkg failed to install LLVM dependencies for $triplet" }
     - name: Build libClangSharp (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
