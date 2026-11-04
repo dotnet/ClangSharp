@@ -4498,8 +4498,8 @@ int clangsharp_Cursor_getNumTemplateParameters(CXCursor C, unsigned listIndex) {
         }
 
         if (const DeclaratorDecl* DD = dyn_cast<DeclaratorDecl>(D)) {
-            if (listIndex < DD->getNumTemplateParameterLists()) {
-                return DD->getTemplateParameterList(listIndex)->size();
+            if (listIndex < DD->getTemplateParameterLists().size()) {
+                return DD->getTemplateParameterLists()[listIndex]->size();
             }
         }
 
@@ -4516,8 +4516,8 @@ int clangsharp_Cursor_getNumTemplateParameters(CXCursor C, unsigned listIndex) {
         }
 
         if (const TagDecl* TD = dyn_cast<TagDecl>(D)) {
-            if (listIndex < TD->getNumTemplateParameterLists()) {
-                return TD->getTemplateParameterList(listIndex)->size();
+            if (listIndex < TD->getTemplateParameterLists().size()) {
+                return TD->getTemplateParameterLists()[listIndex]->size();
             }
         }
 
@@ -4546,7 +4546,7 @@ int clangsharp_Cursor_getNumTemplateParameterLists(CXCursor C) {
         }
 
         if (const DeclaratorDecl* DD = dyn_cast<DeclaratorDecl>(D)) {
-            return DD->getNumTemplateParameterLists();
+            return static_cast<int>(DD->getTemplateParameterLists().size());
         }
 
         if (const FriendDecl* FD = dyn_cast<FriendDecl>(D)) {
@@ -4558,7 +4558,7 @@ int clangsharp_Cursor_getNumTemplateParameterLists(CXCursor C) {
         }
 
         if (const TagDecl* TD = dyn_cast<TagDecl>(D)) {
-            return TD->getNumTemplateParameterLists();
+            return static_cast<int>(TD->getTemplateParameterLists().size());
         }
 
         if (const TemplateDecl* TD = dyn_cast<TemplateDecl>(D)) {
@@ -5602,8 +5602,8 @@ CXCursor clangsharp_Cursor_getTemplateParameter(CXCursor C, unsigned listIndex, 
         }
 
         if (const DeclaratorDecl* DD = dyn_cast<DeclaratorDecl>(D)) {
-            if (listIndex < DD->getNumTemplateParameterLists()) {
-                TemplateParameterList* templateParameters = DD->getTemplateParameterList(listIndex);
+            if (listIndex < DD->getTemplateParameterLists().size()) {
+                TemplateParameterList* templateParameters = DD->getTemplateParameterLists()[listIndex];
 
                 if (parameterIndex < templateParameters->size()) {
                     return MakeCXCursor(templateParameters->getParam(parameterIndex), getCursorTU(C));
@@ -5632,8 +5632,8 @@ CXCursor clangsharp_Cursor_getTemplateParameter(CXCursor C, unsigned listIndex, 
         }
 
         if (const TagDecl* TD = dyn_cast<TagDecl>(D)) {
-            if (listIndex < TD->getNumTemplateParameterLists()) {
-                TemplateParameterList* templateParameters = TD->getTemplateParameterList(listIndex);
+            if (listIndex < TD->getTemplateParameterLists().size()) {
+                TemplateParameterList* templateParameters = TD->getTemplateParameterLists()[listIndex];
 
                 if (parameterIndex < templateParameters->size()) {
                     return MakeCXCursor(templateParameters->getParam(parameterIndex), getCursorTU(C));

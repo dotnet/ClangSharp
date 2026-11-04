@@ -199,6 +199,26 @@ function Import-VisualStudioEnvironment([string] $vsPath, [string] $arch) {
 function Build-Libclangsharp([string] $runtime, [string] $source, [string] $destination) {
   $nativeBuildDir = Join-Path -Path $ArtifactsDir -ChildPath "bin\native\$runtime"
   $pathToLlvm = (Resolve-Path -Path $source).Path
+  $vcpkgArgs = @()
+  $vcpkgRoot = if ($env:VCPKG_INSTALLATION_ROOT) { $env:VCPKG_INSTALLATION_ROOT } else { $env:VCPKG_ROOT }
+
+  if ($vcpkgRoot) {
+    $vcpkgToolchain = Join-Path -Path $vcpkgRoot -ChildPath "scripts\buildsystems\vcpkg.cmake"
+    $triplet = if ($runtime -eq "win-arm64") { "arm64-windows-static" } else { "x64-windows-static" }
+
+    if (Test-Path -Path $vcpkgToolchain) {
+      foreach ($header in @("zlib.h", "zstd.h")) {
+        $headerPath = Join-Path -Path $vcpkgRoot -ChildPath "installed\$triplet\include\$header"
+
+        if (-not (Test-Path -Path $headerPath)) {
+          throw "Install zlib and zstd for the '$triplet' vcpkg triplet before building libClangSharp"
+        }
+      }
+
+      $vcpkgToolchain = $vcpkgToolchain.Replace("\", "/")
+      $vcpkgArgs = @("-DCMAKE_TOOLCHAIN_FILE=$vcpkgToolchain", "-DVCPKG_TARGET_TRIPLET=$triplet")
+    }
+  }
 
   if ($runtime -eq "win-arm64") {
     # The official LLVM release binaries are built with clang. On win-arm64,
@@ -218,7 +238,7 @@ function Build-Libclangsharp([string] $runtime, [string] $source, [string] $dest
       $ninja = Join-Path -Path $vsPath -ChildPath "Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe"
     }
 
-    & cmake -G Ninja -B "$nativeBuildDir" -S "$RepoRoot" "-DCMAKE_MAKE_PROGRAM=$ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl "-DPATH_TO_LLVM=$pathToLlvm"
+    & cmake -G Ninja -B "$nativeBuildDir" -S "$RepoRoot" "-DCMAKE_MAKE_PROGRAM=$ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl @vcpkgArgs "-DPATH_TO_LLVM=$pathToLlvm"
   }
   else {
     $arch = switch ($runtime) {
@@ -226,7 +246,7 @@ function Build-Libclangsharp([string] $runtime, [string] $source, [string] $dest
       default   { throw "'$runtime' cannot build libClangSharp on Windows; use build.sh on the matching runner" }
     }
 
-    & cmake -B "$nativeBuildDir" -S "$RepoRoot" -A "$arch" "-Thost=$arch" "-DPATH_TO_LLVM=$pathToLlvm"
+    & cmake -B "$nativeBuildDir" -S "$RepoRoot" -A "$arch" "-Thost=$arch" @vcpkgArgs "-DPATH_TO_LLVM=$pathToLlvm"
   }
 
   if ($LastExitCode -ne 0) {
