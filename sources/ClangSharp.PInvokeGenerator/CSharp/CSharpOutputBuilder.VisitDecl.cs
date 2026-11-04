@@ -32,7 +32,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
 
     public void BeginValue(in ValueDesc desc)
     {
-        if (_generator.Config.GenerateDocIncludes && (desc.Kind == ValueKind.Enumerator))
+        if (_generator.Config.GenerateDocIncludes && !string.IsNullOrWhiteSpace(desc.ParentName))
         {
             WriteIndented("/// <include file='");
             Write(desc.ParentName);

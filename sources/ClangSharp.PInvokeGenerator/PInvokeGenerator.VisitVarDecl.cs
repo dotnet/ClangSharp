@@ -254,6 +254,7 @@ public partial class PInvokeGenerator
 
             var desc = new ValueDesc {
                 AccessSpecifier = accessSpecifier,
+                ParentName = IsPrevContextDecl<RecordDecl>(out var recordDecl, out _) ? GetRemappedCursorName(recordDecl) : className,
                 TypeName = typeName,
                 EscapedName = escapedName,
                 NativeTypeName = nativeTypeName,

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="value" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <constant name="MyConstant" access="public">
+        <type primitive="False">MyStruct</type>
+        <value>
+          <code>new MyStruct
+      {
+          value = 0,
+      }</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
