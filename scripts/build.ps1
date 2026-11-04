@@ -199,6 +199,7 @@ function Import-VisualStudioEnvironment([string] $vsPath, [string] $arch) {
 function Build-Libclangsharp([string] $runtime, [string] $source, [string] $destination) {
   $nativeBuildDir = Join-Path -Path $ArtifactsDir -ChildPath "bin\native\$runtime"
   $pathToLlvm = (Resolve-Path -Path $source).Path
+  $cmakePathToLlvm = $pathToLlvm.Replace("\", "/")
   $vcpkgArgs = @()
   $vcpkgRoot = if ($env:VCPKG_INSTALLATION_ROOT) { $env:VCPKG_INSTALLATION_ROOT } else { $env:VCPKG_ROOT }
 
@@ -238,7 +239,7 @@ function Build-Libclangsharp([string] $runtime, [string] $source, [string] $dest
       $ninja = Join-Path -Path $vsPath -ChildPath "Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe"
     }
 
-    & cmake -G Ninja -B "$nativeBuildDir" -S "$RepoRoot" "-DCMAKE_MAKE_PROGRAM=$ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl @vcpkgArgs "-DPATH_TO_LLVM=$pathToLlvm"
+    & cmake -G Ninja -B "$nativeBuildDir" -S "$RepoRoot" "-DCMAKE_MAKE_PROGRAM=$ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl @vcpkgArgs "-DPATH_TO_LLVM=$cmakePathToLlvm"
   }
   else {
     $arch = switch ($runtime) {
@@ -246,7 +247,7 @@ function Build-Libclangsharp([string] $runtime, [string] $source, [string] $dest
       default   { throw "'$runtime' cannot build libClangSharp on Windows; use build.sh on the matching runner" }
     }
 
-    & cmake -B "$nativeBuildDir" -S "$RepoRoot" -A "$arch" "-Thost=$arch" @vcpkgArgs "-DPATH_TO_LLVM=$pathToLlvm"
+    & cmake -B "$nativeBuildDir" -S "$RepoRoot" -A "$arch" "-Thost=$arch" @vcpkgArgs "-DPATH_TO_LLVM=$cmakePathToLlvm"
   }
 
   if ($LastExitCode -ne 0) {
