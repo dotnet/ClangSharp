@@ -46,6 +46,19 @@ if(MSVC)
   endif()
 endif()
 
+if(MSVC AND VCPKG_TARGET_TRIPLET)
+  find_package(zstd CONFIG REQUIRED)
+
+  if(NOT TARGET zstd::libzstd)
+    message(FATAL_ERROR "The vcpkg zstd package did not define zstd::libzstd")
+  endif()
+
+  if(NOT TARGET zstd::libzstd_static)
+    add_library(zstd::libzstd_static INTERFACE IMPORTED)
+    set_property(TARGET zstd::libzstd_static PROPERTY INTERFACE_LINK_LIBRARIES zstd::libzstd)
+  endif()
+endif()
+
 find_package(Clang REQUIRED CONFIG
              PATHS ${LLVM_SEARCH_PATHS}
              NO_DEFAULT_PATH)
