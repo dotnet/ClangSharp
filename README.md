@@ -159,7 +159,7 @@ The jobs run when:
 * **libclang** — the tracked LLVM major/minor version changes, or the workflow is dispatched manually with the `libclang` input set.
 * **libClangSharp** — the same LLVM version change, or anything under `sources/libClangSharp/` changes, or the workflow is dispatched manually with the `libclangsharp` input set.
 
-Before anything is downloaded, the workflow verifies the `packages/**/*.nuspec` and `packages/**/runtime.json` versions match the tracked LLVM version (libclang exactly; libClangSharp as `<llvm-version>.<revision>`), so a version bump that forgot to update a package fails fast. Each job uploads the resulting `.nupkg` files as build artifacts and signs them; publishing them to NuGet.org is a manual step. To move to a new LLVM release, bump the version in `CMakeLists.txt` alongside the `<version>` in the affected `packages/**/*.nuspec` files (and the versions in `packages/**/runtime.json` and this README); pushing that change regenerates the packages.
+Before anything is downloaded, the workflow verifies the `packages/**/*.nuspec` and `packages/**/runtime.json` versions match the tracked LLVM version (libclang exactly; libClangSharp as `<llvm-version>.<revision>`), so a version bump that forgot to update a package fails fast. Each job uploads the resulting `.nupkg` files as build artifacts. Push-triggered runs sign them automatically; manually dispatched runs can opt in to signing. Publishing them to NuGet.org is a manual step. To move to a new LLVM release, bump the version in `CMakeLists.txt` alongside the `<version>` in the affected `packages/**/*.nuspec` files (and the versions in `packages/**/runtime.json` and this README); pushing that change regenerates the packages.
 
 ### Generating Bindings
 
