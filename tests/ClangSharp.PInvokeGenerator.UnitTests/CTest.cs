@@ -291,6 +291,43 @@ const int ShiftSignedLong = 1 << SignedLong;
         return ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
+    [TestCase(BaselineOs.Windows)]
+    [TestCase(BaselineOs.Unix)]
+    public Task EnumConstantBitshiftTest(BaselineOs os)
+    {
+        // In C an enumerator has type int, but it is emitted as a member of its enum, so a shift by it needs a cast
+        var inputContents = @"
+enum Bits {
+    BIT_A,
+    BIT_B
+};
+
+const unsigned int FlagA = 1U << BIT_A;
+const unsigned int FlagB = 1U << (BIT_B);
+const unsigned int FlagC = 1U << ((BIT_B));
+const unsigned int FlagD = 2U >> BIT_A;
+const unsigned int FlagE = 2U >> (BIT_B);
+
+#define FLAG_A (1U << BIT_A)
+#define FLAG_B (1U << (BIT_B))
+
+void ShiftAssign(unsigned int value)
+{
+    value <<= BIT_A;
+    value <<= (BIT_B);
+    value >>= BIT_A;
+    value >>= (BIT_B);
+}
+";
+
+        var targetTriple = os == BaselineOs.Windows ? "x86_64-pc-windows-msvc" : BaselineHarness.UnixTargetTriple;
+        string[] commandLineArgs = [.. DefaultCClangCommandLineArgs, $"--target={targetTriple}"];
+
+        return os == BaselineOs.Windows
+            ? ValidateGeneratedCSharpLatestWindowsBaselineAsync(inputContents, commandLineArgs: commandLineArgs, language: "c", languageStandard: DefaultCStandard)
+            : ValidateGeneratedCSharpLatestUnixBaselineAsync(inputContents, commandLineArgs: commandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
     [Test]
     [Platform("unix")]
     public Task BitfieldEnumPropertySmallBackingTypeTestUnix()
