@@ -2,11 +2,13 @@
   "profiles": {
     "GenerateClang": {
       "commandName": "Project",
+      "workingDirectory": "$(MSBuildProjectDirectory)/../..",
       "commandLineArgs": "\"@$(MSBuildProjectDirectory)/Properties/GenerateClang.rsp\" --file-directory \"$(LLVMIncludePath)\" --include-directory \"$(LLVMIncludePath)\" --library-path $(LibClangName)",
       "nativeDebugging": true
     },
     "GenerateClangSharp": {
       "commandName": "Project",
+      "workingDirectory": "$(MSBuildProjectDirectory)/../..",
       "commandLineArgs": "\"@$(MSBuildProjectDirectory)/Properties/GenerateClangSharp.rsp\" --file-directory \"$(MSBuildProjectDirectory)/..\" --include-directory \"$(LLVMIncludePath)\" --library-path $(LibClangSharpName)"
     },
     "GenerateLocal": {

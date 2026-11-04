@@ -43,14 +43,17 @@ clang-c/Index.h
 clang-c/Platform.h
 clang-c/Rewrite.h
 --header-file
-./Properties/GenerateClang-LICENSE.txt
+./sources/ClangSharpPInvokeGenerator/Properties/GenerateClang-LICENSE.txt
 --method-class-name
 clang
 --namespace
 ClangSharp.Interop
 --output
-./sources/ClangSharp/Interop
+./sources/ClangSharp.Interop/clang
 --prefix-strip
 clang_
+--remap
+CXCursorVisitorBlock=delegate* unmanaged[Cdecl]<CXCursor, CXCursor, CXChildVisitResult>
+CXCursorAndRangeVisitorBlock=delegate* unmanaged[Cdecl]<CXCursor, CXSourceRange, CXVisitorResult>
 --test-output
 ./tests/ClangSharp.UnitTests/InteropTests
