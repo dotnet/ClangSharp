@@ -13,7 +13,7 @@ A convenience package which provides the native libClang library for several pla
 
 A helper package which exposes many Clang APIs missing from libClang is provided here: https://www.nuget.org/packages/libClangSharp
 
-**NOTE:** libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/22.1.8); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
+**NOTE:** libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/23.1.5.0); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
 
 Source browsing is available via: https://source.clangsharp.dev/
 
@@ -79,7 +79,7 @@ To successfully build `libClangSharp` you must first build Clang (https://clang.
 
 The process done on Windows is roughly:
 ```cmd
-git clone --single-branch --branch llvmorg-22.1.8 https://github.com/llvm/llvm-project
+git clone --single-branch --branch llvmorg-23.1.5 https://github.com/llvm/llvm-project
 cd llvm-project
 mkdir artifacts/bin
 cd artifacts/bin
@@ -103,7 +103,7 @@ You can then open `libClangSharp.slnx` in Visual Studio, change the configuratio
 
 The process done on Linux is roughly:
 ```bash
-git clone --single-branch --branch llvmorg-22.1.8 https://github.com/llvm/llvm-project
+git clone --single-branch --branch llvmorg-23.1.5 https://github.com/llvm/llvm-project
 cd llvm-project
 mkdir -p artifacts/bin
 cd artifacts/bin

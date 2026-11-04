@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(ClangSharp VERSION 22.1.8)
+project(ClangSharp VERSION 23.1.5)
 
 # The official LLVM release binaries link the static CRT (/MT); match them so
 # libClangSharp links against them without LNK2038 runtime-library mismatches.
