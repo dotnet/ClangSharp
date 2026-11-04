@@ -9,8 +9,8 @@ name: regenerate-native
 # regenerates for that same reason or whenever sources/libClangSharp changes. Both can also be
 # forced via workflow_dispatch. See the "Regenerating native binaries" section in README.md.
 #
-# The jobs upload the resulting .nupkg files as build artifacts and sign them via the
-# separate sign-nuget leg; publishing to NuGet is manual.
+# The jobs upload the resulting .nupkg files as build artifacts. Push runs sign them
+# automatically; workflow_dispatch can opt in to signing. Publishing to NuGet is manual.
 
 on:
   push:
@@ -23,6 +23,10 @@ on:
         default: false
       libclangsharp:
         description: "Force regenerating the libClangSharp runtime packages"
+        type: boolean
+        default: false
+      sign:
+        description: "Sign the generated native packages"
         type: boolean
         default: false
 
@@ -168,12 +172,11 @@ jobs:
 
   sign-nuget:
     needs: [ libclang, libclangsharp-pack ]
-    # Sign on pushes to main whenever the legs that actually ran succeeded. A leg that
-    # was version-gated out is 'skipped' (not a failure), so a libClangSharp-only
-    # regeneration still gets signed; a real failure or cancellation blocks signing.
+    # Sign pushes automatically and allow workflow_dispatch to opt in. A leg that was
+    # version-gated out is 'skipped' (not a failure); failures block signing.
     if: >-
-      ${{ github.event_name == 'push'
-          && !cancelled()
+      ${{ !cancelled()
+          && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.sign))
           && needs.libclang.result != 'failure'
           && needs.libclangsharp-pack.result != 'failure'
           && (needs.libclang.result == 'success' || needs.libclangsharp-pack.result == 'success') }}
