@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
-using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_StmtClass;
@@ -21,7 +20,8 @@ public sealed class StringLiteral : Expr
     {
         get
         {
-            var pCString = clang.getCString(Handle.StringLiteralValue);
+            using var value = Handle.StringLiteralValue;
+            var pCString = clang.getCString(value);
 
             if (pCString is null)
             {
@@ -41,7 +41,7 @@ public sealed class StringLiteral : Expr
 
                 case CX_SLK_Wide:
                 {
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    if (constantArrayType.ElementType.SizeOf == 2)
                     {
                         goto case CX_SLK_UTF16;
                     }

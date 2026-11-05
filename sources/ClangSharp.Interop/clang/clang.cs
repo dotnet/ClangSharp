@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-21.1.8/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-23.1.5/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 using System;
@@ -54,6 +54,12 @@ public static unsafe partial class @clang
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleMapDescriptor_dispose", ExactSpelling = true)]
     public static extern void ModuleMapDescriptor_dispose([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleCache_prune", ExactSpelling = true)]
+    public static extern void ModuleCache_prune([NativeTypeName("const char *")] sbyte* Path, [NativeTypeName("time_t")] long PruneInterval, [NativeTypeName("time_t")] long PruneAfter);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleCache_pruneWithCallback", ExactSpelling = true)]
+    public static extern void ModuleCache_pruneWithCallback([NativeTypeName("const char *")] sbyte* Path, [NativeTypeName("time_t")] long PruneInterval, [NativeTypeName("time_t")] long PruneAfter, [NativeTypeName("CXModuleCachePruneCallback")] delegate* unmanaged[Cdecl]<sbyte*, void*, void> Callback, void* UserData);
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompilationDatabase_fromDirectory", ExactSpelling = true)]
     [return: NativeTypeName("CXCompilationDatabase")]

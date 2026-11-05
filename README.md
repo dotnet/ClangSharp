@@ -59,6 +59,10 @@ See [LICENSE.md](LICENSE.md) in the repository root for more information.
 
 ClangSharp requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and can be built simply with `dotnet build -c Release`.
 
+The managed libraries and generator target LLVM 23.1.5 and use the matching `libClang` 23.1.5 and `libClangSharp` 23.1.5.0 runtime packages.
+
+To regenerate the managed interop bindings, run the generator from the repository root with `sources/ClangSharpPInvokeGenerator/Properties/GenerateClang.rsp` or `GenerateClangSharp.rsp`. Use the matching LLVM release's headers (including its generated headers) as `--include-directory`, and set `--file-directory` to that include directory for libClang or to `sources` for libClangSharp. For libClangSharp, also include the native build directory containing `ClangSharp_export.h`. The response files write to `sources/ClangSharp.Interop/clang` and `sources/ClangSharp.Interop/clangsharp`, respectively.
+
 You can reproduce what the CI environment does by running `./scripts/cibuild.cmd` on Windows or `./scripts.cibuild.sh` on Unix.
 This will download the required .NET SDK locally and use that to build the repo; it will also run through all available actions in the appropriate order.
 

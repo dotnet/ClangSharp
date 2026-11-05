@@ -9,6 +9,71 @@ namespace ClangSharp.UnitTests;
 
 public sealed class StmtTest : TranslationUnitTest
 {
+    private static Cursor? FindDescendant(Cursor cursor, CXCursorKind kind)
+    {
+        foreach (var child in cursor.CursorChildren)
+        {
+            if (child.CursorKind == kind)
+            {
+                return child;
+            }
+
+            if (FindDescendant(child, kind) is Cursor found)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    [Test]
+    public void OMPSplitDirectiveTest()
+    {
+        var inputContents = """
+void f(int n)
+{
+#pragma omp split counts(3, omp_fill, 2)
+    for (int i = 0; i < n; ++i) { }
+}
+""";
+
+        string[] commandLineArgs = ["-std=c++20", "-fopenmp", "-fopenmp-version=60", "-Wno-pragma-once-outside-header"];
+        using var translationUnit = CreateTranslationUnit(inputContents, commandLineArgs: commandLineArgs);
+
+        var functionDecl = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionDecl>()
+                                           .Single((functionDecl) => functionDecl.Name.Equals("f", StringComparison.Ordinal));
+        var splitCursor = FindDescendant(functionDecl, CXCursorKind.CXCursor_OMPSplitDirective);
+
+        Assert.That(splitCursor, Is.InstanceOf<OMPSplitDirective>(), $"Statement={splitCursor?.Handle.IsStatement}; declaration={splitCursor?.Handle.IsDeclaration}; class={splitCursor?.Handle.StmtClass}");
+
+        _ = ((OMPSplitDirective)splitCursor!).Children.ToArray();
+    }
+
+    [Test]
+    public void OMPFuseDirectiveTest()
+    {
+        var inputContents = """
+void f(int n)
+{
+#pragma omp fuse
+    {
+        for (int i = 0; i < n; ++i) { }
+        for (int j = 0; j < n; ++j) { }
+    }
+}
+""";
+
+        string[] commandLineArgs = ["-std=c++20", "-fopenmp", "-fopenmp-version=60", "-Wno-pragma-once-outside-header"];
+        using var translationUnit = CreateTranslationUnit(inputContents, commandLineArgs: commandLineArgs);
+
+        var functionDecl = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionDecl>()
+                                           .Single((functionDecl) => functionDecl.Name.Equals("f", StringComparison.Ordinal));
+        var fuseCursor = FindDescendant(functionDecl, CXCursorKind.CXCursor_OMPFuseDirective);
+
+        Assert.That(fuseCursor, Is.InstanceOf<OMPFuseDirective>(), $"Statement={fuseCursor?.Handle.IsStatement}; declaration={fuseCursor?.Handle.IsDeclaration}; class={fuseCursor?.Handle.StmtClass}");
+    }
+
     [Test]
     public void IfStmtStatementKindTest()
     {

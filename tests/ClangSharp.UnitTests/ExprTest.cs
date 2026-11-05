@@ -11,6 +11,23 @@ public sealed class ExprTest : TranslationUnitTest
 {
     private static readonly string[] Cpp20CommandLineArgs = ["-std=c++20", "-Wno-pragma-once-outside-header"];
 
+    [TestCase("x86_64-pc-windows-msvc", 2)]
+    [TestCase("x86_64-unknown-linux-gnu", 4)]
+    public void WideStringLiteralTargetWidthTest(string target, int charWidth)
+    {
+        var inputContents = """
+const wchar_t value[] = L"Test\0\u00E9\U0001F600";
+""";
+        string[] commandLineArgs = ["-std=c++17", $"--target={target}"];
+
+        using var translationUnit = CreateTranslationUnit(inputContents, commandLineArgs: commandLineArgs);
+        var varDecl = translationUnit.TranslationUnitDecl.Decls.OfType<VarDecl>().Single();
+        var literal = (StringLiteral)varDecl.Init;
+
+        Assert.That(((ConstantArrayType)literal.Type).ElementType.SizeOf, Is.EqualTo(charWidth));
+        Assert.That(literal.String, Is.EqualTo("Test\0\u00E9\U0001F600"));
+    }
+
     private static T? FindDescendant<T>(Cursor cursor)
         where T : Cursor
     {

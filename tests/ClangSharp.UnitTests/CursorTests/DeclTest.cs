@@ -137,8 +137,6 @@ struct MyStruct
     [Test]
     public void FunctionTemplateSpecializationArgsTest()
     {
-        SkipUntilNativeRebuild();
-
         var inputContents = $@"template<class T, class U>
 void MyFunction(T t, U u);
 
@@ -158,8 +156,6 @@ void MyFunction<int, float>(int t, float u);
     [Test]
     public void VarTemplateSpecializationArgsTest()
     {
-        SkipUntilNativeRebuild();
-
         var inputContents = $@"template<class T, class U>
 constexpr int MyVar = 0;
 
@@ -204,10 +200,6 @@ struct S {
     [Test]
     public void UsingEnumDeclEnumDeclTest()
     {
-        // Resolving UsingEnumDecl.EnumDecl relies on the native clangsharp_Cursor_getUsingEnumDeclEnumDecl
-        // shim, which the pinned 21.1 prebuilt package predates; skip until the native lib is rebuilt.
-        SkipUntilNativeRebuild();
-
         var inputContents = """
 enum class E { A, B };
 

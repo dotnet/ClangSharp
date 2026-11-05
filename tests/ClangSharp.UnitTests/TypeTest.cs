@@ -9,6 +9,25 @@ namespace ClangSharp.UnitTests;
 
 public sealed class TypeTest : TranslationUnitTest
 {
+    private static T? FindDescendant<T>(Cursor cursor)
+        where T : Cursor
+    {
+        if (cursor is T match)
+        {
+            return match;
+        }
+
+        foreach (var child in cursor.CursorChildren)
+        {
+            if (FindDescendant<T>(child) is T found)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
     [Test]
     public void UnqualifiedTypeTest()
     {
@@ -144,6 +163,28 @@ using IntT = int;
     }
 
     [Test]
+    public void MatrixElementExprTest()
+    {
+        var inputContents = """
+typedef float Matrix4x4 __attribute__((matrix_type(4, 4)));
+float GetElement(Matrix4x4 matrix)
+{
+    return matrix._m00;
+}
+""";
+
+        string[] commandLineArgs = ["-std=hlsl202x", "--target=dxil-pc-shadermodel6.0-library", $"-I{AppContext.BaseDirectory}"];
+        using var translationUnit = CreateTranslationUnit(inputContents, language: "hlsl", commandLineArgs: commandLineArgs);
+
+        var functionDecl = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionDecl>()
+                                           .Single((functionDecl) => functionDecl.Name.Equals("GetElement", StringComparison.Ordinal));
+        var matrixElementExpr = FindDescendant<MatrixElementExpr>(functionDecl);
+
+        Assert.That(matrixElementExpr, Is.Not.Null);
+        Assert.That(matrixElementExpr!.StmtClass, Is.EqualTo(CX_StmtClass.CX_StmtClass_MatrixElementExpr));
+    }
+
+    [Test]
     public void MemberPointerKindTest()
     {
         var inputContents = """
@@ -170,10 +211,6 @@ using MemFuncT = void (S::*)();
     [Test]
     public void TemplateNameTest()
     {
-        // Resolving TemplateSpecializationType.TemplateName relies on the native clangsharp shim, which
-        // the win-arm64 prebuilt returns invalid; skip until the native lib is rebuilt.
-        SkipUntilNativeRebuild();
-
         var inputContents = """
 template <typename T> struct Tmpl { T value; };
 using SpecT = Tmpl<int>;

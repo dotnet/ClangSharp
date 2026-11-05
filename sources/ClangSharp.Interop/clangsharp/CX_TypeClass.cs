@@ -41,6 +41,7 @@ public enum CX_TypeClass
     CX_TypeClass_ObjCObject,
     CX_TypeClass_ObjCInterface,
     CX_TypeClass_ObjCTypeParam,
+    CX_TypeClass_OverflowBehavior,
     CX_TypeClass_PackExpansion,
     CX_TypeClass_PackIndexing,
     CX_TypeClass_Paren,
