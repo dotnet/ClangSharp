@@ -1109,5 +1109,6 @@ public sealed class PInvokeGeneratorConfiguration
 
     private static (string, PInvokeGeneratorTransparentStructKind) RemoveAtPrefix((string Name, PInvokeGeneratorTransparentStructKind Kind) value) => (ValueStartsWithAt(value.Name) ? value.Name[1..] : value.Name, value.Kind);
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1307:SpecifyStringComparison", Justification = "The single-character overload uses ordinal comparison.")]
     private static bool ValueStartsWithAt(string value) => value.StartsWith('@');
 }

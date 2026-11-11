@@ -54,7 +54,7 @@ public partial class PInvokeGenerator
             }
 
             var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
-            var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
+            var maxAlignm = recordDecl.Fields.Count > 0 ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
             var isTopLevelStruct = _config.WithTypes.TryGetValue(StripNameEscape(name), out var withType) && withType.Equals("struct", StringComparison.Ordinal);
             var generateTestsClass = !recordDecl.IsAnonymousStructOrUnion && recordDecl.DeclContext is not RecordDecl;
@@ -159,7 +159,7 @@ public partial class PInvokeGenerator
             }
 
             string? nativeNameWithExtras = null, nativeInheritance = null;
-            if ((cxxRecordDecl is not null) && cxxRecordDecl.Bases.Any())
+            if ((cxxRecordDecl is not null) && cxxRecordDecl.Bases.Count > 0)
             {
                 var nativeTypeNameBuilder = new StringBuilder();
                 var baseTypeNamesBuilder = new List<string>();
@@ -1868,7 +1868,7 @@ public partial class PInvokeGenerator
             _outputBuilder.WriteDivider();
 
             var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
-            var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
+            var maxAlignm = recordDecl.Fields.Count > 0 ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
             var accessSpecifier = GetAccessSpecifier(constantOrIncompleteArray, matchStar: false);
             var elementType = arrayType.ElementType;

@@ -1701,7 +1701,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool HasField(RecordDecl recordDecl)
     {
-        var hasField = recordDecl.Fields.Any() || recordDecl.Decls.Any((decl) => (decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && HasField(nestedRecordDecl));
+        var hasField = recordDecl.Fields.Count > 0 || recordDecl.Decls.Any((decl) => (decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && HasField(nestedRecordDecl));
 
         if (!hasField && (recordDecl is CXXRecordDecl cxxRecordDecl))
         {
@@ -2828,6 +2828,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return className;
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1307:SpecifyStringComparison", Justification = "The single-character overload uses ordinal comparison.")]
     private bool TryGetClass(ReadOnlySpan<char> remappedName, [MaybeNullWhen(false)] out string className, bool disallowPrefixMatch = false)
     {
         remappedName = StripNameEscape(remappedName);

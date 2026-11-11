@@ -1688,6 +1688,7 @@ public sealed partial class PInvokeGenerator
         return remappedName.Contains('*', StringComparison.Ordinal);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1307:SpecifyStringComparison", Justification = "The single-character overload uses ordinal comparison.")]
     private static bool IsUnsigned(string typeName)
     {
         switch (typeName)

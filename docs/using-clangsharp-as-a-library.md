@@ -97,7 +97,7 @@ so the correct platform-specific runtime package is restored:
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <Nullable>enable</Nullable>
 
     <!-- Required so the platform-specific libClang/libClangSharp runtime package is restored -->
@@ -106,7 +106,7 @@ so the correct platform-specific runtime package is restored:
 
   <ItemGroup>
     <!-- The native libClang/libClangSharp runtimes come in transitively -->
-    <PackageReference Include="ClangSharp" Version="21.1.8.4" />
+    <PackageReference Include="ClangSharp" Version="23.1.5" />
   </ItemGroup>
 
 </Project>

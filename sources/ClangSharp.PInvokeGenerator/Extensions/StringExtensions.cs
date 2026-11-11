@@ -8,6 +8,7 @@ namespace ClangSharp;
 
 internal static class StringExtensions
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1307:SpecifyStringComparison", Justification = "Single-character overloads use ordinal comparison.")]
     public static string Unquote(this string str)
         => str.StartsWith('\"') && str.EndsWith('\"') && !str.EndsWith("\\\"", StringComparison.Ordinal)
             ? str[1..^1]

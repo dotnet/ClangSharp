@@ -57,7 +57,7 @@ See [LICENSE.md](LICENSE.md) in the repository root for more information.
 
 ### Building Managed
 
-ClangSharp requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and can be built simply with `dotnet build -c Release`.
+ClangSharp requires the [.NET 11 SDK](https://dotnet.microsoft.com/download/dotnet/11.0) and can be built simply with `dotnet build -c Release`.
 
 The managed libraries and generator target LLVM 23.1.5 and use the matching `libClang` 23.1.5 and `libClangSharp` 23.1.5.0 runtime packages.
 
@@ -277,7 +277,7 @@ Options:
 
   # Mode Families (-c <name>=<value>)
 
-  codegen=<value>                             Which .NET/C# level to target: 'compatible' (.NET Standard 2.0), 'default' (current LTS; .NET 8/C# 12), 'latest' (current STS; .NET 10/C# 14), or 'preview'. Defaults to 'default'.
+  codegen=<value>                             Which .NET/C# level to target: 'compatible' (.NET Standard 2.0), 'default' (current LTS; .NET 10/C# 14), 'latest' (current STS; .NET 11/C# 15), or 'preview'. Defaults to 'default'.
   file=<value>                                How output is split: 'single' (one output file; the default) or 'multi' (approximately one type per file).
   types=<value>                               Which platform defaults to assume: 'windows' or 'unix'. Defaults to the host platform.
   vtbls=<value>                               How VTBLs are generated: 'explicit' (a named field per entry), 'implicit' (the default; reduces metadata bloat), or 'trimmable' (defined but unused in helpers to reduce bloat when trimming).

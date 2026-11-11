@@ -216,7 +216,7 @@ internal static partial class Program
         new HelpRow("# Mode Families (-c <name>=<value>)", ""),
         new HelpRow("", ""),
 
-        new HelpRow("codegen=<value>", "Which .NET/C# level to target: 'compatible' (.NET Standard 2.0), 'default' (current LTS; .NET 8/C# 12), 'latest' (current STS; .NET 10/C# 14), or 'preview'. Defaults to 'default'."),
+        new HelpRow("codegen=<value>", "Which .NET/C# level to target: 'compatible' (.NET Standard 2.0), 'default' (current LTS; .NET 10/C# 14), 'latest' (current STS; .NET 11/C# 15), or 'preview'. Defaults to 'default'."),
         new HelpRow("file=<value>", "How output is split: 'single' (one output file; the default) or 'multi' (approximately one type per file)."),
         new HelpRow("types=<value>", "Which platform defaults to assume: 'windows' or 'unix'. Defaults to the host platform."),
         new HelpRow("vtbls=<value>", "How VTBLs are generated: 'explicit' (a named field per entry), 'implicit' (the default; reduces metadata bloat), or 'trimmable' (defined but unused in helpers to reduce bloat when trimming)."),

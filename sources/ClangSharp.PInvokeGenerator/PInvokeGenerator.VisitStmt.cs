@@ -1349,6 +1349,7 @@ public partial class PInvokeGenerator
         Visit(exprWithCleanups.Objects);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1307:SpecifyStringComparison", Justification = "The single-character overload uses ordinal comparison.")]
     private void VisitFloatingLiteral(FloatingLiteral floatingLiteral)
     {
         var outputBuilder = StartCSharpCode();

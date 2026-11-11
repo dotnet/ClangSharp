@@ -20,10 +20,11 @@ in the **generator** instead — change the generator, then regenerate.
 
 ## Build / test (do this to validate every change)
 
-Requires the **.NET 10 SDK** (`global.json` pins `10.0.100-preview`, `allowPrerelease`). `dotnet` resolves it.
+Requires the **.NET 11 SDK** (`global.json` pins `11.0.100`). Projects target both `net11.0` and
+`net10.0`, with .NET 11 as the primary target.
 
 - Build: `dotnet build -c Release` (root, builds `ClangSharp.slnx`). ~20s incremental, clean.
-- Test: `dotnet test -c Release --no-build` (~1 min; ~3760 tests: 3706 generator + interop on `net10.0`).
+- Test: `dotnet test -c Release --no-build` (runs the test projects on both `net11.0` and `net10.0`).
 - `--no-build` requires a prior successful build; drop it if you changed code since the last build.
 
 `TreatWarningsAsErrors=true`, `Nullable=enable`, `AnalysisLevel=latest-all`, and `EnforceCodeStyleInBuild=true`
