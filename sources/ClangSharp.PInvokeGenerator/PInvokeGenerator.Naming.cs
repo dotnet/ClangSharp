@@ -422,7 +422,7 @@ public sealed partial class PInvokeGenerator
 
             var templateArgs = classTemplateSpecializationDecl.TemplateArgs;
 
-            if (templateArgs.Any())
+            if (templateArgs.Count > 0)
             {
                 AppendTemplateArgument(templateArgs[0], qualifiedName);
 
@@ -448,7 +448,7 @@ public sealed partial class PInvokeGenerator
 
             var templateParameters = templateDecl.TemplateParameters;
 
-            if (templateParameters.Any())
+            if (templateParameters.Count > 0)
             {
                 _ = qualifiedName.Append(templateParameters[0].Name);
 

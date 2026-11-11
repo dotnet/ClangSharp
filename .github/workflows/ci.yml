@@ -16,10 +16,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ windows ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - run: ./scripts/cibuild.cmd -configuration ${{ matrix.configuration }} -architecture ${{ matrix.architecture }}
       shell: cmd
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
@@ -27,7 +27,7 @@ jobs:
           ./artifacts/log/**/*
           ./artifacts/tst/**/*
         if-no-files-found: error
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
         path: |
@@ -41,10 +41,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ windows ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - run: ./scripts/cibuild.cmd -configuration ${{ matrix.configuration }} -architecture ${{ matrix.architecture }}
       shell: cmd
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
@@ -52,7 +52,7 @@ jobs:
           ./artifacts/log/**/*
           ./artifacts/tst/**/*
         if-no-files-found: error
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
         path: |
@@ -66,10 +66,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ ubuntu ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - run: ./scripts/cibuild.sh --configuration ${{ matrix.configuration }} --architecture ${{ matrix.architecture }}
       shell: bash
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
@@ -77,7 +77,7 @@ jobs:
           ./artifacts/log/**/*
           ./artifacts/tst/**/*
         if-no-files-found: error
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
         path: |
@@ -91,10 +91,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ ubuntu ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - run: ./scripts/cibuild.sh --configuration ${{ matrix.configuration }} --architecture ${{ matrix.architecture }}
       shell: bash
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
@@ -102,7 +102,7 @@ jobs:
           ./artifacts/log/**/*
           ./artifacts/tst/**/*
         if-no-files-found: error
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
         path: |
@@ -116,10 +116,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ macos ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - run: ./scripts/cibuild.sh --configuration ${{ matrix.configuration }} --architecture ${{ matrix.architecture }}
       shell: bash
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
@@ -127,7 +127,7 @@ jobs:
           ./artifacts/log/**/*
           ./artifacts/tst/**/*
         if-no-files-found: error
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
         path: |
@@ -140,24 +140,24 @@ jobs:
     permissions:
       id-token: write
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v4
+    - uses: actions/checkout@v7
+    - uses: actions/download-artifact@v8
       with:
         merge-multiple: true
         path: ./artifacts/pkg
         pattern: "*_release_*_pkg"
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v6
       with:
         global-json-file: ./global.json
     - run: dotnet tool install --tool-path ./artifacts/tools --prerelease sign
-    - uses: azure/login@v2
+    - uses: azure/login@v3
       with:
         allow-no-subscriptions: true
         client-id: "${{ secrets.AZURE_CLIENT_ID }}"
         tenant-id: "${{ secrets.AZURE_TENANT_ID }}"
     - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileList.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-credential-type "azure-cli" --azure-key-vault-url "${{ secrets.KEY_VAULT_URL }}" --azure-key-vault-certificate "${{ secrets.KEY_VAULT_CERTIFICATE_ID }}"
       shell: pwsh
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: sign_nuget
         path: |

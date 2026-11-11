@@ -781,7 +781,7 @@ public partial class PInvokeGenerator
                 _outputBuilder.EndParameter(in parameterDesc);
             }
 
-            if (functionDecl.Parameters.Any())
+            if (functionDecl.Parameters.Count > 0)
             {
                 _outputBuilder.WriteParameterSeparator();
             }
@@ -791,7 +791,7 @@ public partial class PInvokeGenerator
 
         if (functionDecl.IsVariadic)
         {
-            if (needsThis || functionDecl.Parameters.Any())
+            if (needsThis || functionDecl.Parameters.Count > 0)
             {
                 _outputBuilder.WriteParameterSeparator();
             }
@@ -877,7 +877,7 @@ public partial class PInvokeGenerator
             }
             else
             {
-                var firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters[functionDecl.Parameters.Count - 1]) + 1) : 0;
+                var firstCtorInitializer = functionDecl.Parameters.Count > 0 ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters[functionDecl.Parameters.Count - 1]) + 1) : 0;
                 var lastCtorInitializer = (functionDecl.Body is not null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
 
                 if (functionDecl is CXXConstructorDecl cxxConstructorDecl)

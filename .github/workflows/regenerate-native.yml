@@ -44,7 +44,7 @@ jobs:
       libclang: ${{ steps.detect.outputs.libclang }}
       libclangsharp: ${{ steps.detect.outputs.libclangsharp }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - id: detect
@@ -77,8 +77,8 @@ jobs:
     # bundled bsdtar handles .tar.xz) can produce every runtime's package.
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: NuGet/setup-nuget@v2
+    - uses: actions/checkout@v7
+    - uses: NuGet/setup-nuget@v4
     - name: Extract libclang and pack packages
       shell: pwsh
       run: |
@@ -93,7 +93,7 @@ jobs:
         }
         nuget pack "packages/libclang/libclang/libclang.nuspec" -OutputDirectory out
         if ($LASTEXITCODE -ne 0) { throw "nuget pack failed for the libclang meta package" }
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: libclang-packages
         path: out/*.nupkg
@@ -115,7 +115,7 @@ jobs:
         - { rid: linux-arm64, os: ubuntu-24.04-arm }
         - { rid: osx-arm64,   os: macos-latest }
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Install LLVM dependencies (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
@@ -135,7 +135,7 @@ jobs:
       if: runner.os != 'Windows'
       shell: bash
       run: ./scripts/build.sh --regeneratenative --target libClangSharp --rid ${{ matrix.rid }}
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: libclangsharp-native-${{ matrix.rid }}
         path: artifacts/native/${{ matrix.rid }}/*
@@ -146,9 +146,9 @@ jobs:
     if: ${{ needs.detect.outputs.libclangsharp == 'true' }}
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: NuGet/setup-nuget@v2
-    - uses: actions/download-artifact@v4
+    - uses: actions/checkout@v7
+    - uses: NuGet/setup-nuget@v4
+    - uses: actions/download-artifact@v8
       with:
         pattern: libclangsharp-native-*
         path: staging
@@ -162,7 +162,7 @@ jobs:
           nuget pack "packages/libClangSharp/libClangSharp.runtime.${rid}/libClangSharp.runtime.${rid}.nuspec" -OutputDirectory out
         done
         nuget pack "packages/libClangSharp/libClangSharp/libClangSharp.nuspec" -OutputDirectory out
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: libClangSharp-packages
         path: out/*.nupkg
@@ -184,24 +184,24 @@ jobs:
     permissions:
       id-token: write
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v4
+    - uses: actions/checkout@v7
+    - uses: actions/download-artifact@v8
       with:
         merge-multiple: true
         path: ./artifacts/pkg
         pattern: "lib*-packages"
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v6
       with:
         global-json-file: ./global.json
     - run: dotnet tool install --tool-path ./artifacts/tools --prerelease sign
-    - uses: azure/login@v2
+    - uses: azure/login@v3
       with:
         allow-no-subscriptions: true
         client-id: "${{ secrets.AZURE_CLIENT_ID }}"
         tenant-id: "${{ secrets.AZURE_TENANT_ID }}"
     - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileListNative.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-credential-type "azure-cli" --azure-key-vault-url "${{ secrets.KEY_VAULT_URL }}" --azure-key-vault-certificate "${{ secrets.KEY_VAULT_CERTIFICATE_ID }}"
       shell: pwsh
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: sign_nuget_native
         path: |
