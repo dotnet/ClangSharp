@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <enumeration name="MyEnum" access="public">
+      <type>int</type>
+      <enumerator name="MyEnum_Shift" access="public">
+        <type primitive="False">int</type>
+        <value>
+          <code>24</code>
+        </value>
+      </enumerator>
+      <enumerator name="MyEnum_Value" access="public">
+        <type primitive="False">int</type>
+        <value>
+          <code>1 &lt;&lt; (int)(<value>MyEnum_Shift</value>)</code>
+        </value>
+      </enumerator>
+    </enumeration>
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true">
+        <type native="unsigned char">byte</type>
+        <param name="x">
+          <type>uint</type>
+        </param>
+        <code>return (byte)(x &gt;&gt; (int)(<value>MyEnum_Shift</value>));</code>
+      </function>
+      <function name="MyFunction2" access="public" static="true">
+        <type native="unsigned int">uint</type>
+        <param name="x">
+          <type>uint</type>
+        </param>
+        <code>return x &lt;&lt; (int)(MyEnum_Shift);</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>
