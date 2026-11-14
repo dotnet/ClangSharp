@@ -5,19 +5,19 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
-    [GeneratedCode("ClangSharp", "23.1.5.0")]
+    [GeneratedCode("ClangSharp", "{ClangSharpVersion}")]
     public enum MyEnum
     {
         MyEnum_Value,
     }
 
-    [GeneratedCode("ClangSharp", "23.1.5.0")]
+    [GeneratedCode("ClangSharp", "{ClangSharpVersion}")]
     public partial struct MyStruct
     {
         public int value;
     }
 
-    [GeneratedCode("ClangSharp", "23.1.5.0")]
+    [GeneratedCode("ClangSharp", "{ClangSharpVersion}")]
     public static unsafe partial class Methods
     {
         [DllImport("ClangSharpPInvokeGenerator", CallingConvention = CallingConvention.Cdecl, EntryPoint = "?MyFunction@@YAXP6AXH@Z@Z", ExactSpelling = true)]

@@ -259,6 +259,29 @@ static inline int MyFunction(MyEnum x)
     }
 
     [Test]
+    public Task EnumeratorShiftTest()
+    {
+        var inputContents = @"enum MyEnum : int
+{
+    MyEnum_Shift = 24,
+    MyEnum_Value = 1 << MyEnum_Shift,
+};
+
+static inline unsigned char MyFunction(unsigned int x)
+{
+    return (unsigned char)(x >> MyEnum_Shift);
+}
+
+static inline unsigned int MyFunction2(unsigned int x)
+{
+    return x << (MyEnum_Shift);
+}
+";
+
+        return ValidateAsync(nameof(EnumeratorShiftTest), inputContents);
+    }
+
+    [Test]
     public Task ConditionalOperatorTest()
     {
         var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
