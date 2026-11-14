@@ -40,6 +40,7 @@ internal static partial class Program
         ["generate-cpp-attributes"] = (GenerateCppAttributes, false),
         ["generate-disable-runtime-marshalling"] = (GenerateDisableRuntimeMarshalling, false),
         ["generate-doc-includes"] = (GenerateDocIncludes, false),
+        ["generate-doc-comments"] = (GenerateDocComments, false),
         ["generate-extern-variables"] = (GenerateExternVariables, false),
         ["generate-file-scoped-namespaces"] = (GenerateFileScopedNamespaces, false),
         ["generate-fixed-buffer-indexer-overloads"] = (GenerateFixedBufferIndexerOverloads, false),
