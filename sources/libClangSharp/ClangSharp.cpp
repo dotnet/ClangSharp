@@ -2651,6 +2651,14 @@ unsigned clangsharp_Cursor_getIsConditionTrue(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsConstexpr(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
+            return VD->isConstexpr();
+        }
+    }
+
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
