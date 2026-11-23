@@ -47,6 +47,8 @@ public class VarDecl : DeclaratorDecl, IRedeclarable<VarDecl>
 
     public VarDecl InstantiatedFromStaticDataMember => _instantiatedFromStaticDataMember.GetValue(this);
 
+    public bool IsConstexpr => Handle.IsConstexpr;
+
     public bool IsExternC => Handle.IsExternC;
 
     public bool IsLocalVarDecl => Handle.IsLocalVarDecl;
