@@ -998,14 +998,22 @@ public sealed partial class PInvokeGenerator
 
                         GetTypeSize(baseCXXRecordDecl, baseCXXRecordDecl.Type, ref fieldAlignment32, ref fieldAlignment64, ref anyFieldIs8BytePrimitive, out var fieldSize32, out var fieldSize64);
 
-                        if ((fieldAlignment32 == -1) || (alignment32 < 4))
+                        if (fieldAlignment32 == -1)
                         {
                             fieldAlignment32 = Math.Max(Math.Min(alignment32, fieldSize32), 1);
                         }
+                        else if (alignment32 < 4)
+                        {
+                            fieldAlignment32 = Math.Max(Math.Min(alignment32, fieldAlignment32), 1);
+                        }
 
-                        if ((fieldAlignment64 == -1) || (alignment64 < 4))
+                        if (fieldAlignment64 == -1)
                         {
                             fieldAlignment64 = Math.Max(Math.Min(alignment64, fieldSize64), 1);
+                        }
+                        else if (alignment64 < 4)
+                        {
+                            fieldAlignment64 = Math.Max(Math.Min(alignment64, fieldAlignment64), 1);
                         }
 
                         if ((size32 % fieldAlignment32) != 0)
@@ -1087,9 +1095,13 @@ public sealed partial class PInvokeGenerator
 
                 if (!ignoreFieldSize32)
                 {
-                    if ((fieldAlignment32 == -1) || (alignment32 < 4))
+                    if (fieldAlignment32 == -1)
                     {
                         fieldAlignment32 = Math.Max(Math.Min(alignment32, fieldSize32), 1);
+                    }
+                    else if (alignment32 < 4)
+                    {
+                        fieldAlignment32 = Math.Max(Math.Min(alignment32, fieldAlignment32), 1);
                     }
 
                     if ((size32 % fieldAlignment32) != 0)
@@ -1104,9 +1116,13 @@ public sealed partial class PInvokeGenerator
 
                 if (!ignoreFieldSize64)
                 {
-                    if ((fieldAlignment64 == -1) || (alignment64 < 4))
+                    if (fieldAlignment64 == -1)
                     {
                         fieldAlignment64 = Math.Max(Math.Min(alignment64, fieldSize64), 1);
+                    }
+                    else if (alignment64 < 4)
+                    {
+                        fieldAlignment64 = Math.Max(Math.Min(alignment64, fieldAlignment64), 1);
                     }
 
                     if ((size64 % fieldAlignment64) != 0)
