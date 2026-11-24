@@ -70,6 +70,47 @@ namespace ClangSharp.Test.UnitTests
     }
 
     [Test]
+    public async Task StructSizeWithByteArrayAndLowAlignment()
+    {
+        const string inputContents = @"struct MyStruct
+{
+    unsigned short anchor;
+    signed char marker;
+    signed char values[2];
+    signed char tail;
+};
+
+struct StdVideoEncodeH265WeightTableFlags
+{
+    unsigned short luma_weight_l0_flag;
+    unsigned short chroma_weight_l0_flag;
+    unsigned short luma_weight_l1_flag;
+    unsigned short chroma_weight_l1_flag;
+};
+
+struct StdVideoEncodeH265WeightTable
+{
+    StdVideoEncodeH265WeightTableFlags flags;
+    unsigned char luma_log2_weight_denom;
+    signed char delta_chroma_log2_weight_denom;
+    signed char delta_luma_weight_l0[15];
+    signed char luma_offset_l0[15];
+    signed char delta_chroma_weight_l0[15][2];
+    signed char delta_chroma_offset_l0[15][2];
+    signed char delta_luma_weight_l1[15];
+    signed char luma_offset_l1[15];
+    signed char delta_chroma_weight_l1[15][2];
+    signed char delta_chroma_offset_l1[15][2];
+};
+";
+
+        var (_, testOutputContents) = await GenerateBindingsWithTestOutputAsync(inputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.GenerateLatestCode | PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit, excludedNames: null, remappedNames: null, withAccessSpecifiers: null, withAttributes: null, withCallConvs: null, withClasses: null, withLibraryPaths: null, withNamespaces: null, withSetLastErrors: null, withTransparentStructs: null, withTypes: null, withUsings: null, withPackings: null, expectedDiagnostics: null, libraryPath: DefaultLibraryPath, commandLineArgs: null, language: "c++", languageStandard: DefaultCppStandard).ConfigureAwait(false);
+
+        Assert.That(testOutputContents, Does.Contain("Assert.That(sizeof(MyStruct), Is.EqualTo(6));"));
+        Assert.That(testOutputContents, Does.Contain("Assert.That(sizeof(StdVideoEncodeH265WeightTable), Is.EqualTo(190));"));
+    }
+
+    [Test]
     public Task StructTestsXUnit()
     {
         var expectedTestOutputContents = @"using System.Runtime.InteropServices;
