@@ -347,6 +347,38 @@ void f()
         Assert.That(vars["callinit"].InitStyle, Is.EqualTo(CX_InitializationStyle.CX_IS_CallInit));
     }
 
+    [Test]
+    public void VarConstexprTest()
+    {
+        var inputContents = """
+constexpr int CxVar = 1;
+const int ConstVar = 2;
+int PlainVar = 3;
+struct S
+{
+    static constexpr int CxMember = 4;
+    static const int ConstMember = 5;
+};
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var vars = translationUnit.TranslationUnitDecl.Decls.OfType<VarDecl>()
+                                  .ToDictionary((varDecl) => varDecl.Name, StringComparer.Ordinal);
+
+        Assert.That(vars["CxVar"].IsConstexpr, Is.True);
+        Assert.That(vars["ConstVar"].IsConstexpr, Is.False);
+        Assert.That(vars["PlainVar"].IsConstexpr, Is.False);
+
+        var members = translationUnit.TranslationUnitDecl.Decls.OfType<CXXRecordDecl>()
+                                     .Single((recordDecl) => recordDecl.Name.Equals("S", StringComparison.Ordinal))
+                                     .Decls.OfType<VarDecl>()
+                                     .ToDictionary((varDecl) => varDecl.Name, StringComparer.Ordinal);
+
+        Assert.That(members["CxMember"].IsConstexpr, Is.True);
+        Assert.That(members["ConstMember"].IsConstexpr, Is.False);
+    }
+
 
     [Test]
     public void QualifiedNameTest()
