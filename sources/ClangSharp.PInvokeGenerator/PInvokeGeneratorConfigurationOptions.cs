@@ -102,4 +102,6 @@ public enum PInvokeGeneratorConfigurationOptions : long
     GenerateObjectiveCBindings = 1L << 45,
 
     GenerateNativeAlignmentAttribute = 1L << 46,
+
+    GenerateDocComments = 1L << 47,
 }
